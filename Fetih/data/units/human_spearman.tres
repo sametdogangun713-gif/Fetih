@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="UnitData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/unit_data.gd" id="1_dmj38"]
+
+[resource]
+script = ExtResource("1_dmj38")
+id = &"human_spearman"
+kingdom = &"humans"
+role = &"spearman"
+display_name = "İnsan Mızrakçı"
+hp = 11.0
+damage = 2.6
+attack_range = 0.6
+armor = 2.0
+placeholder_color = Color(0.72156864, 0.7607843, 0.8156863, 1)

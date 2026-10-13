@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="UnitData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/unit_data.gd" id="1_m4l6i"]
+
+[resource]
+script = ExtResource("1_m4l6i")
+id = &"elf_stag_rider"
+kingdom = &"elves"
+role = &"cavalry"
+display_name = "Geyik Binicisi"
+cost = 9.0
+hp = 17.0
+damage = 4.3
+move_speed = 2.6
+armor = 1.0
+charge_multiplier = 2.0
+prefers_ranged_targets = true
+placeholder_color = Color(0.7882353, 0.6627451, 0.43137255, 1)

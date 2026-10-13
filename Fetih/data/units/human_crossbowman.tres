@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="UnitData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/unit_data.gd" id="1_yvxnx"]
+
+[resource]
+script = ExtResource("1_yvxnx")
+id = &"human_crossbowman"
+kingdom = &"humans"
+role = &"archer"
+display_name = "Arbaletçi"
+hp = 8.0
+damage = 3.2
+attack_speed = 0.6
+attack_range = 4.5
+move_speed = 0.9
+armor = 1.0
+placeholder_color = Color(0.43137255, 0.49803922, 0.6, 1)

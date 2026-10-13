@@ -118,11 +118,13 @@ Her aşama sonunda **çalışan** bir sürüm olmalı. Grafik son aşamalara kad
 - **Çıktı:** 2 savaşçı bölüğü vs 2 okçu bölüğü kapışıyor, kazanan belli oluyor
 
 ### Aşama 3: Roller, karşılıklar, denge aracı (2 hafta)
-- [ ] 6 rol: Savaşçı, Mızrakçı, Tank, Okçu, Büyücü, Süvari
-- [ ] Karşılık tablosu (%25 bonus)
-- [ ] Savaşa seed ver, aynı seed aynı sonucu versin
-- [ ] `tools/balance_test.gd`: görüntüsüz 1000 savaş, kazanma oranı raporu
-- [ ] İlk 3 krallığın birlikleri: İnsanlar, Elfler, Orklar (her biri 4 birim)
+- [x] 6 rol: Savaşçı, Mızrakçı, Tank, Okçu, Büyücü, Süvari (`scripts/data/role_rules.gd`)
+- [x] Karşılık tablosu (%25 bonus) + rol mekanikleri: büyü zırh deler ve alan hasarı, süvari hücumu ve okçu avı, mızrakçı hücumu karşılar, okçu yakın dövüşte %50
+- [x] Savaşa seed ver, aynı seed aynı sonucu versin
+- [x] `tools/balance_test.gd`: görüntüsüz 1320 savaş (~10 sn), kazanma oranı + karşılık kontrolü raporu
+- [x] İlk 3 krallığın birlikleri: İnsanlar, Elfler, Orklar (her biri 4 birim)
+- [x] Birlik maliyeti (asker başına güç puanı) — bölük bütçesi askere çevrilir
+- [x] Denge: 12 birliğin hepsi %36–%62 genel kazanma; krallıklar %49–%51; karşılıklar 19-20 / 21
 - **Çıktı:** 12 birim, ölçülebilir denge
 
 ### Aşama 4: Koşu döngüsü (2 hafta)

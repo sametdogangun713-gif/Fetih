@@ -69,6 +69,25 @@ Avantaj **%25 civarı hasar bonusu** olmalı, kesin yenme değil. Sayı ve kalit
 
 Her krallıkta 6 rolün hepsi olmak zorunda değil. Her krallık **4-5 birim + 1 boss** yeterli.
 
+### Rol mekanikleri (Aşama 3'te uygulandı)
+- **Zırh:** hasarı `zırh / (zırh + 5)` oranında azaltır. 1 zırh %17, 3 zırh %38, 5 zırh %50.
+- **Büyücü:** zırhı yok sayar; hedefin 1.2 karo yakınındaki diğer düşman bölüklerine yarım hasar verir.
+- **Süvari:** önce okçu ve büyücüleri hedefler; en az 2 karo koşup yaptığı ilk vuruş 2 kat (hücum).
+- **Mızrakçı:** hücumu karşılar; süvari mızrakçıya hücum bonusu alamaz.
+- **Okçu / büyücü:** yakın dövüşe yakalanırsa hasarı yarıya düşer.
+- **Maliyet:** her birliğin asker başına güç puanı var. 100 puanlık bölük, maliyeti 5 olan birlikten 20, maliyeti 12 olan Şövalye'den 8 asker eder.
+
+### İlk 12 birlik
+Değerler `Fetih/data/units/*.tres` dosyalarında; denge raporu için `tools/run_balance_test.ps1`.
+
+| Krallık | Savaşçı | Mızrakçı | Tank | Okçu | Büyücü | Süvari |
+|---|---|---|---|---|---|---|
+| İnsanlar | Kılıçlı Piyade | **İnsan Mızrakçı** | | Arbaletçi | | Şövalye |
+| Elfler | Kılıç Dansçısı | | | **Elf Okçusu** | Orman Büyücüsü | Geyik Binicisi |
+| Orklar | **Ork Savaşçısı** | | Kalkanlı Ork | | Ork Şamanı | Kurt Binicisi |
+
+Kalın olan, krallığın uzmanlık birliği.
+
 ---
 
 ## 4. Ordu ve kart sistemi

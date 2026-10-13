@@ -3,6 +3,9 @@
 *.tmp
 /Fetih/android/
 
+# Denge testi raporları (her çalıştırmada yeniden üretilir)
+/Fetih/tools/reports/
+
 # Export çıktıları (build'ler repoya girmez)
 /Fetih/build/
 *.exe

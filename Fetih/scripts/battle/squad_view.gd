@@ -5,7 +5,15 @@ extends Node2D
 
 const COLUMNS := 5  ## Formasyonun genişliği (asker).
 const SOLDIER_SPACING := 0.2  ## Askerler arası mesafe (karo).
-const SOLDIER_SIZE := Vector2(4, 9)  ## Geçici asker boyutu (piksel).
+## Geçici asker boyutu (piksel), role göre: rolü ekranda ayırt etmek için.
+const ROLE_SIZES := {
+	RoleRules.WARRIOR: Vector2(4, 9),
+	RoleRules.SPEARMAN: Vector2(3, 10),
+	RoleRules.TANK: Vector2(6, 10),
+	RoleRules.ARCHER: Vector2(3, 8),
+	RoleRules.MAGE: Vector2(3, 9),
+	RoleRules.CAVALRY: Vector2(8, 8),
+}
 const HIT_FLASH_TIME := 0.12
 const TEAM_COLORS := {
 	SquadState.Team.PLAYER: Color("3d6fd1"),
@@ -75,10 +83,19 @@ func _draw() -> void:
 	if _flash > 0.0:
 		body = body.lerp(Color.WHITE, 0.7)
 	var head := body.lightened(0.35)
+	var role := squad.unit.role
+	var size: Vector2 = ROLE_SIZES.get(role, Vector2(4, 9))
 	for o in offsets:
-		var rect := Rect2(o - Vector2(SOLDIER_SIZE.x / 2.0, SOLDIER_SIZE.y), SOLDIER_SIZE)
+		var rect := Rect2(o - Vector2(size.x / 2.0, size.y), size)
 		draw_rect(rect, body)
-		draw_rect(Rect2(rect.position, Vector2(SOLDIER_SIZE.x, 2)), head)
+		draw_rect(Rect2(rect.position, Vector2(size.x, 2)), head)
+		match role:
+			RoleRules.SPEARMAN:  # mızrak ucu
+				draw_line(rect.position + Vector2(size.x, 2), rect.position + Vector2(size.x, -4), Color("d0d0d0"))
+			RoleRules.MAGE:  # parlayan asa ucu
+				draw_rect(Rect2(rect.position + Vector2(size.x, -3), Vector2(2, 2)), Color("8ff0ff"))
+			RoleRules.CAVALRY:  # binek gövdesi (alt yarı koyu)
+				draw_rect(Rect2(rect.position + Vector2(0, size.y - 4), Vector2(size.x, 4)), body.darkened(0.4))
 
 	_draw_banner()
 

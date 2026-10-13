@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="UnitData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/unit_data.gd" id="1_3qtbe"]
+
+[resource]
+script = ExtResource("1_3qtbe")
+id = &"orc_shaman"
+kingdom = &"orcs"
+role = &"mage"
+display_name = "Ork Şamanı"
+cost = 8.0
+hp = 11.0
+damage = 6.5
+attack_speed = 0.5
+attack_range = 3.2
+ignores_armor = true
+splash_radius = 1.2
+placeholder_color = Color(0.6392157, 0.35686275, 0.6901961, 1)

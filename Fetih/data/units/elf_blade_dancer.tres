@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="UnitData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/unit_data.gd" id="1_nvtuu"]
+
+[resource]
+script = ExtResource("1_nvtuu")
+id = &"elf_blade_dancer"
+kingdom = &"elves"
+role = &"warrior"
+display_name = "Kılıç Dansçısı"
+hp = 9.5
+attack_speed = 1.2
+move_speed = 1.5
+armor = 1.0
+placeholder_color = Color(0.62352943, 0.8117647, 0.41568628, 1)

@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="UnitData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/unit_data.gd" id="1_ltx7s"]
+
+[resource]
+script = ExtResource("1_ltx7s")
+id = &"elf_mage"
+kingdom = &"elves"
+role = &"mage"
+display_name = "Orman Büyücüsü"
+cost = 8.0
+hp = 8.0
+damage = 5.5
+attack_speed = 0.5
+attack_range = 3.5
+move_speed = 0.9
+ignores_armor = true
+splash_radius = 1.2
+placeholder_color = Color(0.49803922, 0.8784314, 0.78431374, 1)

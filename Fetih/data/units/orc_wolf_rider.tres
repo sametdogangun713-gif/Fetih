@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="UnitData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/unit_data.gd" id="1_xpjvx"]
+
+[resource]
+script = ExtResource("1_xpjvx")
+id = &"orc_wolf_rider"
+kingdom = &"orcs"
+role = &"cavalry"
+display_name = "Kurt Binicisi"
+cost = 9.0
+hp = 16.0
+damage = 4.5
+move_speed = 2.4
+armor = 1.0
+charge_multiplier = 2.0
+prefers_ranged_targets = true
+placeholder_color = Color(0.47843137, 0.41568628, 0.34509805, 1)

@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="UnitData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/unit_data.gd" id="1_58sc3"]
+
+[resource]
+script = ExtResource("1_58sc3")
+id = &"human_knight"
+kingdom = &"humans"
+role = &"cavalry"
+display_name = "Şövalye"
+cost = 12.0
+hp = 22.0
+damage = 5.0
+attack_speed = 0.8
+move_speed = 2.2
+armor = 4.0
+charge_multiplier = 2.0
+prefers_ranged_targets = true
+placeholder_color = Color(0.8509804, 0.8666667, 0.8901961, 1)

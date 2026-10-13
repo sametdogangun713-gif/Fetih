@@ -1,17 +1,15 @@
 [gd_resource type="Resource" script_class="UnitData" format=3]
 
-[ext_resource type="Script" path="res://scripts/data/unit_data.gd" id="1_unit"]
+[ext_resource type="Script" path="res://scripts/data/unit_data.gd" id="1_jwpuu"]
 
 [resource]
-script = ExtResource("1_unit")
+script = ExtResource("1_jwpuu")
 id = &"orc_warrior"
 kingdom = &"orcs"
 role = &"warrior"
 display_name = "Ork Savaşçısı"
-hp = 12.0
-damage = 3.0
-attack_speed = 1.0
-attack_range = 0.25
+hp = 11.0
+damage = 3.1
 move_speed = 1.2
 armor = 1.0
-placeholder_color = Color(0.37, 0.62, 0.25, 1)
+placeholder_color = Color(0.37254903, 0.61960787, 0.24705882, 1)

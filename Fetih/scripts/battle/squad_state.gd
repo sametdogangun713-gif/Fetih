@@ -14,6 +14,7 @@ var previous_position: Vector2  ## Bir önceki adımdaki konum (akıcı çizim i
 var facing := Vector2.UP  ## Bölüğün baktığı yön.
 var target: SquadState
 var attack_cooldown := 0.0
+var distance_since_attack := 0.0  ## Son saldırıdan beri yürünen mesafe (hücum için).
 
 
 func _init(p_unit: UnitData, p_team: Team, p_count: int, p_position: Vector2) -> void:
