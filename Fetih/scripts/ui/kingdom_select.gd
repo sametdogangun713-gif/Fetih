@@ -15,8 +15,8 @@ func _ready() -> void:
 	for kingdom in KingdomCatalog.all():
 		row.add_child(_kingdom_card(kingdom))
 
-	root.add_child(UiKit.centered(tr("Koşu: %d savaş, %d can. Kaybedilen savaş tekrar oynanmaz.") % [
-			RunState.RUN_LENGTH, RunState.START_LIVES], 10, UiKit.COLOR_MUTED))
+	root.add_child(UiKit.centered(tr("Koşu: %d savaş, %d can, en fazla %d bölük. Kaybedilen savaş tekrar oynanmaz.") % [
+			Balance.RUN_LENGTH, Balance.START_LIVES, Balance.MAX_SQUADS], 10, UiKit.COLOR_MUTED))
 
 
 func _kingdom_card(kingdom: KingdomData) -> Control:
@@ -31,7 +31,7 @@ func _kingdom_card(kingdom: KingdomData) -> Control:
 	box.add_child(UiKit.label(tr("Başlangıç ordusu:"), 10, UiKit.COLOR_MUTED))
 	for unit in kingdom.starting_units:
 		box.add_child(UiKit.label("• %d %s" % [
-				UnitCatalog.count_for_budget(unit, RunState.CARD_BUDGET), unit.display_name], 10))
+				UnitCatalog.count_for_budget(unit, Balance.SQUAD_BUDGET), unit.display_name], 10))
 	box.add_child(UiKit.spacer(true))
 	box.add_child(UiKit.button(tr("Bu krallıkla başla"), _on_pick.bind(kingdom)))
 	return card

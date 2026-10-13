@@ -2,15 +2,11 @@ extends Node
 ## Koşunun (bir oyunun) durumu.
 ## Autoload olarak yüklenir: sahne değişse de yaşar ve her scriptten `RunState` adıyla erişilir.
 ## Bütün rastgelelik koşu seed'inden türetilir: aynı seed = aynı rakipler, ordular ve kartlar.
+## Denge sayıları Balance'ta.
 
-const RUN_LENGTH := 5  ## Aşama 4: kısa koşu. Tam oyunda 20 olacak.
-const START_LIVES := 3
-const GRID_SIZE := Vector2i(3, 3)
-const CARD_BUDGET := 100.0  ## Bir kartın verdiği bölüğün bütçesi (100 = 20 savaşçı).
-const ENEMY_BASE_BUDGET := 180.0  ## İlk rakibin ordu bütçesi.
-const ENEMY_BUDGET_PER_BATTLE := 100.0  ## Her savaşta rakibe eklenen bütçe.
-const CARDS_ON_WIN := 3
-const CARDS_ON_LOSS := 2
+const RUN_LENGTH := Balance.RUN_LENGTH
+const START_LIVES := Balance.START_LIVES
+const GRID_SIZE := Balance.GRID_SIZE
 
 # Seed'den farklı rastgele akışlar türetmek için amaç numaraları.
 enum Purpose { OPPONENTS, ENEMY_ARMY, CARDS, BATTLE }
@@ -18,12 +14,14 @@ enum Purpose { OPPONENTS, ENEMY_ARMY, CARDS, BATTLE }
 var active := false
 var kingdom: KingdomData
 var army: Array[ArmySquad] = []
+var passives: Array[PassiveData] = []  ## Alınan fermanlar.
 var lives := START_LIVES
 var battle_index := 0  ## Şu anki savaş (0'dan başlar).
 var wins := 0
 var opponents: Array[KingdomData] = []  ## Her savaşın rakip krallığı, koşu başında belirlenir.
 var seed_value := 0
 var last_battle_won := false
+var last_changed: ArmySquad  ## Son kartla eklenen/yükseltilen bölük (hazırlıkta vurgulanır).
 
 
 func start_run(p_kingdom: KingdomData, p_seed: int = 0) -> void:
@@ -34,10 +32,11 @@ func start_run(p_kingdom: KingdomData, p_seed: int = 0) -> void:
 	battle_index = 0
 	wins = 0
 	last_battle_won = false
+	last_changed = null
+	passives.clear()
 	army.clear()
 	for unit in kingdom.starting_units:
-		army.append(ArmySquad.new(unit, UnitCatalog.count_for_budget(unit, CARD_BUDGET),
-				ArmyGenerator.NO_CELL))
+		army.append(ArmySquad.new(unit, Balance.SQUAD_BUDGET, ArmyGenerator.NO_CELL))
 	ArmyGenerator.auto_arrange(army, GRID_SIZE)
 	opponents = _roll_opponents()
 
@@ -52,14 +51,26 @@ func current_opponent() -> KingdomData:
 	return opponents[battle_index]
 
 
-func enemy_budget() -> float:
-	return ENEMY_BASE_BUDGET + ENEMY_BUDGET_PER_BATTLE * battle_index
-
-
 ## Şu anki savaşın rakip ordusu. Her çağrıda aynı orduyu verir (hazırlık ekranı ve savaş aynı orduyu görür).
 func current_enemy_army() -> Array[ArmySquad]:
-	return ArmyGenerator.enemy_army(current_opponent(), enemy_budget(), GRID_SIZE,
-			rng_for(Purpose.ENEMY_ARMY))
+	return ArmyGenerator.enemy_army(current_opponent(), Balance.enemy_power(battle_index),
+			Balance.enemy_squad_count(battle_index), GRID_SIZE, rng_for(Purpose.ENEMY_ARMY))
+
+
+## Oyuncu ordusunun savaşa girecek hali (seviyeler ve fermanlar uygulanmış).
+func build_player_squads() -> Array[SquadState]:
+	var result: Array[SquadState] = []
+	for squad in army:
+		result.append(SquadBuilder.build(squad, SquadState.Team.PLAYER, passives, GRID_SIZE))
+	return result
+
+
+func build_enemy_squads() -> Array[SquadState]:
+	var result: Array[SquadState] = []
+	var no_passives: Array[PassiveData] = []
+	for squad in current_enemy_army():
+		result.append(SquadBuilder.build(squad, SquadState.Team.ENEMY, no_passives, GRID_SIZE))
+	return result
 
 
 func battle_seed() -> int:
@@ -87,25 +98,59 @@ func advance() -> void:
 	battle_index += 1
 
 
+static func army_power(squads: Array[ArmySquad]) -> float:
+	var total := 0.0
+	for squad in squads:
+		total += squad.power()
+	return total
+
+
 # --- Kartlar ---
 
-## Son savaşta karşılaşılan krallığın kartları. Kazanınca 3, kaybedince 2 kart.
+## Son savaşın kartları: kazanınca 3, kaybedince 2.
 func card_offers() -> Array[CardOffer]:
-	var count := CARDS_ON_WIN if last_battle_won else CARDS_ON_LOSS
-	return ArmyGenerator.card_offers(current_opponent(), count, CARD_BUDGET, rng_for(Purpose.CARDS))
+	return ArmyGenerator.card_offers(current_opponent(), army, passives, last_battle_won,
+			rng_for(Purpose.CARDS))
 
 
 func can_take(offer: CardOffer) -> bool:
-	return find_squad(offer.unit) != null or free_cell_for(offer.unit) != ArmyGenerator.NO_CELL
+	match offer.kind:
+		CardOffer.Kind.UNIT:
+			var existing := find_squad(offer.unit)
+			return existing.can_upgrade() if existing else true
+		CardOffer.Kind.UPGRADE:
+			return offer.target.can_upgrade()
+		CardOffer.Kind.PASSIVE:
+			return not passives.has(offer.passive)
+	return false
 
 
-## Aynı birlik orduda varsa o bölüğe eklenir; yoksa uygun boş kareye yeni bölük olarak girer.
-func take_card(offer: CardOffer) -> void:
-	var existing := find_squad(offer.unit)
-	if existing:
-		existing.count += offer.count
-	else:
-		army.append(ArmySquad.new(offer.unit, offer.count, free_cell_for(offer.unit)))
+## Yeni birlik kartı ama ordu dolu: bir bölüğün yerine geçmesi gerekir.
+func needs_replace(offer: CardOffer) -> bool:
+	return offer.kind == CardOffer.Kind.UNIT and find_squad(offer.unit) == null \
+			and army.size() >= Balance.MAX_SQUADS
+
+
+## Kartı uygular. Birlik kartı orduda varsa takviye olur; ordu doluysa `replaced` bölüğün yerine geçer.
+func take_card(offer: CardOffer, replaced: ArmySquad = null) -> void:
+	match offer.kind:
+		CardOffer.Kind.UNIT:
+			var existing := find_squad(offer.unit)
+			if existing:
+				existing.upgrade(ArmySquad.Upgrade.REINFORCE)
+				last_changed = existing
+				return
+			var cell := free_cell_for(offer.unit)
+			if replaced:
+				cell = replaced.cell
+				army.erase(replaced)
+			last_changed = ArmySquad.new(offer.unit, Balance.SQUAD_BUDGET, cell)
+			army.append(last_changed)
+		CardOffer.Kind.UPGRADE:
+			offer.target.upgrade(offer.upgrade)
+			last_changed = offer.target
+		CardOffer.Kind.PASSIVE:
+			passives.append(offer.passive)
 
 
 # --- Ordu ızgarası ---
@@ -125,6 +170,8 @@ func find_squad(unit: UnitData) -> ArmySquad:
 
 
 func free_cell_for(unit: UnitData) -> Vector2i:
+	if army.size() >= Balance.MAX_SQUADS:
+		return ArmyGenerator.NO_CELL
 	var occupied := {}
 	for squad in army:
 		occupied[squad.cell] = true

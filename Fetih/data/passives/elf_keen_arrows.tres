@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="PassiveData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/passive_data.gd" id="1_aokry"]
+
+[resource]
+script = ExtResource("1_aokry")
+id = &"elf_keen_arrows"
+kingdom = &"elves"
+display_name = "Keskin Oklar"
+description = "Okçu ve büyücü bölüklerinin hasarı +%40."
+stat = &"damage"
+amount = 1.4
+roles = Array[StringName]([&"archer", &"mage"])

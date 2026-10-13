@@ -3,13 +3,13 @@
 [ext_resource type="Script" path="res://scripts/data/kingdom_data.gd" id="1_0pqe3"]
 [ext_resource type="Script" path="res://scripts/data/unit_data.gd" id="2_dogyn"]
 [ext_resource type="Resource" path="res://data/units/elf_archer.tres" id="3_1wqrk"]
-[ext_resource type="Resource" path="res://data/units/elf_blade_dancer.tres" id="4_grkmj"]
+[ext_resource type="Resource" path="res://data/units/elf_mage.tres" id="4_grkmj"]
 
 [resource]
 script = ExtResource("1_0pqe3")
 id = &"elves"
 display_name = "Elfler"
-description = "Uzaktan öldürür. Oyunun en iyi okçuları; ama yakın dövüşe yakalanırsa kırılgan."
+description = "Uzaktan öldürür. Oyunun en iyi okçuları ve zırh delen büyücüleri; ama yakın dövüşe yakalanırsa kırılgan."
 specialty_role = &"archer"
 color = Color(0.62352943, 0.8627451, 0.41568628, 1)
 starting_units = Array[ExtResource("2_dogyn")]([ExtResource("3_1wqrk"), ExtResource("4_grkmj")])

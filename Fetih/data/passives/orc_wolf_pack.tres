@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="PassiveData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/passive_data.gd" id="1_sadt7"]
+
+[resource]
+script = ExtResource("1_sadt7")
+id = &"orc_wolf_pack"
+kingdom = &"orcs"
+display_name = "Kurt Sürüsü"
+description = "Süvarilerin hücum vuruşu 1 kat daha güçlü (x2 yerine x3)."
+stat = &"charge_multiplier"
+is_multiplier = false
+roles = Array[StringName]([&"cavalry"])

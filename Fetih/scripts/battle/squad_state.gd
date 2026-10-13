@@ -15,6 +15,8 @@ var facing := Vector2.UP  ## Bölüğün baktığı yön.
 var target: SquadState
 var attack_cooldown := 0.0
 var distance_since_attack := 0.0  ## Son saldırıdan beri yürünen mesafe (hücum için).
+var toughness := 1.0  ## Dayanıklılık: alınan hasar buna bölünür (Savunma seviyesi, fermanlar).
+var level := 1  ## Bölük seviyesi (sadece gösterim için).
 
 
 func _init(p_unit: UnitData, p_team: Team, p_count: int, p_position: Vector2) -> void:
@@ -39,4 +41,4 @@ func alive_count() -> int:
 
 
 func take_damage(amount: float) -> void:
-	hp_pool = maxf(hp_pool - amount, 0.0)
+	hp_pool = maxf(hp_pool - amount / toughness, 0.0)

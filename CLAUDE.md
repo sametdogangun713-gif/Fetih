@@ -22,11 +22,13 @@
 - Arayüz kodla kurulur (`UiKit` yardımcıları); ekran sahneleri sadece kök Control + script.
 - Ekransız test: `godot --headless --path Fetih -s <script>`; ekran görüntüsü: `--write-movie out.png --quit-after N`.
 - Denge testi: `powershell -ExecutionPolicy Bypass -File Fetih\tools\run_balance_test.ps1` — birlik değeri değişince çalıştır.
+- Koşu zorluğu: `godot --headless --path Fetih -s res://tools/run_test.gd` (botlarla fetih oranı). Yükseltme eşitliği: `res://tools/upgrade_test.gd`.
 
 ## Temel tasarım kuralları
-- Savaştan sonra sunulan kartlar, **o savaşta karşılaşılan krallığın** kartlarıdır.
-- Deste yok; seçilen kart anında ordu ızgarasına eklenir.
+- Savaştan sonra sunulan birlik kartları ve fermanlar, **o savaşta karşılaşılan krallıktan** gelir. Yükseltme kartları oyuncunun kendi bölükleri için.
+- Deste yok; seçilen kart anında uygulanır.
 - 3 can; kaybedilen savaş tekrar oynanmaz.
+- En fazla 5 bölük, bölük seviyesi 1–5. Denge sayıları `Fetih/scripts/data/balance.gd` içinde; değiştirince denge aracını ve otomatik koşu testini çalıştır.
 
 ## Çalışma şekli
 - Kullanıcı Godot'u öğreniyor: her adımda hangi Godot kavramının kullanıldığını kısaca açıkla.

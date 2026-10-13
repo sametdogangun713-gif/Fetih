@@ -11,7 +11,8 @@ var cell: Vector2i
 var squad: ArmySquad  ## Boş karede null.
 
 
-func setup(p_cell: Vector2i, p_squad: ArmySquad) -> void:
+## highlighted: son kartla eklenen/yükseltilen bölük (altın çerçeve).
+func setup(p_cell: Vector2i, p_squad: ArmySquad, highlighted := false) -> void:
 	cell = p_cell
 	squad = p_squad
 	custom_minimum_size = SLOT_SIZE
@@ -21,8 +22,11 @@ func setup(p_cell: Vector2i, p_squad: ArmySquad) -> void:
 	style.set_border_width_all(1)
 	if squad:
 		style.bg_color = UiKit.COLOR_PANEL
-		style.border_color = squad.unit.placeholder_color
+		style.border_color = UiKit.COLOR_GOLD if highlighted else squad.unit.placeholder_color
 		style.border_width_left = 4
+		if highlighted:
+			style.set_border_width_all(2)
+			style.border_width_left = 4
 	else:
 		style.bg_color = UiKit.COLOR_SLOT_EMPTY
 		style.border_color = Color(1, 1, 1, 0.08)
@@ -33,8 +37,14 @@ func setup(p_cell: Vector2i, p_squad: ArmySquad) -> void:
 	add_child(box)
 	if squad:
 		box.add_child(UiKit.label(squad.unit.display_name, 10))
-		box.add_child(UiKit.label("%d · %s" % [squad.count, UiKit.role_name(squad.unit.role)],
+		var line := UiKit.hbox(4)
+		line.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		line.add_child(UiKit.label("%d · %s" % [squad.count, UiKit.role_name(squad.unit.role)],
 				9, UiKit.COLOR_MUTED))
+		line.add_child(UiKit.spacer())
+		line.add_child(UiKit.label(UiKit.level_text(squad), 9,
+				UiKit.COLOR_GOLD if squad.level() > 1 else UiKit.COLOR_MUTED))
+		box.add_child(line)
 	else:
 		box.add_child(UiKit.label(tr("boş"), 9, Color(1, 1, 1, 0.2)))
 

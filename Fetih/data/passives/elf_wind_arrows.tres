@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="PassiveData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/passive_data.gd" id="1_taf86"]
+
+[resource]
+script = ExtResource("1_taf86")
+id = &"elf_wind_arrows"
+kingdom = &"elves"
+display_name = "Rüzgâr Okları"
+description = "Arka saftaki (ızgaranın alt satırı) okçu ve büyücülerin menzili +1."
+stat = &"attack_range"
+is_multiplier = false
+roles = Array[StringName]([&"archer", &"mage"])
+row = 1

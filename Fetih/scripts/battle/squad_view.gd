@@ -108,3 +108,6 @@ func _draw_banner() -> void:
 	var font := ThemeDB.fallback_font
 	draw_string(font, pole_top + Vector2(-12, -2), str(squad.alive_count()),
 			HORIZONTAL_ALIGNMENT_CENTER, 24, 10)
+	# Seviye: sancak direğinin yanında küçük altın noktalar (Sv 2 = 1 nokta ... Sv 5 = 4 nokta).
+	for i in squad.level - 1:
+		draw_rect(Rect2(Vector2(-4, -24 + i * 3), Vector2(2, 2)), UiKit.COLOR_GOLD)

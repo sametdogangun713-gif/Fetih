@@ -1,8 +1,7 @@
 class_name ArmyGenerator
 ## Rakip ordularını ve kart tekliflerini üretir; bölükleri ızgaraya yerleştirir.
-## Hepsi dışarıdan verilen RandomNumberGenerator ile çalışır: aynı seed = aynı ordu.
+## Hepsi dışarıdan verilen RandomNumberGenerator ile çalışır: aynı seed = aynı sonuç.
 
-const SQUAD_BUDGET := 100.0  ## Rakip ordusunda bir bölüğün ortalama bütçesi.
 const SPECIALTY_CHANCE := 0.4  ## Rakip bölüğünün krallık uzmanı olma olasılığı.
 const NO_CELL := Vector2i(-1, -1)
 
@@ -13,33 +12,59 @@ const PLACEMENT_ORDER: Array[StringName] = [
 ]
 
 
-## Verilen krallıktan, bütçeye göre bir ordu kurar ve ızgaraya dizer.
-static func enemy_army(kingdom: KingdomData, budget: float, grid_size: Vector2i,
+## Verilen krallıktan, hedef güçte bir ordu kurar: önce bölükler, kalan güç yükseltmelere.
+static func enemy_army(kingdom: KingdomData, power: float, squad_count: int, grid_size: Vector2i,
 		rng: RandomNumberGenerator) -> Array[ArmySquad]:
 	var units := UnitCatalog.units_of(kingdom.id)
-	var squad_count := clampi(roundi(budget / SQUAD_BUDGET), 1, grid_size.x * grid_size.y)
-	var per_squad := budget / squad_count
+	var squads := clampi(squad_count, 1, Balance.MAX_SQUADS)
+	# Güç azsa bölükler küçük olur; yeterliyse her biri tam (100) bölük.
+	var base := minf(Balance.SQUAD_BUDGET, power / squads)
 	var army: Array[ArmySquad] = []
-	for i in squad_count:
-		var unit := _pick_unit(units, kingdom, rng)
-		army.append(ArmySquad.new(unit, UnitCatalog.count_for_budget(unit, per_squad), NO_CELL))
+	for i in squads:
+		army.append(ArmySquad.new(_pick_unit(units, kingdom, rng), base, NO_CELL))
+
+	var total := base * squads
+	var half_step := Balance.SQUAD_BUDGET * Balance.UPGRADE_STEP * 0.5
+	while total < power - half_step:
+		var upgradable: Array[ArmySquad] = []
+		for squad in army:
+			if squad.can_upgrade():
+				upgradable.append(squad)
+		if upgradable.is_empty():
+			break
+		var squad := upgradable[rng.randi_range(0, upgradable.size() - 1)]
+		var before := squad.power()
+		squad.upgrade(rng.randi_range(0, 2) as ArmySquad.Upgrade)
+		total += squad.power() - before
+
 	auto_arrange(army, grid_size)
 	return army
 
 
-## Krallığın birliklerinden en fazla `count` farklı kart teklifi.
-static func card_offers(kingdom: KingdomData, count: int, budget: float,
-		rng: RandomNumberGenerator) -> Array[CardOffer]:
-	var units := UnitCatalog.units_of(kingdom.id).duplicate()
-	# Fisher-Yates karıştırma (seed'li rng ile, deterministik).
-	for i in range(units.size() - 1, 0, -1):
-		var j := rng.randi_range(0, i)
-		var temp: UnitData = units[i]
-		units[i] = units[j]
-		units[j] = temp
+## Savaş sonrası kartlar. Kural: birlik kartları ve fermanlar savaşılan krallıktan gelir.
+## 1. kart: birlik. 2. kart: yükseltme. 3. kart (sadece zaferde): birlik / yükseltme / ferman.
+static func card_offers(opponent: KingdomData, army: Array[ArmySquad], owned: Array[PassiveData],
+		won: bool, rng: RandomNumberGenerator) -> Array[CardOffer]:
+	var unit_pool: Array = UnitCatalog.units_of(opponent.id).duplicate()
+	_shuffle(unit_pool, rng)
+	var passive_pool: Array = []
+	for passive in PassiveCatalog.of_kingdom(opponent.id):
+		if not owned.has(passive):
+			passive_pool.append(passive)
+	_shuffle(passive_pool, rng)
+
 	var offers: Array[CardOffer] = []
-	for i in mini(count, units.size()):
-		offers.append(CardOffer.new(units[i], UnitCatalog.count_for_budget(units[i], budget)))
+	if not unit_pool.is_empty():
+		offers.append(CardOffer.unit_card(unit_pool.pop_back()))
+	_add_upgrade_or_fallback(offers, army, unit_pool, passive_pool, rng)
+	if won:
+		var roll := rng.randf()
+		if roll < Balance.THIRD_CARD_UNIT and not unit_pool.is_empty():
+			offers.append(CardOffer.unit_card(unit_pool.pop_back()))
+		elif roll < Balance.THIRD_CARD_UNIT + Balance.THIRD_CARD_UPGRADE or passive_pool.is_empty():
+			_add_upgrade_or_fallback(offers, army, unit_pool, passive_pool, rng)
+		else:
+			offers.append(CardOffer.passive_card(passive_pool.pop_back()))
 	return offers
 
 
@@ -70,6 +95,30 @@ static func best_free_cell(occupied: Dictionary, grid_size: Vector2i, role: Stri
 	return NO_CELL
 
 
+## Rastgele bir bölüğe rastgele bir yükseltme; aynı bölük + aynı tür iki kez sunulmaz.
+## Yükseltilecek bölük yoksa birlik, o da yoksa ferman kartı.
+static func _add_upgrade_or_fallback(offers: Array[CardOffer], army: Array[ArmySquad],
+		unit_pool: Array, passive_pool: Array, rng: RandomNumberGenerator) -> void:
+	var options: Array = []
+	for squad in army:
+		if not squad.can_upgrade():
+			continue
+		for kind in [ArmySquad.Upgrade.ATTACK, ArmySquad.Upgrade.DEFENSE, ArmySquad.Upgrade.REINFORCE]:
+			var taken := false
+			for offer in offers:
+				if offer.kind == CardOffer.Kind.UPGRADE and offer.target == squad and offer.upgrade == kind:
+					taken = true
+			if not taken:
+				options.append([squad, kind])
+	if not options.is_empty():
+		var pick: Array = options[rng.randi_range(0, options.size() - 1)]
+		offers.append(CardOffer.upgrade_card(pick[0], pick[1]))
+	elif not unit_pool.is_empty():
+		offers.append(CardOffer.unit_card(unit_pool.pop_back()))
+	elif not passive_pool.is_empty():
+		offers.append(CardOffer.passive_card(passive_pool.pop_back()))
+
+
 static func _pick_unit(units: Array[UnitData], kingdom: KingdomData,
 		rng: RandomNumberGenerator) -> UnitData:
 	if rng.randf() < SPECIALTY_CHANCE:
@@ -77,6 +126,15 @@ static func _pick_unit(units: Array[UnitData], kingdom: KingdomData,
 			if unit.role == kingdom.specialty_role:
 				return unit
 	return units[rng.randi_range(0, units.size() - 1)]
+
+
+## Fisher-Yates karıştırma (seed'li rng ile, deterministik).
+static func _shuffle(items: Array, rng: RandomNumberGenerator) -> void:
+	for i in range(items.size() - 1, 0, -1):
+		var j := rng.randi_range(0, i)
+		var temp: Variant = items[i]
+		items[i] = items[j]
+		items[j] = temp
 
 
 ## Sütun sırası ortadan dışarı: 3 sütun için [1, 0, 2], 5 için [2, 1, 3, 0, 4].

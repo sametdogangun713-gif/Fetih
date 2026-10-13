@@ -89,16 +89,14 @@ func _start_battle() -> void:
 
 
 func _setup_run_battle() -> void:
-	var grid := RunState.GRID_SIZE
-	for squad in RunState.army:
-		_add_squad(squad.unit, squad.count, SquadState.Team.PLAYER,
-				Formation.grid_to_field(squad.cell, grid, SquadState.Team.PLAYER))
-	for squad in RunState.current_enemy_army():
-		_add_squad(squad.unit, squad.count, SquadState.Team.ENEMY,
-				Formation.grid_to_field(squad.cell, grid, SquadState.Team.ENEMY))
+	# Seviyeler ve fermanlar SquadBuilder'da uygulanır.
+	for squad in RunState.build_player_squads():
+		_add_state(squad)
+	for squad in RunState.build_enemy_squads():
+		_add_state(squad)
 	var opponent := RunState.current_opponent()
 	matchup_label.text = tr("Savaş %d / %d  -  Rakip: %s") % [RunState.battle_index + 1,
-			RunState.RUN_LENGTH, opponent.display_name]
+			Balance.RUN_LENGTH, opponent.display_name]
 
 
 func _setup_test_battle() -> void:
@@ -130,7 +128,10 @@ func _describe(unit: UnitData) -> String:
 
 
 func _add_squad(unit: UnitData, count: int, team: SquadState.Team, at: Vector2) -> void:
-	var squad := SquadState.new(unit, team, count, at)
+	_add_state(SquadState.new(unit, team, count, at))
+
+
+func _add_state(squad: SquadState) -> void:
 	simulation.add_squad(squad)
 	var view := SquadView.new()
 	view.setup(squad)

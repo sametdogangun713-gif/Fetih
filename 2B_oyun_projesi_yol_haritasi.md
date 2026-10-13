@@ -143,12 +143,17 @@ Her aşama sonunda **çalışan** bir sürüm olmalı. Grafik son aşamalara kad
 - **Çıktı:** Baştan sona oynanabilen kısa (ör. 5 savaşlık) bir koşu
 
 ### Aşama 5: Kart çeşitliliği ve kombolar (2 hafta)
-- [ ] Güçlendirme ve ferman kartları
-- [ ] Bölük birleşme ve seviye (aynı birlik gelince seviye atlar, en fazla 3)
-- [ ] Izgaranın büyümesi (3x3 → 5x5, boss'ları yendikçe)
-- [ ] Komşuluk bonusları (karar verilirse)
-- [ ] Krallık kombo bonusları (ör. 3 Elf bölüğü → okçular +menzil)
-- [ ] Savaştan sonra sunulan kartlar = o savaşta karşılaşılan krallığın kartları (temel kural)
+- [x] Üç kart türü: birlik, yükseltme (Saldırı / Savunma / Takviye), ferman
+- [x] Bölük seviyesi 1–5; aynı birlik kartı = Takviye
+- [x] Komuta sınırı 5 bölük; ordu doluyken yeni birlik bir bölüğün yerine geçer (seçim ekranı)
+- [x] 9 ferman (krallık başına 3), ikisi konumlandırmaya bağlı (ön cephe / arka saf)
+- [x] Savaştan sonra birlik kartları ve fermanlar savaşılan krallıktan (temel kural)
+- [x] Bütün denge sayıları `scripts/data/balance.gd`; Lanchester formülü + simülasyonla doğrulandı
+- [x] Rakip ordusu da bölük kazanır ve yükselir; zorluk eğrisi %85 → %100
+- [x] Koşu 10 savaş (Aşama 6'da 20)
+- [x] Elf başlangıç ordusu: Okçu + Büyücü (Okçu + Kılıç Dansçısı ile fetih oranı %35'te kalıyordu)
+- [ ] Komşuluk bonusları — sonraya bırakıldı
+- [ ] Krallık kombo bonusları — fermanlar bu rolü üstlendi; gerekirse Aşama 6
 - **Çıktı:** Her koşu farklı bir ordu ile bitiyor
 
 ### Aşama 6: Boss'lar ve tam koşu — DİKEY KESİT (2-3 hafta)

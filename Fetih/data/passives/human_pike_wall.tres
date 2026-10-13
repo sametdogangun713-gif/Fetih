@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="PassiveData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/passive_data.gd" id="1_iu47k"]
+
+[resource]
+script = ExtResource("1_iu47k")
+id = &"human_pike_wall"
+kingdom = &"humans"
+display_name = "Mızrak Duvarı"
+description = "Mızrakçı ve tank bölükleri %30 daha az hasar alır."
+stat = &"toughness"
+amount = 1.43
+roles = Array[StringName]([&"spearman", &"tank"])

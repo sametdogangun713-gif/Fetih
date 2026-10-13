@@ -97,30 +97,69 @@ Kalın olan, krallığın uzmanlık birliği.
 - **(Öneri)** Kalıcı yükseltmeyle sunulan kart sayısı 4'e, sonra 5'e çıkar. Böylece "3 veya 5 kart" fikrin ilerleme ödülüne dönüşür.
 - Deste yok. Seçilen kart **anında ordunun parçası olur.**
 
-### Kart türleri
-1. **Birlik kartı:** "20 Elf Okçusu", "5 Golem", "40 Slime". Orduya bir **bölük** ekler.
-2. **Güçlendirme kartı:** Tek bir bölüğe uygulanır: "Bu bölük +%20 hasar", "Bu bölük ateş oku atar".
-3. **Ferman kartı:** Nadir, tüm orduyu etkileyen kalıcı kural (9 Kings'teki kraliyet fermanları gibi): "Süvariler savaşın ilk 5 saniyesinde hasar almaz", "Tüm okçular +1 menzil".
+### Kart türleri (Aşama 5'te uygulandı)
+1. **Birlik kartı:** "20 Elf Okçusu" gibi; orduya 100 güçlük yeni bölük ekler. Orduda aynı birlik varsa o bölüğe **Takviye** olur.
+2. **Yükseltme kartı:** Ordundaki belirli bir bölüğe bir seviye: **Saldırı**, **Savunma** veya **Takviye** (asker sayısı).
+3. **Ferman kartı:** Savaşılan krallığın kalıcı ordu bonusu. Her krallığın 3 fermanı var (aşağıda).
+
+Kazanınca 3 kart: 1. birlik, 2. yükseltme, 3. rastgele (%35 birlik, %30 yükseltme, %35 ferman). Kaybedince ilk ikisi.
 
 ### Hangi krallığın kartları gelir? (TEMEL KURAL)
-- **Savaştan sonra sunulan kartlar, o savaşta karşılaşılan krallığın kartlarıdır.** Elflerle savaştıysan 3 Elf kartı gelir ("20 Elf Okçusu" gibi).
+- **Birlik kartları ve fermanlar, o savaşta karşılaşılan krallıktan gelir.** Elflerle savaştıysan Elf birlikleri ve Elf fermanları gelir. Yükseltme kartları kendi ordundaki bölükler içindir.
 - Kendi krallığın, koşu başındaki başlangıç ordunu verir.
 - Sonuç: rakiplerin sırası, ordunun nasıl şekilleneceğini belirler. Bu yüzden sıradaki rakipler hazırlık ekranında önceden gösterilir.
+
+### Komuta sınırı ve seviyeler
+- Orduda en fazla **5 bölük** olur. Ordu doluyken yeni birlik kartı, seçilen bir bölüğün yerine geçer (o bölük ve seviyeleri kaybolur).
+- Her bölüğün **5 seviyesi** var: Sv 1 taban, her yükseltme kartı +1 seviye.
+- Bütün sayılar `Fetih/scripts/data/balance.gd` dosyasında.
+
+### Sayıların matematiği
+Savaşta askerler toplu vuruştuğu için **Lanchester kare yasası** geçerli: bölüğün savaş gücü ~ asker² × can × hasar/sn. Buradan "güç" (eşdeğer bütçe) ~ asker × kök(can × hasar/sn) çıkar. Her yükseltme seviyesi gücü taban bütçenin **%40**'ı kadar artırır (k = o türdeki seviye):
+
+| Yükseltme | Etkisi | Güç |
+|---|---|---|
+| Takviye | asker × (1 + 0.4k) | × (1 + 0.4k) |
+| Saldırı | hasar × (1 + 0.4k)² | × (1 + 0.4k) |
+| Savunma | alınan hasar ÷ (1 + 0.4k)² | × (1 + 0.4k) |
+
+- Sv 5'te tek türe yığılan bölük ×2.6, karışık (2+1+1) ×3.5 güçlü. Farklı türler çarpılarak birleşir; karışık yükseltmek ödüllendirilir.
+- Simülasyonla doğrulandı: üç tür eşit değerde (±%10 ölçüm gürültüsü içinde).
+- Simülasyonun düzelttiği iki şey: saldırı **hızı** artışı formülden az değerli çıktı (toplu vuruşta yavaş vuranın gizli avantajı), bu yüzden Saldırı sadece hasarı artırır. Savunma da can yerine dayanıklılık artırır (yüksek canlı yaralı askerler fazla uzun vuruşuyordu).
+
+### Rakip gücü (zorluk)
+- Rakip gücü = beklenen oyuncu gücü × zorluk. Zorluk ilk savaşta %85, son savaşta %100.
+- Beklenen oyuncu gücü: ilk kartlar yeni bölük (+100), 5 bölük dolunca yükseltme (+44).
+- Rakip de önce bölük kazanır (2, 3, 4, 5), sonra kalan gücü rastgele yükseltmelere harcar.
+- Ölçüm (40 koşu, 10 savaş): kartın güce katkısını hesaplayan "akıllı" bot %54 fetih (İnsanlar %38, Elfler %68, Orklar %55). Rastgele seçen bot %3–15.
+
+### Fermanlar
+| Krallık | Ferman | Etki |
+|---|---|---|
+| İnsanlar | Kraliyet Sancağı | Ön cephedeki bölüklerin hasarı +%30 (konumlandırma) |
+| İnsanlar | Mızrak Duvarı | Mızrakçı ve tanklar %30 az hasar alır |
+| İnsanlar | Kraliyet Demirhanesi | Bütün bölüklerin zırhı +1 |
+| Elfler | Keskin Oklar | Okçu ve büyücü hasarı +%40 |
+| Elfler | Rüzgâr Okları | Arka saftaki okçu ve büyücülerin menzili +1 (konumlandırma) |
+| Elfler | Orman Adımı | Bütün bölükler %30 hızlı yürür |
+| Orklar | Savaş Davulları | Bütün bölüklerin saldırı hızı +%15 |
+| Orklar | Kurt Sürüsü | Süvari hücumu x3 |
+| Orklar | Kan Öfkesi | Savaşçı hasarı +%40 |
 
 ### Ordu ızgarası (yerleştirme)
 9 Kings'teki krallık ızgarasının ordu versiyonu.
 
-- Her **kare bir bölük** taşır. Kart seçince bölüğü boş bir kareye yerleştirirsin.
-- Izgara **3x3** başlar, boss'ları yendikçe büyür: 3x3 → 3x4 → 4x4 → 4x5 → 5x5. Izgara boyutu aynı zamanda **komuta sınırıdır**; ordu sonsuz büyümez.
+- Her **kare bir bölük** taşır. Yeni bölük role uygun boş kareye girer; sürükle-bırak ile taşınır.
+- Izgara **3x3**, ordu en fazla **5 bölük**: 4 boş kare her zaman var, diziliş bir karar. (Eski fikir "ızgara 5x5'e büyüsün" yerine kullanıcı kararıyla 5 bölük sınırı.)
+- Bazı fermanlar satıra bağlı (ön cephe / arka saf): konumlandırma güç kazandırır.
 - Izgaranın **üst satırı ön cephe**, alt satırı arka saftır. Tankı öne, okçuyu arkaya koymak oyuncunun kararı.
 - Savaş başlarken ızgara izometrik savaş alanına aynen aktarılır: her bölük, ızgaradaki yerine karşılık gelen noktadan savaşa girer.
 - Savaşlar arasında bölükler sürükle-bırak ile yer değiştirebilir.
 - **Komşuluk bonusu (Öneri):** Bazı birimler yanındakileri güçlendirir. Örnek: İnsan Sancaktarı yan karelerdeki bölüklere +%10 hasar; Golem Kalkanı arkasındaki bölüğe hasar azaltma. Yerleştirmeyi gerçek bir bulmacaya çevirir.
 
-### Bölük birleşme ve seviye
-- Aynı birlik kartını tekrar seçersen yeni kare kullanmaz, mevcut bölük **seviye atlar**: 20 → 40 okçu, daha güçlü askerler.
-- En fazla **seviye 3**. (9 Kings oyuncularının bir şikâyeti: seviye 3 sınırı yüzünden geç oyunda az sayıda kare işe yarıyor. Bunu izlemeliyiz; gerekirse seviye 3 bölüklere özel yetenek veririz.)
-- Izgara doluysa yeni birlik kartı ancak var olan bir bölüğün yerine konabilir.
+### Bölük birleşme
+- Aynı birlik kartını tekrar seçersen yeni bölük açılmaz, mevcut bölüğe **Takviye** seviyesi gelir (20 → 28 asker).
+- Seviye sınırı 5 (9 Kings'teki 3 sınırı şikâyet konusuydu; 5 seviye ve karışık yükseltme geç oyunda seçenek bırakır).
 
 ---
 

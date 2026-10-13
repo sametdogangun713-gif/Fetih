@@ -122,7 +122,7 @@ func _fight(player: UnitData, enemy: UnitData, seed_value: int) -> Array:
 func _deploy(sim: BattleSimulation, unit: UnitData, team: SquadState.Team) -> void:
 	var army: Array[ArmySquad] = []
 	for i in SQUADS_PER_SIDE:
-		army.append(ArmySquad.new(unit, UnitCatalog.count_for_budget(unit, budget), ArmyGenerator.NO_CELL))
+		army.append(ArmySquad.new(unit, budget, ArmyGenerator.NO_CELL))
 	ArmyGenerator.auto_arrange(army, GRID_SIZE)
 	for squad in army:
 		sim.add_squad(SquadState.new(unit, team, squad.count,

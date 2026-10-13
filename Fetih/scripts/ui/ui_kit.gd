@@ -122,6 +122,34 @@ static func role_name(role: StringName) -> String:
 	return t(RoleRules.ROLE_NAMES.get(role, String(role)))
 
 
+static func upgrade_name(kind: ArmySquad.Upgrade) -> String:
+	match kind:
+		ArmySquad.Upgrade.ATTACK:
+			return t("Saldırı eğitimi")
+		ArmySquad.Upgrade.DEFENSE:
+			return t("Savunma eğitimi")
+	return t("Takviye")
+
+
+## Bu yükseltmenin bölüğe etkisi: o türdeki seviye sayısı k'dan k+1'e çıkınca.
+static func upgrade_effect(squad: ArmySquad, kind: ArmySquad.Upgrade) -> String:
+	var k := squad.upgrade_level(kind)
+	var before := Balance.level_multiplier(k)
+	var after := Balance.level_multiplier(k + 1)
+	match kind:
+		ArmySquad.Upgrade.ATTACK:
+			return t("Hasar x%s -> x%s") % [num(before * before), num(after * after)]
+		ArmySquad.Upgrade.DEFENSE:
+			return t("Alınan hasar %%%d -> %%%d") % [roundi(100.0 / (before * before)),
+					roundi(100.0 / (after * after))]
+	var count_after := UnitCatalog.count_for_budget(squad.unit, squad.base_power * after)
+	return t("Asker %d -> %d") % [squad.count, count_after]
+
+
+static func level_text(squad: ArmySquad) -> String:
+	return t("Sv %d/%d") % [squad.level(), Balance.MAX_LEVEL]
+
+
 ## Birliğin özel yetenekleri, okunur cümleler olarak.
 static func unit_traits(unit: UnitData) -> PackedStringArray:
 	var traits: PackedStringArray = []
