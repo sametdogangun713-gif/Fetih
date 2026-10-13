@@ -12,7 +12,7 @@ Oyunun tasarımı için: [oyun_tasarim_dokumani.md](oyun_tasarim_dokumani.md)
 ### Zorunlu
 - [ ] **Godot 4** — en güncel kararlı sürüm, **standart** (.NET değil). godotengine.org/download
 - [ ] **Git** — git-scm.com
-- [ ] **GitHub hesabı** — yedek ve sürüm takibi
+- [ ] **Yedekleme** — proje gizli, GitHub kullanılmaz. Haftada bir harici diske / USB belleğe kopya al
 - [ ] **Piksel çizim aracı**, biri yeterli:
   - **Aseprite** (ücretli, ~20$, en iyisi; Steam'den alınabilir)
   - **LibreSprite** (ücretsiz, Aseprite'ın eski açık kaynak kopyası)
@@ -93,9 +93,10 @@ Fetih/
 Her aşama sonunda **çalışan** bir sürüm olmalı. Grafik son aşamalara kadar basit şekiller (renkli kare, daire) olabilir.
 
 ### Aşama 0: Kurulum (1-2 gün)
-- [ ] Godot projesini oluştur, klasör düzenini kur
-- [ ] Git başlat, GitHub'a yükle
-- [ ] Godot'un `.gitignore` şablonunu ekle (`.godot/` klasörü yüklenmez)
+- [x] Godot projesini oluştur, klasör düzenini kur
+- [x] Yerel Git başlat (proje gizli, GitHub'a yüklenmez)
+- [x] `.gitignore` ekle (`.godot/` klasörü repoya girmez)
+- [x] Piksel sanat ayarları (640x360, `viewport`, `integer`, Nearest)
 - **Çıktı:** Boş ama düzenli proje
 
 ### Aşama 1: İzometrik harita ve kamera (1 hafta)
