@@ -134,20 +134,22 @@ func _draw() -> void:
 
 ## Askerin karesi: saldırı > yürüme > durma. Ayak ortası `at` noktasına oturur.
 func _draw_soldier(at: Vector2, slot: int) -> void:
-	var frame := UnitSprites.Frame.IDLE
+	var anim := UnitSprites.Anim.IDLE
+	# Her asker farklı evrede: hepsi aynı anda adım atmasın.
+	var frame := int(_anim_time * 2.0 + slot * 0.37) % sheet.count(anim)
 	var since_attack := _attack_time - (slot % 3) * ATTACK_STAGGER
 	if since_attack >= 0.0 and since_attack < ATTACK_ANIM_TIME:
-		frame = UnitSprites.Frame.ATTACK
+		anim = UnitSprites.Anim.ATTACK
+		frame = int(since_attack / ATTACK_ANIM_TIME * sheet.count(anim))
 	elif _moving:
-		# Her asker farklı adımda: hepsi aynı anda adım atmasın.
-		var step := int(_anim_time * WALK_FPS + slot * 0.5) % 2
-		frame = UnitSprites.Frame.WALK_A if step == 0 else UnitSprites.Frame.WALK_B
+		anim = UnitSprites.Anim.WALK
+		frame = int(_anim_time * WALK_FPS + slot * 0.5) % sheet.count(anim)
 	var size := Vector2(sheet.frame_size)
 	# Negatif genişlikle çizmek resmi yatay çevirir (Sprite2D'nin flip_h'si de böyle yapar).
 	var dest := Rect2(at + Vector2(-size.x / 2.0, 1.0 - size.y), size)
 	if flip:
 		dest = Rect2(at + Vector2(size.x / 2.0, 1.0 - size.y), Vector2(-size.x, size.y))
-	var source := sheet.region(frame)
+	var source := sheet.region(anim, frame)
 	draw_texture_rect_region(sheet.texture, dest, source)
 	if _flash > 0.0:
 		draw_texture_rect_region(sheet.flash, dest, source, Color(1, 1, 1, 0.75))

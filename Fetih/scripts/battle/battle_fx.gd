@@ -12,7 +12,7 @@ enum Kind { ARROW, BOLT, BALL }
 const GRAVITY := 260.0  ## Parçacıklar için (piksel/sn²).
 const ARROW_SPEED := 260.0  ## piksel/sn
 const BOLT_SPEED := 170.0
-const CORPSE_FALL := 0.18  ## Askerin yere yığılma süresi.
+const CORPSE_FALL := 0.36  ## Ölüm animasyonunun süresi (ölüm satırının bütün kareleri).
 const CORPSE_STAY := 1.4  ## Yerde kalma süresi (sonra solar).
 const CORPSE_FADE := 0.8
 const MAX_CORPSES := 160
@@ -316,16 +316,14 @@ func _draw() -> void:
 
 func _draw_ground() -> void:
 	for c in _corpses:
-		var fall := minf(c.time / CORPSE_FALL, 1.0)
-		# Sağa bakan asker arkaya (sola) düşer; ayakları dönme noktası.
-		var angle := -PI / 2.0 * fall * (-1.0 if c.flip else 1.0)
 		var alpha := 1.0 - clampf((c.time - CORPSE_STAY) / CORPSE_FADE, 0.0, 1.0)
 		var size := Vector2(c.sheet.frame_size)
 		var dest := Rect2(Vector2(-size.x / 2.0, 1.0 - size.y), size)
 		if c.flip:
 			dest = Rect2(Vector2(size.x / 2.0, 1.0 - size.y), Vector2(-size.x, size.y))
-		_ground.draw_set_transform(c.pos, angle)
-		_ground.draw_texture_rect_region(c.sheet.texture, dest, c.sheet.region(UnitSprites.Frame.IDLE),
+		_ground.draw_set_transform(c.pos)  # devrilme ölüm satırının karelerinde
+		_ground.draw_texture_rect_region(c.sheet.texture, dest, c.sheet.region(UnitSprites.Anim.DEATH,
+				int(c.time / CORPSE_FALL * c.sheet.count(UnitSprites.Anim.DEATH))),
 				Color(0.55, 0.5, 0.5, alpha))
 	_ground.draw_set_transform(Vector2.ZERO)
 	for r in _rings:
