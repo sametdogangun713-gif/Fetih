@@ -79,7 +79,7 @@ Kodda hazır olanlar:
 
 Senin yapman gerekenler:
 
-- [ ] **Export şablonlarını kur** (Godot editörü → Editör → Export Şablonlarını Yönet → İndir ve Kur, 4.7.2). Sonra: `godot --headless --path Fetih --export-release "Windows Desktop" build/windows/Fetih.exe`
+- [x] Export şablonları kurulu (4.7.2). Yeni build: `godot --headless --path Fetih --export-release "Windows Desktop" build/windows/Fetih.exe`
 - [ ] Gerçek sprite'lar (`UnitData.sprite_sheet`) ve gerçek ses/müzik (`assets/audio/`, aynı dosya adları)
 - [ ] Gerçek ikon ve Steam kapsül görselleri (boyutlar Steamworks belgesinden doğrulanmalı; bilinen: header 920x430, small 462x174, main 1232x706, vertical 748x896, library 600x900 + hero 3840x1240 + logo)
 - [ ] 30-60 sn fragman (savaş kaydı: `--write-movie out.avi`)

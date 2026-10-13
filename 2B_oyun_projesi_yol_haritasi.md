@@ -225,7 +225,7 @@ Yerel hazırlık (kod tarafı):
 - [x] Mağaza metni (EN + TR), sistem gereksinimi tahmini, yayın kontrol listesi: `yayin/magaza_metni.md`
 - [x] 8 ekran görüntüsü 1920x1080 (geçici sprite'larla): `yayin/ekran_goruntuleri/`
 - [x] Savaşta karo vurgusu ve koordinat çıktısı sadece test modunda
-- [ ] Export şablonları kurulmadı (Godot editörü → Export Şablonlarını Yönet); `.exe` henüz üretilmedi
+- [x] Export şablonları 4.7.2 kuruldu (resmi SHA-512 doğrulandı); `Fetih/build/windows/Fetih.exe` (105 MB, paket gömülü) üretildi ve açıldı
 - [ ] Kalanlar: gerçek çizim/ses, kapsül görselleri, fragman, oyun testi, itch.io / Steam (bkz. `yayin/magaza_metni.md`)
 
 **Gerçekçi toplam süre:** Godot'u yeni öğrenen biri için **8-12 ay** (haftada 15-20 saat).
