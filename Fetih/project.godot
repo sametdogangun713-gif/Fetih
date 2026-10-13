@@ -17,6 +17,7 @@ config/features=PackedStringArray("4.7", "GL Compatibility")
 
 [autoload]
 
+Profile="*res://scripts/meta/profile.gd"
 RunState="*res://scripts/run/run_state.gd"
 
 [display]

@@ -169,10 +169,13 @@ Her aşama sonunda **çalışan** bir sürüm olmalı. Grafik son aşamalara kad
 - **Çıktı:** 3 krallıkla tam oynanabilen oyun
 
 ### Aşama 7: Kalıcı ilerleme ve kayıt (1-2 hafta)
-- [ ] `user://save.json`, içinde `"save_version": 1`
-- [ ] Krallık mühürü ve kilit açma
-- [ ] Kalıcı yükseltmeler (kart seçim sayısı, ekstra can)
-- [ ] Ana menü: açık/kilitli krallıklar
+- [x] `user://save.json`, içinde `"save_version": 1`; güvenli yazma (.tmp + taşıma), bozuk kayıt yedeklenir
+- [x] Yarım kalan koşuya devam (hazırlık / savaş / kart / son aşamaları); savaş başında kayıt: kaybedilen savaş tekrar denenemez
+- [x] Krallık mühürü ve kilit açma (kilitli krallık boss'u + fetih)
+- [x] Şan ve Hazine: Geniş Ganimet (+1/+2 kart), Sağlam Moral (+1 can), Gaziler (Sv 2 başlangıç), Keşif (kart yeniden çekme)
+- [x] Ana menü: devam et, Hazine, açık/kilitli krallıklar, istatistikler
+- [x] `tools/save_test.gd`: 23 test (gerçek kayda dokunmaz)
+- Not: Bütün geliştirmelerle akıllı bot %75–88 fetih (geliştirmesiz %48–55). Usta oyuncu için zorluk seviyeleri ileride gerekecek.
 - **Çıktı:** Oyunu kapatıp açınca ilerleme duruyor
 
 ### Aşama 8: Kalan 7 krallık (her biri ~1-2 hafta, toplam 2-3 ay)

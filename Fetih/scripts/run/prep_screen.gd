@@ -8,6 +8,7 @@ var _info: Label
 func _ready() -> void:
 	if not RunState.active:  # sahne tek başına (F6) çalıştırılırsa deneme koşusu başlat
 		RunState.start_run(KingdomCatalog.all()[0], 1)
+	Profile.store_run(RunState.to_dict("prep"))  # oyun kapanırsa buradan devam edilir
 	var root := UiKit.screen_root(self)
 	root.add_child(_top_bar())
 	var map_row := UiKit.hbox()
@@ -32,8 +33,8 @@ func _ready() -> void:
 func _top_bar() -> Control:
 	var bar := UiKit.hbox(16)
 	bar.add_child(UiKit.label(tr("Savaş %d / %d") % [RunState.battle_index + 1, Balance.RUN_LENGTH], 13))
-	var lives_color := UiKit.COLOR_TEXT if RunState.lives == Balance.START_LIVES else UiKit.COLOR_BAD
-	bar.add_child(UiKit.label(tr("Can: %d / %d") % [RunState.lives, Balance.START_LIVES], 13, lives_color))
+	var lives_color := UiKit.COLOR_TEXT if RunState.lives == RunState.max_lives else UiKit.COLOR_BAD
+	bar.add_child(UiKit.label(tr("Can: %d / %d") % [RunState.lives, RunState.max_lives], 13, lives_color))
 	bar.add_child(UiKit.spacer())
 	bar.add_child(UiKit.label(RunState.kingdom.display_name, 13, RunState.kingdom.color))
 	return bar
@@ -156,4 +157,7 @@ func _show_info(cell: Vector2i) -> void:
 
 func _start_battle() -> void:
 	RunState.last_changed = null
+	# Savaş başlarken kaydedilir: oyundan çıkıp dönen oyuncu dizilişi değiştiremeden
+	# aynı savaşa döner (savaş deterministik; kaybedilen savaşı tekrar denemek mümkün olmaz).
+	Profile.store_run(RunState.to_dict("battle"))
 	Screens.goto(Screens.BATTLE)

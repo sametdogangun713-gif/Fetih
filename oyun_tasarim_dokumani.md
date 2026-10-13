@@ -214,7 +214,19 @@ Her krallık koşuya kendi fermanlarından biriyle başlar (9 Kings'teki kral ye
 ## 6. Kalıcı ilerleme (meta)
 
 - Başta 3 krallık açık: **İnsanlar, Elfler, Orklar.**
-- **(Öneri) Krallık açma kuralı:** Koşuda kilitli bir krallığın boss'unu yenince o krallığın **mührü** düşer. Koşuyu kazanırsan (20. savaş) mühür kalıcı olur ve krallık açılır. Koşu kaybedilirse mühür gider.
+- **Krallık açma (Aşama 7'de uygulandı):** Koşuda kilitli bir krallığın boss'unu yenince o krallığın **mührü** düşer. Fethi tamamlarsan (20. savaş) mühür kalıcı olur ve krallık açılır. Koşu kaybedilirse mühür gider.
+- **Şan:** kazanılan savaş +2, yenilen boss +5, tamamlanan fetih +25. Kazanılan bir koşu ~85 Şan.
+- **Hazine (kalıcı geliştirmeler):**
+
+| Geliştirme | Etki | Fiyat |
+|---|---|---|
+| Geniş Ganimet | Savaş sonrası +1 kart (2 seviye: 4, sonra 5 kart) | 40, 90 |
+| Sağlam Moral | +1 can | 60 |
+| Gaziler | Başlangıç bölükleri Sv 2 | 30 |
+| Keşif | Koşu başına kart yeniden çekme hakkı (3 seviye) | 20, 35, 50 |
+
+- Hepsi 325 Şan: yaklaşık 4 kazanılmış koşu.
+- **Kayıt:** `user://save.json` (Windows: `%APPDATA%\Godot\app_userdata\Fetih`). Yarım kalan koşu kaydedilir; savaş başında da kaydedildiği için çıkıp dönen oyuncu dizilişi değiştirip kaybedilen savaşı tekrar deneyemez.
 - Böylece 7 krallığı açmak en az 7 başarılı koşu ister. Oyunun ana hedefi bu olur.
 - Ek kalıcı ödüller (Öneri): kart seçim sayısı (+1), başlangıç bölüğü, ekstra can (en fazla 4).
 

@@ -1,10 +1,16 @@
 extends Control
-## Koşu sonu: zafer veya yenilgi özeti, ana menüye dönüş.
+## Koşu sonu: zafer veya yenilgi özeti, kazanılan Şan, açılan krallıklar, ana menüye dönüş.
+## Ödüller (Şan, istatistik, mühürle açılan krallıklar) Profile'a bir kez yazılır; yarım koşu kaydı silinir.
 
 
 func _ready() -> void:
 	if not RunState.active:  # sahne tek başına (F6) çalıştırılırsa deneme verisi
 		RunState.start_run(KingdomCatalog.all()[0], 1)
+	var glory := RunState.glory_earned()
+	var newly_unlocked := Profile.record_run_end(glory, RunState.is_victory(), RunState.kingdom.id,
+			RunState.wins, RunState.battle_index + 1, RunState.seals)
+	RunState.end_run()
+
 	var root := UiKit.screen_root(self, 16)
 	root.add_child(UiKit.spacer(true))
 	if RunState.is_victory():
@@ -14,8 +20,16 @@ func _ready() -> void:
 	else:
 		root.add_child(UiKit.centered(tr("BÜYÜK FETİH KAYBEDİLDİ"), 24, UiKit.COLOR_BAD))
 		root.add_child(UiKit.centered(tr("Son savaşı kazanmadan fetih tamamlanmaz."), 11, UiKit.COLOR_MUTED))
-	root.add_child(UiKit.centered("%s  ·  %s" % [RunState.kingdom.display_name,
-			tr("Kazanılan savaş: %d / %d") % [RunState.wins, RunState.battle_index + 1]], 12))
+	root.add_child(UiKit.centered("%s  ·  %s  ·  %s" % [RunState.kingdom.display_name,
+			tr("Kazanılan savaş: %d / %d") % [RunState.wins, RunState.battle_index + 1],
+			tr("Yenilen boss: %d") % RunState.bosses_beaten], 12))
+	root.add_child(UiKit.centered(tr("+%d Şan  (toplam %d)") % [glory, Profile.glory], 14, UiKit.COLOR_GOLD))
+	for id in newly_unlocked:
+		var kingdom := KingdomCatalog.get_kingdom(id)
+		root.add_child(UiKit.centered(tr("Yeni krallık açıldı: %s!") % kingdom.display_name, 14, kingdom.color))
+	if not RunState.is_victory() and not RunState.seals.is_empty():
+		root.add_child(UiKit.centered(tr("Mühürler kayboldu: krallık açmak için fethi tamamlamalısın."),
+				10, UiKit.COLOR_MUTED))
 	root.add_child(UiKit.centered(tr("Son ordun:"), 10, UiKit.COLOR_MUTED))
 	for squad in RunState.army:
 		root.add_child(UiKit.centered("%d %s  %s" % [squad.count, squad.unit.display_name,
@@ -30,5 +44,4 @@ func _ready() -> void:
 
 
 func _back_to_menu() -> void:
-	RunState.end_run()
 	Screens.goto(Screens.KINGDOM_SELECT)

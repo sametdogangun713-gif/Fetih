@@ -8,6 +8,8 @@ extends Resource
 @export_multiline var description: String
 @export var specialty_role: StringName  ## Krallığın en iyi olduğu rol (RoleRules sabitlerinden).
 @export var color: Color = Color.WHITE  ## Arayüzde krallık adının rengi.
+## false ise kilitli başlar: koşuda boss'unu yenip (mühür) fethi tamamlayınca açılır.
+@export var starts_unlocked := true
 ## Koşu başında verilen bölükler; her biri 100 puanlık bir bölük olur.
 @export var starting_units: Array[UnitData] = []
 ## Krallık özelliği: koşuya bu fermanlarla başlanır (9 Kings'teki kral yetenekleri gibi).

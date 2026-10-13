@@ -168,6 +168,9 @@ func _on_battle_finished(winner: SquadState.Team) -> void:
 		result_label.add_theme_color_override("font_color", UiKit.COLOR_BAD)
 	if RunState.active:
 		RunState.finish_battle(won)
+		# Sonuç hemen kaydedilir: kart ekranına geçmeden çıkılırsa da savaş sonucu kalıcıdır.
+		var over := RunState.is_defeated() or RunState.is_last_battle()
+		Profile.store_run(RunState.to_dict("end" if over else "cards"))
 		continue_button.visible = true
 
 

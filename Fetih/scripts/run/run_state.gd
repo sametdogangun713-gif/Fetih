@@ -2,10 +2,10 @@ extends Node
 ## Koşunun (bir oyunun) durumu.
 ## Autoload olarak yüklenir: sahne değişse de yaşar ve her scriptten `RunState` adıyla erişilir.
 ## Bütün rastgelelik koşu seed'inden türetilir: aynı seed = aynı rakipler, ordular ve kartlar.
-## Denge sayıları Balance'ta.
+## Denge sayıları Balance'ta. Kalıcı profil (Profile) burada kullanılmaz: kalıcı bonuslar
+## start_run'a parametre olarak gelir. Böylece testler oyuncunun kayıt dosyasından etkilenmez.
 
 const RUN_LENGTH := Balance.RUN_LENGTH
-const START_LIVES := Balance.START_LIVES
 const GRID_SIZE := Balance.GRID_SIZE
 
 # Seed'den farklı rastgele akışlar türetmek için amaç numaraları.
@@ -15,9 +15,11 @@ var active := false
 var kingdom: KingdomData
 var army: Array[ArmySquad] = []
 var passives: Array[PassiveData] = []  ## Alınan fermanlar.
-var lives := START_LIVES
+var lives := Balance.START_LIVES
+var max_lives := Balance.START_LIVES  ## Başlangıç canı (kalıcı geliştirmeyle artar); boss ödülü buna kadar.
 var battle_index := 0  ## Şu anki savaş (0'dan başlar).
 var wins := 0
+var bosses_beaten := 0
 var opponents: Array[KingdomData] = []  ## Her savaşın rakip krallığı, koşu başında belirlenir.
 var seed_value := 0
 var last_battle_won := false
@@ -25,25 +27,41 @@ var last_changed: ArmySquad  ## Son kartla eklenen/yükseltilen bölük (hazırl
 var results: Array[bool] = []  ## Oynanan savaşların sonuçları (koşu haritası için).
 var final_won := false  ## Büyük Fetih (son savaş) kazanıldı mı.
 var last_life_restored := false  ## Son savaşta boss yenilip can geri geldi mi.
+var perks := {}  ## Kalıcı geliştirmeler (Profile.run_perks): extra_cards, extra_lives, veterans, rerolls.
+var rerolls_left := 0  ## Kart tekliflerini yeniden çekme hakkı (koşu boyunca).
+var reroll_count := 0  ## Bu savaştan sonra kaç kez yeniden çekildi (kart seed'ine karışır).
+var locked: Array[StringName] = []  ## Kilitli krallıklar (boss'larını yenmek mühür kazandırır).
+var seals: Array[StringName] = []  ## Bu koşuda kazanılan mühürler; fetih tamamlanınca krallık açılır.
 
 
-func start_run(p_kingdom: KingdomData, p_seed: int = 0) -> void:
+func start_run(p_kingdom: KingdomData, p_seed: int = 0, p_perks: Dictionary = {},
+		p_locked: Array[StringName] = []) -> void:
 	active = true
 	kingdom = p_kingdom
 	seed_value = p_seed if p_seed != 0 else randi()
-	lives = START_LIVES
+	perks = p_perks.duplicate()
+	locked = p_locked.duplicate()
+	max_lives = Balance.START_LIVES + int(perks.get("extra_lives", 0))
+	lives = max_lives
+	rerolls_left = int(perks.get("rerolls", 0))
+	reroll_count = 0
 	battle_index = 0
 	wins = 0
+	bosses_beaten = 0
 	last_battle_won = false
 	last_changed = null
 	results.clear()
+	seals.clear()
 	final_won = false
 	last_life_restored = false
 	passives.clear()
 	passives.append_array(kingdom.starting_passives)
 	army.clear()
 	for unit in kingdom.starting_units:
-		army.append(ArmySquad.new(unit, Balance.SQUAD_BUDGET, ArmyGenerator.NO_CELL))
+		var squad := ArmySquad.new(unit, Balance.SQUAD_BUDGET, ArmyGenerator.NO_CELL)
+		for i in int(perks.get("veterans", 0)):
+			squad.upgrade(ArmySquad.Upgrade.REINFORCE)
+		army.append(squad)
 	ArmyGenerator.auto_arrange(army, GRID_SIZE)
 	opponents = _roll_opponents()
 
@@ -107,9 +125,14 @@ func finish_battle(won: bool) -> void:
 	last_life_restored = false
 	if won:
 		wins += 1
-		if is_boss_battle() and lives < START_LIVES:
-			lives = mini(lives + Balance.BOSS_LIFE_REWARD, START_LIVES)
-			last_life_restored = true
+		if is_boss_battle():
+			bosses_beaten += 1
+			var opponent_id := current_opponent().id
+			if locked.has(opponent_id) and not seals.has(opponent_id):
+				seals.append(opponent_id)
+			if lives < max_lives:
+				lives = mini(lives + Balance.BOSS_LIFE_REWARD, max_lives)
+				last_life_restored = true
 	else:
 		lives -= 1
 	if is_final_battle():
@@ -132,6 +155,15 @@ func is_last_battle() -> bool:
 ## Kart seçiminden sonra sıradaki savaşa geç.
 func advance() -> void:
 	battle_index += 1
+	reroll_count = 0
+
+
+## Koşu sonunda kazanılan Şan.
+func glory_earned() -> int:
+	var glory := wins * MetaUpgrades.GLORY_PER_WIN + bosses_beaten * MetaUpgrades.GLORY_PER_BOSS
+	if is_victory():
+		glory += MetaUpgrades.GLORY_VICTORY
+	return glory
 
 
 static func army_power(squads: Array[ArmySquad]) -> float:
@@ -143,10 +175,23 @@ static func army_power(squads: Array[ArmySquad]) -> float:
 
 # --- Kartlar ---
 
-## Son savaşın kartları: kazanınca 3, kaybedince 2.
+## Son savaşın kartları: kazanınca 3, kaybedince 2 (+ kalıcı geliştirme).
 func card_offers() -> Array[CardOffer]:
-	return ArmyGenerator.card_offers(current_opponent(), army, passives, last_battle_won,
-			rng_for(Purpose.CARDS), is_boss_battle() and last_battle_won)
+	var count := (Balance.CARDS_ON_WIN if last_battle_won else Balance.CARDS_ON_LOSS) \
+			+ int(perks.get("extra_cards", 0))
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash([seed_value, battle_index, Purpose.CARDS, reroll_count])
+	return ArmyGenerator.card_offers(current_opponent(), army, passives, count, rng,
+			is_boss_battle() and last_battle_won)
+
+
+## Kart tekliflerini yeniden çek (Keşif hakkı harcanır).
+func reroll_cards() -> bool:
+	if rerolls_left <= 0:
+		return false
+	rerolls_left -= 1
+	reroll_count += 1
+	return true
 
 
 func can_take(offer: CardOffer) -> bool:
@@ -222,6 +267,97 @@ func move_squad(from: Vector2i, to: Vector2i) -> void:
 		a.cell = to
 	if b:
 		b.cell = from
+
+
+# --- Kaydet / yükle ---
+
+## Yarım kalan koşuyu JSON'a çevrilebilir sözlük olarak verir.
+## phase: koşuya dönülünce açılacak ekran ("prep", "battle", "cards").
+func to_dict(phase: String) -> Dictionary:
+	var squads := []
+	for squad in army:
+		squads.append({
+			"unit": String(squad.unit.id), "base_power": squad.base_power,
+			"cell": [squad.cell.x, squad.cell.y],
+			"attack": squad.attack_level, "defense": squad.defense_level, "reinforce": squad.reinforce_level,
+		})
+	return {
+		"phase": phase,
+		"kingdom": String(kingdom.id),
+		"seed": seed_value,
+		"battle_index": battle_index,
+		"lives": lives, "max_lives": max_lives,
+		"wins": wins, "bosses_beaten": bosses_beaten,
+		"results": results.duplicate(),
+		"last_battle_won": last_battle_won, "final_won": final_won,
+		"last_life_restored": last_life_restored,
+		"opponents": opponents.map(func(k: KingdomData) -> String: return String(k.id)),
+		"army": squads,
+		"passives": passives.map(func(p: PassiveData) -> String: return String(p.id)),
+		"perks": perks,
+		"rerolls_left": rerolls_left, "reroll_count": reroll_count,
+		"locked": locked.map(func(id: StringName) -> String: return String(id)),
+		"seals": seals.map(func(id: StringName) -> String: return String(id)),
+	}
+
+
+## to_dict ile kaydedilen koşuyu geri yükler. Veri bozuksa false döner.
+## (JSON'dan gelen bütün sayılar ondalıklıdır; int() ile çevrilir.)
+func from_dict(data: Dictionary) -> bool:
+	var loaded_kingdom := KingdomCatalog.get_kingdom(StringName(data.get("kingdom", "")))
+	if loaded_kingdom == null:
+		return false
+	kingdom = loaded_kingdom
+	seed_value = int(data.get("seed", 0))
+	battle_index = int(data.get("battle_index", 0))
+	lives = int(data.get("lives", Balance.START_LIVES))
+	max_lives = int(data.get("max_lives", Balance.START_LIVES))
+	wins = int(data.get("wins", 0))
+	bosses_beaten = int(data.get("bosses_beaten", 0))
+	results.clear()
+	for r in data.get("results", []):
+		results.append(bool(r))
+	last_battle_won = bool(data.get("last_battle_won", false))
+	final_won = bool(data.get("final_won", false))
+	last_life_restored = bool(data.get("last_life_restored", false))
+	opponents.clear()
+	for id in data.get("opponents", []):
+		var opponent := KingdomCatalog.get_kingdom(StringName(id))
+		if opponent == null:
+			return false
+		opponents.append(opponent)
+	army.clear()
+	for s in data.get("army", []):
+		var unit := UnitCatalog.get_unit(StringName(s.get("unit", "")))
+		if unit == null:
+			return false
+		var cell: Array = s.get("cell", [0, 0])
+		var squad := ArmySquad.new(unit, float(s.get("base_power", Balance.SQUAD_BUDGET)),
+				Vector2i(int(cell[0]), int(cell[1])))
+		squad.attack_level = int(s.get("attack", 0))
+		squad.defense_level = int(s.get("defense", 0))
+		squad.reinforce_level = int(s.get("reinforce", 0))
+		army.append(squad)
+	passives.clear()
+	for id in data.get("passives", []):
+		var passive := PassiveCatalog.get_passive(StringName(id))
+		if passive:
+			passives.append(passive)
+	perks = {}
+	var saved_perks: Dictionary = data.get("perks", {})
+	for key in saved_perks:
+		perks[key] = int(saved_perks[key])
+	rerolls_left = int(data.get("rerolls_left", 0))
+	reroll_count = int(data.get("reroll_count", 0))
+	locked.clear()
+	for id in data.get("locked", []):
+		locked.append(StringName(id))
+	seals.clear()
+	for id in data.get("seals", []):
+		seals.append(StringName(id))
+	last_changed = null
+	active = true
+	return true
 
 
 # --- Rastgelelik ---

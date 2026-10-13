@@ -16,6 +16,13 @@ static func all() -> Array[PassiveData]:
 	return _passives
 
 
+static func get_passive(id: StringName) -> PassiveData:
+	for passive in all():
+		if passive.id == id:
+			return passive
+	return null
+
+
 static func of_kingdom(kingdom: StringName) -> Array[PassiveData]:
 	var result: Array[PassiveData] = []
 	for passive in all():

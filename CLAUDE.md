@@ -19,6 +19,7 @@
 - Veri odaklı: birlik/krallık/kart verileri `Fetih/data/` altında `.tres` dosyaları.
 - UI metinleri baştan `tr()` ile yazılır (TR + EN); statik fonksiyonlarda `UiKit.t()`.
 - Koşu durumu `RunState` autoload'unda (`scripts/run/run_state.gd`); ekran geçişleri `Screens` ile.
+- Kalıcı profil `Profile` autoload'unda (`scripts/meta/profile.gd`, `user://save.json`). `RunState` Profile'a bağımlı değildir (bonuslar `start_run` parametresi). Testler `save_path`'i değiştirir; **oyuncunun gerçek kaydına asla yazma.** Kayıt testi: `res://tools/save_test.gd`.
 - Arayüz kodla kurulur (`UiKit` yardımcıları); ekran sahneleri sadece kök Control + script.
 - Ekransız test: `godot --headless --path Fetih -s <script>`; ekran görüntüsü: `--write-movie out.png --quit-after N`.
 - Denge testi: `powershell -ExecutionPolicy Bypass -File Fetih\tools\run_balance_test.ps1` — birlik değeri değişince çalıştır.

@@ -50,10 +50,11 @@ static func enemy_army(kingdom: KingdomData, power: float, squad_count: int, gri
 
 
 ## Savaş sonrası kartlar. Kural: birlik kartları ve fermanlar savaşılan krallıktan gelir.
-## 1. kart: birlik. 2. kart: yükseltme. 3. kart (sadece zaferde): birlik / yükseltme / ferman.
+## 1. kart: birlik. 2. kart: yükseltme. 3. ve sonrası: birlik / yükseltme / ferman (rastgele).
+## count: toplam kart sayısı (zaferde 3, yenilgide 2, + kalıcı geliştirme).
 ## boss_reward: boss yenildi; 3. kart (varsa) mutlaka ferman.
 static func card_offers(opponent: KingdomData, army: Array[ArmySquad], owned: Array[PassiveData],
-		won: bool, rng: RandomNumberGenerator, boss_reward := false) -> Array[CardOffer]:
+		count: int, rng: RandomNumberGenerator, boss_reward := false) -> Array[CardOffer]:
 	var unit_pool: Array = UnitCatalog.units_of(opponent.id).duplicate()
 	_shuffle(unit_pool, rng)
 	var passive_pool: Array = []
@@ -65,10 +66,13 @@ static func card_offers(opponent: KingdomData, army: Array[ArmySquad], owned: Ar
 	var offers: Array[CardOffer] = []
 	if not unit_pool.is_empty():
 		offers.append(CardOffer.unit_card(unit_pool.pop_back()))
-	_add_upgrade_or_fallback(offers, army, unit_pool, passive_pool, rng)
-	if won:
+	if count >= 2:
+		_add_upgrade_or_fallback(offers, army, unit_pool, passive_pool, rng)
+	var first_extra := true
+	while offers.size() < count:
+		var before := offers.size()
 		var roll := rng.randf()
-		if boss_reward and not passive_pool.is_empty():
+		if boss_reward and first_extra and not passive_pool.is_empty():
 			offers.append(CardOffer.passive_card(passive_pool.pop_back()))
 		elif roll < Balance.THIRD_CARD_UNIT and not unit_pool.is_empty():
 			offers.append(CardOffer.unit_card(unit_pool.pop_back()))
@@ -76,6 +80,9 @@ static func card_offers(opponent: KingdomData, army: Array[ArmySquad], owned: Ar
 			_add_upgrade_or_fallback(offers, army, unit_pool, passive_pool, rng)
 		else:
 			offers.append(CardOffer.passive_card(passive_pool.pop_back()))
+		first_extra = false
+		if offers.size() == before:
+			break  # sunulacak kart kalmadı
 	return offers
 
 
