@@ -157,9 +157,12 @@ Her aşama sonunda **çalışan** bir sürüm olmalı. Grafik son aşamalara kad
 - **Çıktı:** Her koşu farklı bir ordu ile bitiyor
 
 ### Aşama 6: Boss'lar ve tam koşu — DİKEY KESİT (2-3 hafta)
-- [ ] 3 başlangıç krallığının boss'ları
-- [ ] 20 savaşlık koşu, 5/10/15/20. savaşlarda boss
-- [ ] Koşu haritası ekranı (hangi savaştasın, sıradaki rakip kim)
+- [x] 3 başlangıç krallığının boss'ları (simülasyonla ayarlandı, `tools/boss_test.gd`)
+- [x] 20 savaşlık koşu, 5/10/15/20. savaşlarda boss; boss ordusu krallığın fermanlarını kullanır
+- [x] Boss yenilince +1 can ve ferman; 20. savaş (Büyük Fetih) kazanılmadan fetih yok
+- [x] Koşu haritası (hazırlık ekranında 20 kutu, üstüne gelince ayrıntı)
+- [x] Krallık özelliği (başlangıç fermanı); Ork başlangıcı Savaşçı + Kalkanlı
+- [x] Zorluk: akıllı bot %58 / %63 / %58 fetih (krallıklar arası fark 5 puan)
 - [ ] **KONTROL NOKTASI:** 5 kişiye oynat. "Bir koşu daha" dedirtiyor mu?
   - Evet → devam
   - Hayır → içerik eklemeden önce kart ve savaş sistemini düzelt

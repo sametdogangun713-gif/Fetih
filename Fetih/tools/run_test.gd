@@ -2,7 +2,7 @@ extends SceneTree
 ## Otomatik koşu testi: RunState mantığını ekransız oynatır, zorluğu ölçer.
 ## Üç bot: greedy (kartın güç katkısını hesaplar), random, first (hep ilk kart).
 ## Çalıştırma: godot --headless --path Fetih -s res://tools/run_test.gd
-## Hedef (Aşama 5): greedy ortalama %50-60 fetih.
+## Hedef: greedy ortalama %50-60 fetih (fetih = 20. savaş kazanıldı).
 
 const RunStateScript = preload("res://scripts/run/run_state.gd")
 const RUNS := 40
@@ -87,7 +87,7 @@ func play_run(kingdom: KingdomData, seed_value: int, policy: String, verbose: bo
 			army += "%s Sv%d(%d), " % [s.unit.id, s.level(), roundi(s.power())]
 		print("  %s %s seed %d: %s  kartlar=%s  ferman=%d  güç=%d  ordu: %s" % [kingdom.id, policy, seed_value, log, kinds,
 				run.passives.size(), roundi(run.army_power(run.army)), army])
-	var result := [not run.is_defeated(), run.wins, run.battle_index + 1]
+	var result := [run.is_victory(), run.wins, run.battle_index + 1]
 	run.free()
 	return result
 

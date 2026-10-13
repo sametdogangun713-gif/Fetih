@@ -10,6 +10,11 @@ func _ready() -> void:
 		RunState.start_run(KingdomCatalog.all()[0], 1)
 	var root := UiKit.screen_root(self)
 	root.add_child(_top_bar())
+	var map_row := UiKit.hbox()
+	map_row.add_child(UiKit.spacer())
+	map_row.add_child(RunMap.new())
+	map_row.add_child(UiKit.spacer())
+	root.add_child(map_row)
 
 	var middle := UiKit.hbox(10)
 	middle.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -49,10 +54,7 @@ func _army_column() -> Control:
 	column.add_child(_grid)
 	column.add_child(UiKit.label(tr("Arka saf"), 9, UiKit.COLOR_MUTED))
 	column.add_child(_passives_line())
-	var hint := UiKit.wrapped(tr("Bölükleri sürükleyip bırakarak yerlerini değiştir. Tanklar ve savaşçılar önde, okçu ve büyücüler arkada iyi durur."),
-			9, UiKit.COLOR_MUTED)
-	hint.custom_minimum_size.x = 306
-	column.add_child(hint)
+	column.add_child(UiKit.label(tr("Bölükleri sürükleyip bırakarak yerlerini değiştir."), 9, UiKit.COLOR_MUTED))
 	return column
 
 
@@ -79,7 +81,12 @@ func _opponent_column() -> Control:
 	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var box := UiKit.vbox(3)
 	card.add_child(box)
-	box.add_child(UiKit.label(tr("Sıradaki rakip"), 9, UiKit.COLOR_MUTED))
+	if RunState.is_final_battle():
+		box.add_child(UiKit.label(tr("BÜYÜK FETİH - kazanmak zorundasın"), 10, UiKit.COLOR_BAD))
+	elif RunState.is_boss_battle():
+		box.add_child(UiKit.label(tr("BOSS SAVAŞI - yenersen +1 can ve ferman"), 10, UiKit.COLOR_GOLD))
+	else:
+		box.add_child(UiKit.label(tr("Sıradaki rakip"), 9, UiKit.COLOR_MUTED))
 	var title := UiKit.hbox(8)
 	title.add_child(UiKit.label(opponent.display_name, 16, opponent.color))
 	title.add_child(UiKit.label(tr("Güç %d") % roundi(RunState.army_power(enemy_army)), 10, UiKit.COLOR_MUTED))
@@ -87,8 +94,18 @@ func _opponent_column() -> Control:
 	box.add_child(UiKit.label(tr("Uzmanlık: %s") % UiKit.role_name(opponent.specialty_role),
 			10, UiKit.COLOR_GOLD))
 	for squad in enemy_army:
-		box.add_child(UiKit.label("• %d %s (%s)  %s" % [squad.count, squad.unit.display_name,
-				UiKit.role_name(squad.unit.role), UiKit.level_text(squad)], 10))
+		if squad.unit.is_boss:
+			box.add_child(UiKit.label("• %s %s (%s)" % [tr("BOSS:"), squad.unit.display_name,
+					UiKit.role_name(squad.unit.role)], 10, UiKit.COLOR_GOLD))
+		else:
+			box.add_child(UiKit.label("• %d %s (%s)  %s" % [squad.count, squad.unit.display_name,
+					UiKit.role_name(squad.unit.role), UiKit.level_text(squad)], 10))
+	var fermans := RunState.enemy_passives()
+	if not fermans.is_empty():
+		var names: PackedStringArray = []
+		for passive in fermans:
+			names.append(passive.display_name)
+		box.add_child(UiKit.wrapped(tr("Fermanları: %s") % ", ".join(names), 9, UiKit.COLOR_GOLD))
 	box.add_child(UiKit.wrapped(tr("Savaştan sonra %s ordusundan kart seçeceksin (kazanırsan 3, kaybedersen 2).") % opponent.display_name,
 			9, UiKit.COLOR_MUTED))
 	box.add_child(HSeparator.new())

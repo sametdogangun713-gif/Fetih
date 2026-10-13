@@ -6,6 +6,7 @@ const SPECIALTY_CHANCE := 0.4  ## Rakip bölüğünün krallık uzmanı olma ola
 const NO_CELL := Vector2i(-1, -1)
 
 ## Yerleştirme sırası: önce cephe birlikleri öne, en son menzilliler arkaya.
+## (Boss da rolüne göre yerleşir: tank/savaşçı boss önde, büyücü boss arkada.)
 const PLACEMENT_ORDER: Array[StringName] = [
 	RoleRules.TANK, RoleRules.SPEARMAN, RoleRules.WARRIOR,
 	RoleRules.CAVALRY, RoleRules.MAGE, RoleRules.ARCHER,
@@ -13,22 +14,29 @@ const PLACEMENT_ORDER: Array[StringName] = [
 
 
 ## Verilen krallıktan, hedef güçte bir ordu kurar: önce bölükler, kalan güç yükseltmelere.
+## with_boss: boss savaşı; boss gücü toplamın içindedir ve boss ayrı bir bölük olarak eklenir.
 static func enemy_army(kingdom: KingdomData, power: float, squad_count: int, grid_size: Vector2i,
-		rng: RandomNumberGenerator) -> Array[ArmySquad]:
+		rng: RandomNumberGenerator, with_boss := false) -> Array[ArmySquad]:
 	var units := UnitCatalog.units_of(kingdom.id)
 	var squads := clampi(squad_count, 1, Balance.MAX_SQUADS)
-	# Güç azsa bölükler küçük olur; yeterliyse her biri tam (100) bölük.
-	var base := minf(Balance.SQUAD_BUDGET, power / squads)
 	var army: Array[ArmySquad] = []
+	var total := 0.0
+	if with_boss and kingdom.boss:
+		army.append(ArmySquad.new(kingdom.boss, kingdom.boss.cost, NO_CELL))
+		total += kingdom.boss.cost
+	# Güç azsa bölükler küçük olur; yeterliyse her biri tam (100) bölük.
+	var base := minf(Balance.SQUAD_BUDGET, maxf(power - total, 0.0) / squads)
+	base = maxf(base, Balance.SQUAD_BUDGET * 0.3)
 	for i in squads:
 		army.append(ArmySquad.new(_pick_unit(units, kingdom, rng), base, NO_CELL))
 
-	var total := base * squads
+	total += base * squads
 	var half_step := Balance.SQUAD_BUDGET * Balance.UPGRADE_STEP * 0.5
 	while total < power - half_step:
 		var upgradable: Array[ArmySquad] = []
 		for squad in army:
-			if squad.can_upgrade():
+			# Boss yükseltilmez: tek askerli olduğu için Takviye ona asker eklemez.
+			if squad.can_upgrade() and not squad.unit.is_boss:
 				upgradable.append(squad)
 		if upgradable.is_empty():
 			break
@@ -43,8 +51,9 @@ static func enemy_army(kingdom: KingdomData, power: float, squad_count: int, gri
 
 ## Savaş sonrası kartlar. Kural: birlik kartları ve fermanlar savaşılan krallıktan gelir.
 ## 1. kart: birlik. 2. kart: yükseltme. 3. kart (sadece zaferde): birlik / yükseltme / ferman.
+## boss_reward: boss yenildi; 3. kart (varsa) mutlaka ferman.
 static func card_offers(opponent: KingdomData, army: Array[ArmySquad], owned: Array[PassiveData],
-		won: bool, rng: RandomNumberGenerator) -> Array[CardOffer]:
+		won: bool, rng: RandomNumberGenerator, boss_reward := false) -> Array[CardOffer]:
 	var unit_pool: Array = UnitCatalog.units_of(opponent.id).duplicate()
 	_shuffle(unit_pool, rng)
 	var passive_pool: Array = []
@@ -59,7 +68,9 @@ static func card_offers(opponent: KingdomData, army: Array[ArmySquad], owned: Ar
 	_add_upgrade_or_fallback(offers, army, unit_pool, passive_pool, rng)
 	if won:
 		var roll := rng.randf()
-		if roll < Balance.THIRD_CARD_UNIT and not unit_pool.is_empty():
+		if boss_reward and not passive_pool.is_empty():
+			offers.append(CardOffer.passive_card(passive_pool.pop_back()))
+		elif roll < Balance.THIRD_CARD_UNIT and not unit_pool.is_empty():
 			offers.append(CardOffer.unit_card(unit_pool.pop_back()))
 		elif roll < Balance.THIRD_CARD_UNIT + Balance.THIRD_CARD_UPGRADE or passive_pool.is_empty():
 			_add_upgrade_or_fallback(offers, army, unit_pool, passive_pool, rng)

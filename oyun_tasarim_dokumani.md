@@ -128,10 +128,10 @@ Savaşta askerler toplu vuruştuğu için **Lanchester kare yasası** geçerli: 
 - Simülasyonun düzelttiği iki şey: saldırı **hızı** artışı formülden az değerli çıktı (toplu vuruşta yavaş vuranın gizli avantajı), bu yüzden Saldırı sadece hasarı artırır. Savunma da can yerine dayanıklılık artırır (yüksek canlı yaralı askerler fazla uzun vuruşuyordu).
 
 ### Rakip gücü (zorluk)
-- Rakip gücü = beklenen oyuncu gücü × zorluk. Zorluk ilk savaşta %85, son savaşta %100.
+- Rakip gücü = beklenen oyuncu gücü × zorluk (Aşama 6'da 20 savaş için %85 sabit; aşağıda "Zorluk").
 - Beklenen oyuncu gücü: ilk kartlar yeni bölük (+100), 5 bölük dolunca yükseltme (+44).
 - Rakip de önce bölük kazanır (2, 3, 4, 5), sonra kalan gücü rastgele yükseltmelere harcar.
-- Ölçüm (40 koşu, 10 savaş): kartın güce katkısını hesaplayan "akıllı" bot %54 fetih (İnsanlar %38, Elfler %68, Orklar %55). Rastgele seçen bot %3–15.
+- Aşama 5 ölçümü (10 savaş) eskidi; güncel sonuçlar bölüm 5'te.
 
 ### Fermanlar
 | Krallık | Ferman | Etki |
@@ -165,11 +165,35 @@ Savaşta askerler toplu vuruştuğu için **Lanchester kare yasası** geçerli: 
 
 ## 5. Koşu yapısı (bir oyun)
 
-- Koşu = **20 savaş**, 4 perde × 5 savaş.
-- **5., 10. ve 15. savaş:** rakip bir krallığın **boss'u** ve ordusu.
-- **20. savaş:** büyük fetih savaşı (final boss).
-- Diğer savaşlar: rastgele seçilen rakip krallıkların normal orduları.
-- Rakip ordular bilgisayar tarafından üretilir: her savaşa bir **ordu bütçesi** verilir, bütçe her turda artar.
+- Koşu = **20 savaş** (Aşama 6'da uygulandı).
+- **5., 10., 15. savaş:** rakip krallığın **boss'u** ordusunun başında; boss ordusu o krallığın 3 fermanını da kullanır.
+- **20. savaş: Büyük Fetih.** O savaşın rakip krallığının boss'u, rakip gücü +%10. **Kazanmak şart:** kaybedersen canın kalsa bile fetih yarım kalır.
+- Boss yenilince **+1 can** (en fazla 3) ve 3. kart mutlaka o krallığın fermanı.
+- Diğer savaşlar: rastgele rakip krallıkların normal orduları. Hazırlık ekranındaki koşu haritası 20 savaşın tamamını gösterir.
+
+### Boss'lar
+Boss tek askerli dev kahramandır; maliyeti 150 (1.5 bölük). Tek asker öldükçe vuruşu azalmadığı için Lanchester formülü değişir: boss'un can × hasarı, rakibin asker² × can × hasarının yarısı kadar olmalı. Değerler simülasyonla (`tools/boss_test.gd`) %50 kazanma noktasına ayarlandı.
+
+| Krallık | Boss | Rol | Can | Hasar | Özel |
+|---|---|---|---|---|---|
+| İnsanlar | Kral Aldric | Tank | 435 | 18.5 | Zırh 4, alan hasarı |
+| Elfler | Kraliçe Sylwen | Büyücü | 265 | 30 | Menzil 4.5, zırh deler, geniş alan hasarı |
+| Orklar | Savaş Ağası Grukk | Savaşçı | 325 | 24 | Hücum x2, alan hasarı, hızlı |
+
+Her boss'un karşılığı var (örn. Sylwen süvariye zayıf); boss'a göre ordu kurmak stratejinin parçası.
+
+### Krallık özelliği ve başlangıç ordusu
+Her krallık koşuya kendi fermanlarından biriyle başlar (9 Kings'teki kral yetenekleri gibi):
+
+| Krallık | Başlangıç ordusu | Özellik |
+|---|---|---|
+| İnsanlar | 20 İnsan Mızrakçı, 20 Arbaletçi | Kraliyet Sancağı: ön cephe +%30 hasar |
+| Elfler | 20 Elf Okçusu, 13 Orman Büyücüsü | Orman Adımı: ordu %30 hızlı |
+| Orklar | 20 Ork Savaşçısı, 14 Kalkanlı Ork | Savaş Davulları: saldırı hızı +%15 |
+
+### Zorluk (Aşama 6 ölçümü)
+- Rakip gücü = beklenen oyuncu gücü × %85 (sabit); Büyük Fetih ×1.1.
+- 40'ar koşuluk bot testi (`tools/run_test.gd`): kartın güç katkısını hesaplayan bot İnsanlar %58, Elfler %63, Orklar %58 fetih (savaşların %87–92'si kazanılıyor). Rastgele kart seçen bot %3–13.
 
 ### Kayıplar
 - Ordular her savaşa **tam güçle** girer (9 Kings'teki gibi). Savaşta ölen askerler bir sonraki savaşta geri gelir; kalıcı kayıp yoktur. Ordunun gücü sadece kartlarla değişir.
@@ -232,8 +256,8 @@ Güncel hali: `Fetih/scripts/data/unit_data.gd`. Sprite alanı Aşama 9'da eklen
 
 Öncelikli değil, geliştirme sırasında karar verilecek:
 
-1. Final boss (20. savaş) kim? Sabit bir "kötü" mü, yoksa koşuda en güçlü kalan krallık mı?
-2. Komşuluk bonusu olsun mu?
+1. Komşuluk bonusu olsun mu?
+2. Final boss için ayrı bir "büyük kötü" (şimdilik 20. savaşın rakip krallığının boss'u + %10 güç).
 
 ## 9. Karar kaydı
 

@@ -9,7 +9,12 @@ class_name Balance
 ##     eşdeğer bütçe ~ asker x kök(can çarpanı x hasar/sn çarpanı)
 ## Örnek: asker +%40 gücü %40 artırır; ama hasar +%40 sadece kök(1.4) = %18 artırır.
 
-const RUN_LENGTH := 10  ## Bir koşudaki savaş sayısı. Aşama 6'da 20 olacak.
+const RUN_LENGTH := 20  ## Bir koşudaki savaş sayısı.
+const BOSS_EVERY := 5  ## Her 5. savaş boss savaşı (5, 10, 15, 20). Sonuncusu Büyük Fetih.
+## Boss savaşında rakip gücü bu kadar artar; boss ordusu krallığın fermanlarını da kullanır.
+const BOSS_POWER_MULT := 1.0
+const FINAL_POWER_MULT := 1.1  ## Büyük Fetih (son savaş).
+const BOSS_LIFE_REWARD := 1  ## Boss yenilince geri gelen can (en fazla START_LIVES).
 const START_LIVES := 3
 const GRID_SIZE := Vector2i(3, 3)
 const MAX_SQUADS := 5  ## Komuta sınırı: orduda en fazla bu kadar bölük.
@@ -39,7 +44,7 @@ const THIRD_CARD_UPGRADE := 0.30
 ## Rakip gücü = beklenen oyuncu gücü x zorluk. Zorluk ilk savaştan son savaşa doğru artar.
 ## Oyuncunun avantajı: rakibi önceden görür, ona göre kart seçer ve dizer.
 const DIFFICULTY_START := 0.85
-const DIFFICULTY_END := 1.0
+const DIFFICULTY_END := 0.85
 ## Ortalama bir yükseltmenin güç katkısı: 40 + karışım payı.
 const EXPECTED_UPGRADE_VALUE := 44.0
 
@@ -63,7 +68,20 @@ static func difficulty(battle_index: int) -> float:
 
 
 static func enemy_power(battle_index: int) -> float:
-	return expected_player_power(battle_index) * difficulty(battle_index)
+	var power := expected_player_power(battle_index) * difficulty(battle_index)
+	if is_final_battle(battle_index):
+		power *= FINAL_POWER_MULT
+	elif is_boss_battle(battle_index):
+		power *= BOSS_POWER_MULT
+	return power
+
+
+static func is_boss_battle(battle_index: int) -> bool:
+	return (battle_index + 1) % BOSS_EVERY == 0
+
+
+static func is_final_battle(battle_index: int) -> bool:
+	return battle_index == RUN_LENGTH - 1
 
 
 ## Rakip de oyuncu gibi her savaşta bir bölük kazanır, sonra yükseltir.

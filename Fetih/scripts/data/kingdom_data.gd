@@ -10,3 +10,7 @@ extends Resource
 @export var color: Color = Color.WHITE  ## Arayüzde krallık adının rengi.
 ## Koşu başında verilen bölükler; her biri 100 puanlık bir bölük olur.
 @export var starting_units: Array[UnitData] = []
+## Krallık özelliği: koşuya bu fermanlarla başlanır (9 Kings'teki kral yetenekleri gibi).
+@export var starting_passives: Array[PassiveData] = []
+## Krallığın boss'u (boss savaşlarında ordusunun başında savaşır).
+@export var boss: UnitData

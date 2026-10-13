@@ -83,6 +83,9 @@ func _draw() -> void:
 	if _flash > 0.0:
 		body = body.lerp(Color.WHITE, 0.7)
 	var head := body.lightened(0.35)
+	if squad.unit.is_boss:
+		_draw_boss(body, head)
+		return
 	var role := squad.unit.role
 	var size: Vector2 = ROLE_SIZES.get(role, Vector2(4, 9))
 	for o in offsets:
@@ -98,6 +101,26 @@ func _draw() -> void:
 				draw_rect(Rect2(rect.position + Vector2(0, size.y - 4), Vector2(size.x, 4)), body.darkened(0.4))
 
 	_draw_banner()
+
+
+## Boss: tek dev figür, taç ve can çubuğu (tek asker olduğu için sayı yerine can gösterilir).
+func _draw_boss(body: Color, head: Color) -> void:
+	var size := Vector2(12, 22)
+	var rect := Rect2(Vector2(-size.x / 2.0, -size.y), size)
+	draw_rect(rect, body)
+	draw_rect(Rect2(rect.position, Vector2(size.x, 4)), head)
+	# taç
+	var crown_y := rect.position.y - 3
+	for x in [-6, -2, 3]:
+		draw_rect(Rect2(Vector2(x, crown_y), Vector2(3, 3)), UiKit.COLOR_GOLD)
+	# can çubuğu
+	var max_hp := squad.unit.hp * squad.max_count
+	var ratio := clampf(squad.hp_pool / max_hp, 0.0, 1.0)
+	var bar := Rect2(Vector2(-14, crown_y - 6), Vector2(28, 3))
+	draw_rect(bar, Color(0, 0, 0, 0.6))
+	draw_rect(Rect2(bar.position, Vector2(bar.size.x * ratio, bar.size.y)), TEAM_COLORS[squad.team])
+	draw_string(ThemeDB.fallback_font, Vector2(-30, crown_y - 9), squad.unit.display_name,
+			HORIZONTAL_ALIGNMENT_CENTER, 60, 8, UiKit.COLOR_GOLD)
 
 
 ## Bölüğün üstünde takım renginde sancak ve asker sayısı.

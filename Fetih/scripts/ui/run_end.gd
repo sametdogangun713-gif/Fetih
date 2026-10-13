@@ -5,18 +5,21 @@ extends Control
 func _ready() -> void:
 	if not RunState.active:  # sahne tek başına (F6) çalıştırılırsa deneme verisi
 		RunState.start_run(KingdomCatalog.all()[0], 1)
-	var victory := not RunState.is_defeated()
 	var root := UiKit.screen_root(self, 16)
 	root.add_child(UiKit.spacer(true))
-	if victory:
+	if RunState.is_victory():
 		root.add_child(UiKit.centered(tr("FETİH TAMAMLANDI"), 24, UiKit.COLOR_GOLD))
-	else:
+	elif RunState.is_defeated():
 		root.add_child(UiKit.centered(tr("ORDUN DAĞILDI"), 24, UiKit.COLOR_BAD))
+	else:
+		root.add_child(UiKit.centered(tr("BÜYÜK FETİH KAYBEDİLDİ"), 24, UiKit.COLOR_BAD))
+		root.add_child(UiKit.centered(tr("Son savaşı kazanmadan fetih tamamlanmaz."), 11, UiKit.COLOR_MUTED))
 	root.add_child(UiKit.centered("%s  ·  %s" % [RunState.kingdom.display_name,
 			tr("Kazanılan savaş: %d / %d") % [RunState.wins, RunState.battle_index + 1]], 12))
 	root.add_child(UiKit.centered(tr("Son ordun:"), 10, UiKit.COLOR_MUTED))
 	for squad in RunState.army:
-		root.add_child(UiKit.centered("%d %s" % [squad.count, squad.unit.display_name], 10))
+		root.add_child(UiKit.centered("%d %s  %s" % [squad.count, squad.unit.display_name,
+				UiKit.level_text(squad)], 10))
 	root.add_child(UiKit.spacer(true))
 
 	var bottom := UiKit.hbox()

@@ -1,15 +1,20 @@
 [gd_resource type="Resource" script_class="KingdomData" format=3]
 
-[ext_resource type="Script" path="res://scripts/data/kingdom_data.gd" id="1_0pqe3"]
-[ext_resource type="Script" path="res://scripts/data/unit_data.gd" id="2_dogyn"]
-[ext_resource type="Resource" path="res://data/units/elf_archer.tres" id="3_1wqrk"]
-[ext_resource type="Resource" path="res://data/units/elf_mage.tres" id="4_grkmj"]
+[ext_resource type="Resource" path="res://data/bosses/elf_boss.tres" id="1_grkmj"]
+[ext_resource type="Script" path="res://scripts/data/kingdom_data.gd" id="2_npp1u"]
+[ext_resource type="Script" path="res://scripts/data/passive_data.gd" id="3_dra0k"]
+[ext_resource type="Resource" path="res://data/passives/elf_forest_step.tres" id="4_5ft51"]
+[ext_resource type="Script" path="res://scripts/data/unit_data.gd" id="5_r1umd"]
+[ext_resource type="Resource" path="res://data/units/elf_archer.tres" id="6_r6d0l"]
+[ext_resource type="Resource" path="res://data/units/elf_mage.tres" id="7_ygx4b"]
 
 [resource]
-script = ExtResource("1_0pqe3")
+script = ExtResource("2_npp1u")
 id = &"elves"
 display_name = "Elfler"
-description = "Uzaktan öldürür. Oyunun en iyi okçuları ve zırh delen büyücüleri; ama yakın dövüşe yakalanırsa kırılgan."
+description = "Uzaktan öldürür. En iyi okçular, zırh delen büyücüler ve çevik adımlar; yakın dövüşte kırılgan."
 specialty_role = &"archer"
 color = Color(0.62352943, 0.8627451, 0.41568628, 1)
-starting_units = Array[ExtResource("2_dogyn")]([ExtResource("3_1wqrk"), ExtResource("4_grkmj")])
+starting_units = Array[ExtResource("5_r1umd")]([ExtResource("6_r6d0l"), ExtResource("7_ygx4b")])
+starting_passives = Array[ExtResource("3_dra0k")]([ExtResource("4_5ft51")])
+boss = ExtResource("1_grkmj")

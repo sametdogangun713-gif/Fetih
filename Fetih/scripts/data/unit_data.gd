@@ -28,6 +28,8 @@ extends Resource
 ## 1'den büyükse, en az 2 karo koşup yaptığı ilk vuruş bu kat güçlüdür (hücum).
 @export var charge_multiplier := 1.0
 @export var prefers_ranged_targets := false  ## Önce okçu ve büyücüleri hedefler.
+## Krallık boss'u: tek askerli dev kahraman. data/bosses/ altında durur; kart havuzuna girmez.
+@export var is_boss := false
 
 @export_group("Görünüm")
 @export var placeholder_color: Color = Color.WHITE  ## Gerçek sprite gelene kadar asker rengi.

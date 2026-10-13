@@ -23,7 +23,12 @@ func _clear() -> void:
 func _show_offers() -> void:
 	_clear()
 	var opponent := RunState.current_opponent()
-	if RunState.last_battle_won:
+	if RunState.last_battle_won and RunState.is_boss_battle():
+		var text := tr("%s yenildi!") % opponent.boss.display_name
+		if RunState.last_life_restored:
+			text += tr("  +1 can (%d/%d)") % [RunState.lives, Balance.START_LIVES]
+		_root.add_child(UiKit.centered(text, 18, UiKit.COLOR_GOLD))
+	elif RunState.last_battle_won:
 		_root.add_child(UiKit.centered(tr("Zafer!"), 20, UiKit.COLOR_GOOD))
 	else:
 		_root.add_child(UiKit.centered(tr("Yenilgi... Bir can kaybettin (kalan: %d).") % RunState.lives,

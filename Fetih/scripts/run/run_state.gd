@@ -22,6 +22,9 @@ var opponents: Array[KingdomData] = []  ## Her savaşın rakip krallığı, koş
 var seed_value := 0
 var last_battle_won := false
 var last_changed: ArmySquad  ## Son kartla eklenen/yükseltilen bölük (hazırlıkta vurgulanır).
+var results: Array[bool] = []  ## Oynanan savaşların sonuçları (koşu haritası için).
+var final_won := false  ## Büyük Fetih (son savaş) kazanıldı mı.
+var last_life_restored := false  ## Son savaşta boss yenilip can geri geldi mi.
 
 
 func start_run(p_kingdom: KingdomData, p_seed: int = 0) -> void:
@@ -33,7 +36,11 @@ func start_run(p_kingdom: KingdomData, p_seed: int = 0) -> void:
 	wins = 0
 	last_battle_won = false
 	last_changed = null
+	results.clear()
+	final_won = false
+	last_life_restored = false
 	passives.clear()
+	passives.append_array(kingdom.starting_passives)
 	army.clear()
 	for unit in kingdom.starting_units:
 		army.append(ArmySquad.new(unit, Balance.SQUAD_BUDGET, ArmyGenerator.NO_CELL))
@@ -54,7 +61,24 @@ func current_opponent() -> KingdomData:
 ## Şu anki savaşın rakip ordusu. Her çağrıda aynı orduyu verir (hazırlık ekranı ve savaş aynı orduyu görür).
 func current_enemy_army() -> Array[ArmySquad]:
 	return ArmyGenerator.enemy_army(current_opponent(), Balance.enemy_power(battle_index),
-			Balance.enemy_squad_count(battle_index), GRID_SIZE, rng_for(Purpose.ENEMY_ARMY))
+			Balance.enemy_squad_count(battle_index), GRID_SIZE, rng_for(Purpose.ENEMY_ARMY),
+			is_boss_battle())
+
+
+func is_boss_battle() -> bool:
+	return Balance.is_boss_battle(battle_index)
+
+
+func is_final_battle() -> bool:
+	return Balance.is_final_battle(battle_index)
+
+
+## Boss savaşında rakip ordusu krallığının bütün fermanlarını kullanır.
+func enemy_passives() -> Array[PassiveData]:
+	if is_boss_battle():
+		return PassiveCatalog.of_kingdom(current_opponent().id)
+	var none: Array[PassiveData] = []
+	return none
 
 
 ## Oyuncu ordusunun savaşa girecek hali (seviyeler ve fermanlar uygulanmış).
@@ -67,9 +91,9 @@ func build_player_squads() -> Array[SquadState]:
 
 func build_enemy_squads() -> Array[SquadState]:
 	var result: Array[SquadState] = []
-	var no_passives: Array[PassiveData] = []
+	var enemy_fermans := enemy_passives()
 	for squad in current_enemy_army():
-		result.append(SquadBuilder.build(squad, SquadState.Team.ENEMY, no_passives, GRID_SIZE))
+		result.append(SquadBuilder.build(squad, SquadState.Team.ENEMY, enemy_fermans, GRID_SIZE))
 	return result
 
 
@@ -79,10 +103,22 @@ func battle_seed() -> int:
 
 func finish_battle(won: bool) -> void:
 	last_battle_won = won
+	results.append(won)
+	last_life_restored = false
 	if won:
 		wins += 1
+		if is_boss_battle() and lives < START_LIVES:
+			lives = mini(lives + Balance.BOSS_LIFE_REWARD, START_LIVES)
+			last_life_restored = true
 	else:
 		lives -= 1
+	if is_final_battle():
+		final_won = won
+
+
+## Fetih tamamlandı mı: Büyük Fetih kazanılmış olmalı.
+func is_victory() -> bool:
+	return final_won and not is_defeated()
 
 
 func is_defeated() -> bool:
@@ -110,7 +146,7 @@ static func army_power(squads: Array[ArmySquad]) -> float:
 ## Son savaşın kartları: kazanınca 3, kaybedince 2.
 func card_offers() -> Array[CardOffer]:
 	return ArmyGenerator.card_offers(current_opponent(), army, passives, last_battle_won,
-			rng_for(Purpose.CARDS))
+			rng_for(Purpose.CARDS), is_boss_battle() and last_battle_won)
 
 
 func can_take(offer: CardOffer) -> bool:

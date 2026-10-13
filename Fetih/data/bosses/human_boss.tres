@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="UnitData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/unit_data.gd" id="1_nqk7k"]
+
+[resource]
+script = ExtResource("1_nqk7k")
+id = &"human_boss"
+kingdom = &"humans"
+role = &"tank"
+display_name = "Kral Aldric"
+cost = 150.0
+hp = 435.0
+damage = 18.5
+attack_range = 0.4
+armor = 4.0
+splash_radius = 1.0
+is_boss = true
+placeholder_color = Color(0.9411765, 0.84705883, 0.47058824, 1)

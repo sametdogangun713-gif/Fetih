@@ -15,8 +15,8 @@ func _ready() -> void:
 	for kingdom in KingdomCatalog.all():
 		row.add_child(_kingdom_card(kingdom))
 
-	root.add_child(UiKit.centered(tr("Koşu: %d savaş, %d can, en fazla %d bölük. Kaybedilen savaş tekrar oynanmaz.") % [
-			Balance.RUN_LENGTH, Balance.START_LIVES, Balance.MAX_SQUADS], 10, UiKit.COLOR_MUTED))
+	root.add_child(UiKit.centered(tr("Koşu: %d savaş, %d can, en fazla %d bölük. Her %d. savaş boss; sonuncusu Büyük Fetih.") % [
+			Balance.RUN_LENGTH, Balance.START_LIVES, Balance.MAX_SQUADS, Balance.BOSS_EVERY], 10, UiKit.COLOR_MUTED))
 
 
 func _kingdom_card(kingdom: KingdomData) -> Control:
@@ -28,6 +28,9 @@ func _kingdom_card(kingdom: KingdomData) -> Control:
 	box.add_child(UiKit.label(tr("Uzmanlık: %s") % UiKit.role_name(kingdom.specialty_role),
 			UiKit.FONT_SIZE, UiKit.COLOR_GOLD))
 	box.add_child(UiKit.wrapped(kingdom.description, 10))
+	for passive in kingdom.starting_passives:
+		box.add_child(UiKit.wrapped(tr("Özellik: %s - %s") % [passive.display_name, passive.description],
+				9, UiKit.COLOR_GOLD))
 	box.add_child(UiKit.label(tr("Başlangıç ordusu:"), 10, UiKit.COLOR_MUTED))
 	for unit in kingdom.starting_units:
 		box.add_child(UiKit.label("• %d %s" % [

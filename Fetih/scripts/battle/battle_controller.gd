@@ -97,6 +97,10 @@ func _setup_run_battle() -> void:
 	var opponent := RunState.current_opponent()
 	matchup_label.text = tr("Savaş %d / %d  -  Rakip: %s") % [RunState.battle_index + 1,
 			Balance.RUN_LENGTH, opponent.display_name]
+	if RunState.is_final_battle():
+		matchup_label.text += tr("  -  BÜYÜK FETİH")
+	elif RunState.is_boss_battle():
+		matchup_label.text += tr("  -  BOSS: %s") % opponent.boss.display_name
 
 
 func _setup_test_battle() -> void:
