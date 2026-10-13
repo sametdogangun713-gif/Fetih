@@ -70,6 +70,10 @@ var _corpses: Array[Corpse] = []
 var _rings: Array[Ring] = []
 var _rng := RandomNumberGenerator.new()
 @onready var _ground: Node2D = get_parent().get_node("GroundFx")
+## Autoload'lara düğüm yolundan ulaşılır: bu script Battlefield üzerinden simülasyon araçlarına
+## (boss_test, upgrade_test) da bağlanıyor; araçlar (-s) "Audio" adını derleme anında tanımaz.
+@onready var _audio: Node = get_node(^"/root/Audio")
+@onready var _settings: Node = get_node(^"/root/Settings")
 
 
 func _ready() -> void:
@@ -119,12 +123,12 @@ func melee_hit(attacker: SquadView, target: SquadView) -> void:
 	_burst(at, 3, SPARK, 50.0, 0.18)
 	var unit := attacker.squad.unit
 	if unit.is_boss:
-		Audio.play("hit_heavy", 0.0)
+		_audio.play("hit_heavy", 0.0)
 		_shake(2.5)
 	elif unit.role == RoleRules.TANK or unit.role == RoleRules.CAVALRY:
-		Audio.play("hit_heavy", -6.0)
+		_audio.play("hit_heavy", -6.0)
 	else:
-		Audio.play("hit", -3.0)
+		_audio.play("hit", -3.0)
 
 
 ## Uzak saldırı: rolüne göre oklar, büyü mermisi ya da gülle fırlatır. Hasar simülasyonda
@@ -172,11 +176,11 @@ func launch(attacker: SquadView, target: SquadView) -> void:
 		_projectiles.append(p)
 	match kind:
 		Kind.ARROW:
-			Audio.play("arrow", -7.0)
+			_audio.play("arrow", -7.0)
 		Kind.BOLT:
-			Audio.play("magic", -5.0)
+			_audio.play("magic", -5.0)
 		Kind.BALL:
-			Audio.play("cannon", -2.0)
+			_audio.play("cannon", -2.0)
 			_burst(attacker.center() + Vector2(6 if not attacker.flip else -6, 0), 5,
 					Color("b0aaa0"), 30.0, 0.5, -0.2)
 
@@ -191,7 +195,7 @@ func soldier_died(view: SquadView, at: Vector2) -> void:
 	if _corpses.size() > MAX_CORPSES:
 		_corpses.pop_front()
 	_burst(at + Vector2(0, -5), 4, view.squad.unit.placeholder_color.darkened(0.45), 40.0, 0.35)
-	Audio.play("death", -9.0, 0.15, 0.09)
+	_audio.play("death", -9.0, 0.15, 0.09)
 
 
 ## Bölük tamamen yok oldu: toz bulutu ve halka. Boss düşünce büyük sarsıntı.
@@ -202,10 +206,10 @@ func squad_down(view: SquadView) -> void:
 	if view.squad.unit.is_boss:
 		_burst(view.center(), 24, FIRE, 110.0, 0.8)
 		_ring(at, 50.0, 0.7, UiKit.COLOR_GOLD)
-		Audio.play("explosion")
+		_audio.play("explosion")
 		_shake(7.0)
 	else:
-		Audio.play("squad_down", -3.0)
+		_audio.play("squad_down", -3.0)
 
 
 ## Ölüler dirildi: yükselen ışık parçacıkları.
@@ -216,13 +220,13 @@ func revive(view: SquadView) -> void:
 		var p := _particle(view.position + Vector2(_rng.randf_range(-12, 12), _rng.randf_range(-4, 4)),
 				Vector2(0, -_rng.randf_range(15, 40)), glow, _rng.randf_range(0.6, 1.0))
 		p.gravity = -0.05
-	Audio.play("revive", -2.0)
+	_audio.play("revive", -2.0)
 
 
 ## Slime bölündü: etrafa jöle sıçrar.
 func split(view: SquadView) -> void:
 	_burst(view.center(), 10, view.squad.unit.placeholder_color, 70.0, 0.45)
-	Audio.play("split", -3.0)
+	_audio.play("split", -3.0)
 
 
 # --- İç işler ---
@@ -233,14 +237,14 @@ func _land(p: Projectile) -> void:
 	match p.kind:
 		Kind.ARROW:
 			_burst(p.to, 2, Color("c8b890"), 30.0, 0.2)
-			Audio.play("arrow_hit", -9.0)
+			_audio.play("arrow_hit", -9.0)
 		Kind.BOLT:
 			_burst(p.to, 8, p.color, 60.0, 0.35)
-			Audio.play("magic_hit", -5.0)
+			_audio.play("magic_hit", -5.0)
 		Kind.BALL:
 			_burst(p.to, 14, FIRE, 90.0, 0.45)
 			_burst(p.to, 8, Color("6a6058"), 50.0, 0.7, 0.1)
-			Audio.play("explosion", -4.0)
+			_audio.play("explosion", -4.0)
 			_shake(1.5)
 	if p.splash > 0.0:
 		_ring(p.to + Vector2(0, 6), p.splash, 0.35, p.color)
@@ -277,7 +281,7 @@ func _ring(at: Vector2, radius: float, duration: float, color: Color) -> void:
 
 
 func _shake(strength: float) -> void:
-	if camera:
+	if camera and _settings.screen_shake:
 		camera.shake(strength)
 
 

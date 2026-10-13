@@ -21,19 +21,19 @@ func _ready() -> void:
 	else:
 		root.add_child(UiKit.centered(tr("BÜYÜK FETİH KAYBEDİLDİ"), 24, UiKit.COLOR_BAD))
 		root.add_child(UiKit.centered(tr("Son savaşı kazanmadan fetih tamamlanmaz."), 11, UiKit.COLOR_MUTED))
-	root.add_child(UiKit.centered("%s  ·  %s  ·  %s" % [RunState.kingdom.display_name,
+	root.add_child(UiKit.centered("%s  ·  %s  ·  %s" % [tr(RunState.kingdom.display_name),
 			tr("Kazanılan savaş: %d / %d") % [RunState.wins, RunState.battle_index + 1],
 			tr("Yenilen boss: %d") % RunState.bosses_beaten], 12))
 	root.add_child(UiKit.centered(tr("+%d Şan  (toplam %d)") % [glory, Profile.glory], 14, UiKit.COLOR_GOLD))
 	for id in newly_unlocked:
 		var kingdom := KingdomCatalog.get_kingdom(id)
-		root.add_child(UiKit.centered(tr("Yeni krallık açıldı: %s!") % kingdom.display_name, 14, kingdom.color))
+		root.add_child(UiKit.centered(tr("Yeni krallık açıldı: %s!") % tr(kingdom.display_name), 14, kingdom.color))
 	if not RunState.is_victory() and not RunState.seals.is_empty():
 		root.add_child(UiKit.centered(tr("Mühürler kayboldu: krallık açmak için fethi tamamlamalısın."),
 				10, UiKit.COLOR_MUTED))
 	root.add_child(UiKit.centered(tr("Son ordun:"), 10, UiKit.COLOR_MUTED))
 	for squad in RunState.army:
-		root.add_child(UiKit.centered("%d %s  %s" % [squad.count, squad.unit.display_name,
+		root.add_child(UiKit.centered("%d %s  %s" % [squad.count, tr(squad.unit.display_name),
 				UiKit.level_text(squad)], 10))
 	root.add_child(UiKit.spacer(true))
 

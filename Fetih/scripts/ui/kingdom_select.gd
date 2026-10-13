@@ -20,6 +20,8 @@ func _ready() -> void:
 	header.add_child(UiKit.spacer())
 	header.add_child(UiKit.label(tr("Şan: %d") % Profile.glory, 12, UiKit.COLOR_GOLD))
 	header.add_child(UiKit.button(tr("Hazine"), func() -> void: Screens.goto(Screens.TREASURY)))
+	header.add_child(UiKit.button(tr("Ayarlar"), func() -> void: SettingsPanel.open(self, true)))
+	header.add_child(UiKit.button(tr("Çık"), func() -> void: get_tree().quit()))
 	if Profile.has_saved_run():
 		header.add_child(UiKit.button(_continue_text(), _on_continue))
 	root.add_child(header)
@@ -35,7 +37,7 @@ func _ready() -> void:
 	body.add_child(grid)
 	for kingdom in KingdomCatalog.all():
 		var unlocked := Profile.is_unlocked(kingdom.id)
-		var button := UiKit.button(kingdom.display_name if unlocked else tr("%s (kilitli)") % kingdom.display_name,
+		var button := UiKit.button(tr(kingdom.display_name) if unlocked else tr("%s (kilitli)") % tr(kingdom.display_name),
 				_select.bind(kingdom))
 		button.custom_minimum_size = Vector2(118, 0)
 		button.add_theme_color_override("font_color", kingdom.color if unlocked else UiKit.COLOR_MUTED)
@@ -60,12 +62,13 @@ func _ready() -> void:
 		if Profile.is_unlocked(kingdom.id):
 			_select(kingdom)
 			break
+	Tips.show_once(self, Tips.MENU)
 
 
 func _continue_text() -> String:
 	var data := Profile.saved_run
 	var kingdom := KingdomCatalog.get_kingdom(StringName(data.get("kingdom", "")))
-	var name := kingdom.display_name if kingdom else "?"
+	var name := tr(kingdom.display_name) if kingdom else "?"
 	return tr("Devam et: %s, savaş %d") % [name, int(data.get("battle_index", 0)) + 1]
 
 
@@ -84,32 +87,32 @@ func _select(kingdom: KingdomData) -> void:
 func _fill_detail(kingdom: KingdomData) -> void:
 	var unlocked := Profile.is_unlocked(kingdom.id)
 	var title := UiKit.hbox(8)
-	title.add_child(UiKit.label(kingdom.display_name, 16, kingdom.color if unlocked else UiKit.COLOR_MUTED))
+	title.add_child(UiKit.label(tr(kingdom.display_name), 16, kingdom.color if unlocked else UiKit.COLOR_MUTED))
 	title.add_child(UiKit.label(tr("Uzmanlık: %s") % UiKit.kingdom_specialty(kingdom), 10, UiKit.COLOR_GOLD))
 	_detail.add_child(title)
-	_detail.add_child(UiKit.wrapped(kingdom.description, 10))
+	_detail.add_child(UiKit.wrapped(tr(kingdom.description), 10))
 	for passive in kingdom.starting_passives:
-		_detail.add_child(UiKit.wrapped(tr("Özellik: %s - %s") % [passive.display_name, passive.description],
+		_detail.add_child(UiKit.wrapped(tr("Özellik: %s - %s") % [tr(passive.display_name), tr(passive.description)],
 				9, UiKit.COLOR_GOLD))
 	var army: PackedStringArray = []
 	for unit in kingdom.starting_units:
-		army.append("%d %s" % [UnitCatalog.count_for_budget(unit, Balance.SQUAD_BUDGET), unit.display_name])
+		army.append("%d %s" % [UnitCatalog.count_for_budget(unit, Balance.SQUAD_BUDGET), tr(unit.display_name)])
 	_detail.add_child(UiKit.wrapped(tr("Başlangıç ordusu: %s") % ", ".join(army), 9))
 	var units: PackedStringArray = []
 	for unit in UnitCatalog.units_of(kingdom.id):
-		units.append("%s (%s)" % [unit.display_name, UiKit.role_name(unit.role)])
+		units.append("%s (%s)" % [tr(unit.display_name), UiKit.role_name(unit.role)])
 	_detail.add_child(UiKit.wrapped(tr("Birlikleri: %s") % ", ".join(units), 9, UiKit.COLOR_MUTED))
 	if kingdom.boss:
-		_detail.add_child(UiKit.wrapped(tr("Boss: %s (%s)") % [kingdom.boss.display_name,
+		_detail.add_child(UiKit.wrapped(tr("Boss: %s (%s)") % [tr(kingdom.boss.display_name),
 				UiKit.role_name(kingdom.boss.role)], 9, UiKit.COLOR_MUTED))
 	var victories: int = int(Profile.stats.get("kingdom_victories", {}).get(String(kingdom.id), 0))
 	if victories > 0:
 		_detail.add_child(UiKit.label(tr("Bu krallıkla fetih: %d") % victories, 9, UiKit.COLOR_GOOD))
 	_detail.add_child(UiKit.spacer(true))
 	if unlocked:
-		_detail.add_child(UiKit.button(tr("%s ile başla") % kingdom.display_name, _on_pick.bind(kingdom)))
+		_detail.add_child(UiKit.button(tr("%s ile başla") % tr(kingdom.display_name), _on_pick.bind(kingdom)))
 	else:
-		_detail.add_child(UiKit.wrapped(tr("KİLİTLİ. Açmak için: bir koşuda %s boss'unu yen (mühür) ve fethi tamamla.") % kingdom.display_name,
+		_detail.add_child(UiKit.wrapped(tr("KİLİTLİ. Açmak için: bir koşuda %s boss'unu yen (mühür) ve fethi tamamla.") % tr(kingdom.display_name),
 				10, UiKit.COLOR_BAD))
 
 

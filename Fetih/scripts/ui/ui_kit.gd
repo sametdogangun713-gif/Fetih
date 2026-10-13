@@ -123,7 +123,7 @@ static func spacer(vertical := false) -> Control:
 # --- Metinler ---
 
 ## Çeviri. Düğüm scriptlerinde tr() kullanılır; statik fonksiyonlarda tr() olmadığı için bu.
-## Çeviri dosyası (İngilizce) Aşama 10'da eklenecek; o zamana kadar metni aynen döndürür.
+## İngilizce: i18n/en.po (tools/update_translations.gd t("...") içindeki metinleri de toplar).
 static func t(text: String) -> String:
 	return TranslationServer.translate(text)
 

@@ -23,6 +23,7 @@ var _views := {}  ## SquadState -> SquadView
 var _accumulator := 0.0
 var _speed := 1
 var _test_seed := 1
+var _pause_menu: PauseMenu
 
 
 func _ready() -> void:
@@ -34,8 +35,20 @@ func _ready() -> void:
 	continue_button.pressed.connect(_on_continue)
 	battlefield.get_node("DebugHUD").visible = not RunState.active
 	battlefield.fx.camera = battlefield.camera
-	_set_speed(1)
+	_set_speed(Settings.battle_speed)
+	_pause_menu = PauseMenu.new(tr("Koşun kayıtlı. Ana menüye dönersen bu savaş baştan oynanır (sonuç değişmez).")
+			if RunState.active else "")
+	add_child(_pause_menu)
+	var pause_button := Button.new()
+	pause_button.text = "II"
+	pause_button.focus_mode = Control.FOCUS_NONE
+	pause_button.tooltip_text = tr("Duraklat (Esc)")
+	pause_button.pressed.connect(UiKit.click_sound)
+	pause_button.pressed.connect(_pause_menu.open)
+	speed_buttons.add_child(pause_button)  # en sağa: hız düğmelerinin sırası (get_child(i)) bozulmasın
+	speed_buttons.offset_left -= 34
 	_start_battle()
+	Tips.show_once(self, Tips.BATTLE)
 
 
 func _process(delta: float) -> void:
@@ -105,11 +118,11 @@ func _setup_run_battle() -> void:
 		_add_state(squad)
 	var opponent := RunState.current_opponent()
 	matchup_label.text = tr("Savaş %d / %d  -  Rakip: %s") % [RunState.battle_index + 1,
-			Balance.RUN_LENGTH, opponent.display_name]
+			Balance.RUN_LENGTH, tr(opponent.display_name)]
 	if RunState.is_final_battle():
 		matchup_label.text += tr("  -  BÜYÜK FETİH")
 	elif RunState.is_boss_battle():
-		matchup_label.text += tr("  -  BOSS: %s") % opponent.boss.display_name
+		matchup_label.text += tr("  -  BOSS: %s") % tr(opponent.boss.display_name)
 
 
 func _setup_test_battle() -> void:
@@ -137,7 +150,7 @@ func _choose_test_matchup() -> Array[UnitData]:
 
 func _describe(unit: UnitData) -> String:
 	return "2x%d %s (%s)" % [UnitCatalog.count_for_budget(unit, TEST_SQUAD_BUDGET),
-			unit.display_name, UiKit.role_name(unit.role)]
+			tr(unit.display_name), UiKit.role_name(unit.role)]
 
 
 func _add_squad(unit: UnitData, count: int, team: SquadState.Team, at: Vector2) -> void:

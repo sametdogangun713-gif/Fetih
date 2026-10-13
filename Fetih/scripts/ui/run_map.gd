@@ -29,7 +29,7 @@ func _draw() -> void:
 		if i == RunState.battle_index:
 			draw_rect(rect.grow(1), UiKit.COLOR_GOLD, false, 2.0)
 		# İki harf: İnsanlar (İn) ile İblisler (İb) karışmasın.
-		var letters := opponent.display_name.left(2)
+		var letters := tr(opponent.display_name).left(2)
 		draw_string(font, Vector2(rect.position.x, rect.end.y - 6), letters,
 				HORIZONTAL_ALIGNMENT_CENTER, rect.size.x, 8, UiKit.COLOR_TEXT)
 		if RunState.locked.has(opponent.id) and Balance.is_boss_battle(i):
@@ -39,7 +39,7 @@ func _draw() -> void:
 func _get_tooltip(at_position: Vector2) -> String:
 	for i in Balance.RUN_LENGTH:
 		if _box_rect(i).grow(GAP / 2).has_point(at_position):
-			var text := tr("Savaş %d: %s") % [i + 1, RunState.opponents[i].display_name]
+			var text := tr("Savaş %d: %s") % [i + 1, tr(RunState.opponents[i].display_name)]
 			if Balance.is_final_battle(i):
 				text += tr(" - BÜYÜK FETİH (boss)")
 			elif Balance.is_boss_battle(i):

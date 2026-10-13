@@ -211,10 +211,11 @@ Her krallık için: 4-5 birim, 1 boss, kombo bonusu, denge testi.
 - **Çıktı:** Görsel ve sesle tamamlanmış oyun
 
 ### Aşama 10: Cila ve ayarlar (2-3 hafta)
-- [ ] Ayarlar: ses, tam ekran, çözünürlük, savaş hızı varsayılanı
-- [ ] Duraklat menüsü
-- [ ] Türkçe + İngilizce tam çeviri
-- [ ] Başlangıç rehberi (ilk koşuda kısa ipuçları)
+- [x] Ayarlar (`Settings` autoload, `user://settings.cfg`): ana ses / müzik / efekt, tam ekran, pencere boyutu (640x360'ın tam katları), varsayılan savaş hızı, ekran sarsıntısı, dil
+- [x] Duraklat menüsü: Esc ya da savaşta "II"; Devam / Ayarlar / Ana menü (hazırlık, savaş, kart ekranlarında)
+- [x] Türkçe + İngilizce tam çeviri: `i18n/en.po` (290 metin; birlik, krallık, ferman, boss adları dahil), `tools/update_translations.gd`
+- [x] Başlangıç rehberi: ana menü, hazırlık, savaş, kart, Hazine ekranlarında ilk açılışta ipucu; Ayarlar'dan sıfırlanır
+- [x] Ana menüde Ayarlar ve Çık düğmeleri
 - **Çıktı:** Yayınlanabilir sürüm
 
 ### Aşama 11: Yayın (bkz. bölüm 5)

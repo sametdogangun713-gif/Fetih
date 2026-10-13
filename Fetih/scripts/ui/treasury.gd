@@ -8,6 +8,7 @@ func _ready() -> void:
 	Audio.play_music("menu")
 	_root = UiKit.screen_root(self, 14)
 	_build()
+	Tips.show_once(self, Tips.TREASURY)
 
 
 func _build() -> void:

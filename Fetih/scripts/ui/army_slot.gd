@@ -42,7 +42,7 @@ func setup(p_cell: Vector2i, p_squad: ArmySquad, highlighted := false) -> void:
 	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(box)
 	if squad:
-		box.add_child(UiKit.label(squad.unit.display_name, 10))
+		box.add_child(UiKit.label(tr(squad.unit.display_name), 10))
 		var line := UiKit.hbox(4)
 		line.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		line.add_child(UiKit.label("%d · %s" % [squad.count, UiKit.role_name(squad.unit.role)],
@@ -58,7 +58,7 @@ func setup(p_cell: Vector2i, p_squad: ArmySquad, highlighted := false) -> void:
 func _get_drag_data(_at_position: Vector2) -> Variant:
 	if squad == null:
 		return null
-	set_drag_preview(UiKit.label("%d %s" % [squad.count, squad.unit.display_name], 11,
+	set_drag_preview(UiKit.label("%d %s" % [squad.count, tr(squad.unit.display_name)], 11,
 			squad.unit.placeholder_color))
 	return {"from_cell": cell}
 

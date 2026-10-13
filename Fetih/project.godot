@@ -20,6 +20,7 @@ config/features=PackedStringArray("4.7", "GL Compatibility")
 Profile="*res://scripts/meta/profile.gd"
 RunState="*res://scripts/run/run_state.gd"
 Audio="*res://scripts/audio/audio.gd"
+Settings="*res://scripts/meta/settings.gd"
 
 [display]
 
@@ -29,6 +30,11 @@ window/size/window_width_override=1280
 window/size/window_height_override=720
 window/stretch/mode="viewport"
 window/stretch/scale_mode="integer"
+
+[internationalization]
+
+locale/translations=PackedStringArray("res://i18n/en.po")
+locale/fallback="tr"
 
 [rendering]
 

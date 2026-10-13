@@ -167,7 +167,7 @@ func _draw_boss_bar() -> void:
 	var bar := Rect2(Vector2(-14, top - 5), Vector2(28, 3))
 	draw_rect(bar, Color(0, 0, 0, 0.6))
 	draw_rect(Rect2(bar.position, Vector2(bar.size.x * ratio, bar.size.y)), TEAM_COLORS[squad.team])
-	draw_string(ThemeDB.fallback_font, Vector2(-50, top - 8), squad.unit.display_name,
+	draw_string(ThemeDB.fallback_font, Vector2(-50, top - 8), tr(squad.unit.display_name),
 			HORIZONTAL_ALIGNMENT_CENTER, 100, 8, UiKit.COLOR_GOLD)
 
 

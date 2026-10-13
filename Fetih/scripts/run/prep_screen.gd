@@ -29,6 +29,8 @@ func _ready() -> void:
 	bottom.add_child(UiKit.button(tr("Savaşa başla"), _start_battle))
 	root.add_child(bottom)
 	_refresh_grid()
+	add_child(PauseMenu.new(tr("Koşun kayıtlı: ana menüden \"Devam et\" ile buraya dönersin.")))
+	Tips.show_once(self, Tips.PREP)
 
 
 func _top_bar() -> Control:
@@ -37,7 +39,7 @@ func _top_bar() -> Control:
 	var lives_color := UiKit.COLOR_TEXT if RunState.lives == RunState.max_lives else UiKit.COLOR_BAD
 	bar.add_child(UiKit.label(tr("Can: %d / %d") % [RunState.lives, RunState.max_lives], 13, lives_color))
 	bar.add_child(UiKit.spacer())
-	bar.add_child(UiKit.label(RunState.kingdom.display_name, 13, RunState.kingdom.color))
+	bar.add_child(UiKit.label(tr(RunState.kingdom.display_name), 13, RunState.kingdom.color))
 	return bar
 
 
@@ -69,8 +71,8 @@ func _passives_line() -> Control:
 	if RunState.passives.is_empty():
 		line.add_child(UiKit.label(tr("yok"), 9, UiKit.COLOR_MUTED))
 	for passive in RunState.passives:
-		var tag := UiKit.label(passive.display_name, 9, UiKit.COLOR_GOLD)
-		tag.tooltip_text = passive.description
+		var tag := UiKit.label(tr(passive.display_name), 9, UiKit.COLOR_GOLD)
+		tag.tooltip_text = tr(passive.description)
 		tag.mouse_filter = Control.MOUSE_FILTER_PASS  # etiketler normalde fareyi yok sayar
 		line.add_child(tag)
 	return line
@@ -90,12 +92,12 @@ func _opponent_column() -> Control:
 	else:
 		box.add_child(UiKit.label(tr("Sıradaki rakip"), 9, UiKit.COLOR_MUTED))
 	var title := UiKit.hbox(8)
-	title.add_child(UiKit.label(opponent.display_name, 16, opponent.color))
+	title.add_child(UiKit.label(tr(opponent.display_name), 16, opponent.color))
 	title.add_child(UiKit.label(tr("Güç %d") % roundi(RunState.army_power(enemy_army)), 10, UiKit.COLOR_MUTED))
 	title.add_child(UiKit.label(UiKit.kingdom_specialty(opponent), 10, UiKit.COLOR_GOLD))
 	box.add_child(title)
 	if RunState.is_boss_battle() and RunState.locked.has(opponent.id):
-		box.add_child(UiKit.wrapped(tr("Kilitli krallık: boss'u yen, mühür al; fetihle %s açılır.") % opponent.display_name,
+		box.add_child(UiKit.wrapped(tr("Kilitli krallık: boss'u yen, mühür al; fetihle %s açılır.") % tr(opponent.display_name),
 				9, UiKit.COLOR_GOLD))
 	for line in _enemy_lines(enemy_army):
 		box.add_child(line)
@@ -103,9 +105,9 @@ func _opponent_column() -> Control:
 	if not fermans.is_empty():
 		var names: PackedStringArray = []
 		for passive in fermans:
-			names.append(passive.display_name)
+			names.append(tr(passive.display_name))
 		box.add_child(UiKit.wrapped(tr("Fermanları: %s") % ", ".join(names), 9, UiKit.COLOR_GOLD))
-	box.add_child(UiKit.label(tr("Ganimet: %s kartları") % opponent.display_name, 9, UiKit.COLOR_MUTED))
+	box.add_child(UiKit.label(tr("Ganimet: %s kartları") % tr(opponent.display_name), 9, UiKit.COLOR_MUTED))
 	box.add_child(HSeparator.new())
 	_info = UiKit.wrapped(tr("Bir bölüğün üstüne gel: ayrıntıları burada görünür."), 9, UiKit.COLOR_MUTED)
 	box.add_child(_info)
@@ -127,11 +129,11 @@ func _enemy_lines(enemy_army: Array[ArmySquad]) -> Array[Label]:
 		var squad: ArmySquad = groups[key][0]
 		var copies: int = groups[key][1]
 		if squad.unit.is_boss:
-			lines.append(UiKit.label("• %s %s (%s)" % [tr("BOSS:"), squad.unit.display_name,
+			lines.append(UiKit.label("• %s %s (%s)" % [tr("BOSS:"), tr(squad.unit.display_name),
 					UiKit.role_name(squad.unit.role)], 10, UiKit.COLOR_GOLD))
 			continue
 		var prefix := "%dx " % copies if copies > 1 else ""
-		lines.append(UiKit.label("• %s%d %s (%s)  %s" % [prefix, squad.count, squad.unit.display_name,
+		lines.append(UiKit.label("• %s%d %s (%s)  %s" % [prefix, squad.count, tr(squad.unit.display_name),
 				UiKit.role_name(squad.unit.role), UiKit.level_text(squad)], 10))
 	return lines
 
@@ -163,7 +165,7 @@ func _show_info(cell: Vector2i) -> void:
 		return
 	var unit := squad.unit
 	var lines: PackedStringArray = []
-	lines.append("%d %s (%s)  %s  %s" % [squad.count, unit.display_name, UiKit.role_name(unit.role),
+	lines.append("%d %s (%s)  %s  %s" % [squad.count, tr(unit.display_name), UiKit.role_name(unit.role),
 			UiKit.level_text(squad), tr("Güç %d") % roundi(squad.power())])
 	lines.append(tr("Saldırı %d · Savunma %d · Takviye %d") % [squad.attack_level, squad.defense_level,
 			squad.reinforce_level])
@@ -171,7 +173,7 @@ func _show_info(cell: Vector2i) -> void:
 	lines.append(", ".join(UiKit.unit_traits(unit)))
 	for passive in RunState.passives:
 		if passive.applies_to(squad, Balance.GRID_SIZE):
-			lines.append(tr("Ferman: %s") % passive.display_name)
+			lines.append(tr("Ferman: %s") % tr(passive.display_name))
 	_info.text = "\n".join(lines)
 	_info.add_theme_color_override("font_color", UiKit.COLOR_TEXT)
 

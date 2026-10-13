@@ -14,6 +14,7 @@ var unlocked: Array[StringName] = []
 var upgrades := {}  ## geliştirme id -> seviye
 var stats := {}
 var saved_run := {}  ## Yarım kalan koşu (RunState.to_dict). Boşsa yok.
+var tips_seen: Array[String] = []  ## Gösterilmiş başlangıç ipuçları (Tips).
 
 
 func _ready() -> void:
@@ -44,6 +45,8 @@ func load_profile() -> void:
 	for key in saved_stats:
 		stats[key] = saved_stats[key]
 	saved_run = data.get("saved_run", {})
+	for id in data.get("tips_seen", []):  # Aşama 10'dan eski kayıtlarda yok: boş liste
+		tips_seen.append(String(id))
 	_ensure_default_unlocks()
 
 
@@ -58,6 +61,7 @@ func save_profile() -> void:
 		"upgrades": upgrades,
 		"stats": stats,
 		"saved_run": saved_run,
+		"tips_seen": tips_seen,
 	}
 	var tmp_path := save_path + ".tmp"
 	var file := FileAccess.open(tmp_path, FileAccess.WRITE)
@@ -86,6 +90,7 @@ func _reset() -> void:
 	upgrades.clear()
 	stats = {"runs": 0, "victories": 0, "battles_won": 0, "best_battle": 0, "kingdom_victories": {}}
 	saved_run = {}
+	tips_seen.clear()
 
 
 func _ensure_default_unlocks() -> void:
@@ -150,6 +155,20 @@ func store_run(run_dict: Dictionary) -> void:
 
 func clear_run() -> void:
 	saved_run = {}
+	save_profile()
+
+
+# --- Başlangıç ipuçları ---
+
+func mark_tip_seen(id: String) -> void:
+	if not tips_seen.has(id):
+		tips_seen.append(id)
+		save_profile()
+
+
+## Ayarlardaki "İpuçlarını yeniden göster".
+func reset_tips() -> void:
+	tips_seen.clear()
 	save_profile()
 
 

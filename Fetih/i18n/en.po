@@ -1,0 +1,1168 @@
+# Fetih - İngilizce çeviri. Kaynak dil Türkçe (msgid).
+# tools/update_translations.gd ile güncellenir; msgstr satırları elle doldurulur.
+msgid ""
+msgstr ""
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8-bit\n"
+
+#: scripts/battle/battle_controller.gd
+msgid "Koşun kayıtlı. Ana menüye dönersen bu savaş baştan oynanır (sonuç değişmez)."
+msgstr "Your run is saved. If you return to the main menu, this battle replays from the start (same result)."
+
+#: scripts/battle/battle_controller.gd
+msgid "Duraklat (Esc)"
+msgstr "Pause (Esc)"
+
+#: scripts/battle/battle_controller.gd
+msgid "Süre: %.1f sn"
+msgstr "Time: %.1f s"
+
+#: scripts/battle/battle_controller.gd
+msgid "Savaş %d / %d  -  Rakip: %s"
+msgstr "Battle %d / %d  -  Enemy: %s"
+
+#: scripts/battle/battle_controller.gd
+msgid "  -  BÜYÜK FETİH"
+msgstr "  -  GRAND CONQUEST"
+
+#: scripts/battle/battle_controller.gd
+msgid "  -  BOSS: %s"
+msgstr "  -  BOSS: %s"
+
+#: scripts/battle/battle_controller.gd
+msgid "ZAFER! (%d asker hayatta)"
+msgstr "VICTORY! (%d soldiers alive)"
+
+#: scripts/battle/battle_controller.gd
+msgid "YENİLGİ (rakipte %d asker kaldı)"
+msgstr "DEFEAT (enemy has %d soldiers left)"
+
+#: scripts/data/role_rules.gd
+msgid "Savaşçı"
+msgstr "Warrior"
+
+#: scripts/data/role_rules.gd
+msgid "Mızrakçı"
+msgstr "Spearman"
+
+#: scripts/data/role_rules.gd
+msgid "Tank"
+msgstr "Tank"
+
+#: scripts/data/role_rules.gd
+msgid "Okçu"
+msgstr "Archer"
+
+#: scripts/data/role_rules.gd
+msgid "Büyücü"
+msgstr "Mage"
+
+#: scripts/data/role_rules.gd
+msgid "Süvari"
+msgstr "Cavalry"
+
+#: scripts/data/role_rules.gd
+msgid "Kuşatma"
+msgstr "Siege"
+
+#: scripts/meta/meta_upgrades.gd
+msgid "Geniş Ganimet"
+msgstr "Rich Spoils"
+
+#: scripts/meta/meta_upgrades.gd
+msgid "Her savaştan sonra +1 kart seçeneği (seviye başına)."
+msgstr "+1 card choice after every battle (per level)."
+
+#: scripts/meta/meta_upgrades.gd
+msgid "Sağlam Moral"
+msgstr "Iron Morale"
+
+#: scripts/meta/meta_upgrades.gd
+msgid "Koşuya +1 canla başla."
+msgstr "Start each run with +1 life."
+
+#: scripts/meta/meta_upgrades.gd
+msgid "Gaziler"
+msgstr "Veterans"
+
+#: scripts/meta/meta_upgrades.gd
+msgid "Başlangıç bölüklerin bir Takviye seviyesiyle (Sv 2) başlar."
+msgstr "Your starting squads begin with one Reinforcement level (Lv 2)."
+
+#: scripts/meta/meta_upgrades.gd
+msgid "Keşif"
+msgstr "Scouting"
+
+#: scripts/meta/meta_upgrades.gd
+msgid "Koşu başına kart tekliflerini yeniden çekme hakkı (seviye başına 1)."
+msgstr "Rerolls for card offers each run (1 per level)."
+
+#: scripts/run/prep_screen.gd
+msgid "Savaşa başla"
+msgstr "Start battle"
+
+#: scripts/run/prep_screen.gd
+msgid "Koşun kayıtlı: ana menüden \"Devam et\" ile buraya dönersin."
+msgstr "Your run is saved: use \"Continue\" in the main menu to come back here."
+
+#: scripts/run/prep_screen.gd
+msgid "Savaş %d / %d"
+msgstr "Battle %d / %d"
+
+#: scripts/run/prep_screen.gd
+msgid "Can: %d / %d"
+msgstr "Lives: %d / %d"
+
+#: scripts/run/prep_screen.gd
+msgid "Ordun"
+msgstr "Your army"
+
+#: scripts/run/prep_screen.gd
+msgid "Bölük %d/%d   Güç %d"
+msgstr "Squads %d/%d   Power %d"
+
+#: scripts/run/prep_screen.gd
+msgid "Ön cephe (rakibe yakın)"
+msgstr "Front line (closest to the enemy)"
+
+#: scripts/run/prep_screen.gd
+msgid "Arka saf"
+msgstr "Back row"
+
+#: scripts/run/prep_screen.gd
+msgid "Bölükleri sürükleyip bırakarak yerlerini değiştir."
+msgstr "Drag and drop squads to rearrange them."
+
+#: scripts/run/prep_screen.gd
+msgid "Fermanlar:"
+msgstr "Edicts:"
+
+#: scripts/run/prep_screen.gd
+msgid "yok"
+msgstr "none"
+
+#: scripts/run/prep_screen.gd
+msgid "BÜYÜK FETİH - kazanmak zorundasın"
+msgstr "GRAND CONQUEST - you must win"
+
+#: scripts/run/prep_screen.gd
+msgid "BOSS SAVAŞI - yenersen +1 can ve ferman"
+msgstr "BOSS BATTLE - win for +1 life and an edict"
+
+#: scripts/run/prep_screen.gd
+msgid "Sıradaki rakip"
+msgstr "Next enemy"
+
+#: scripts/run/prep_screen.gd
+msgid "Güç %d"
+msgstr "Power %d"
+
+#: scripts/run/prep_screen.gd
+msgid "Kilitli krallık: boss'u yen, mühür al; fetihle %s açılır."
+msgstr "Locked kingdom: beat the boss to earn a seal; finish the conquest to unlock %s."
+
+#: scripts/run/prep_screen.gd
+msgid "Fermanları: %s"
+msgstr "Their edicts: %s"
+
+#: scripts/run/prep_screen.gd
+msgid "Ganimet: %s kartları"
+msgstr "Spoils: %s cards"
+
+#: scripts/run/prep_screen.gd
+msgid "Bir bölüğün üstüne gel: ayrıntıları burada görünür."
+msgstr "Hover over a squad to see its details here."
+
+#: scripts/run/prep_screen.gd
+msgid "BOSS:"
+msgstr "BOSS:"
+
+#: scripts/run/prep_screen.gd
+msgid "Saldırı %d · Savunma %d · Takviye %d"
+msgstr "Attack %d · Defense %d · Reinforcement %d"
+
+#: scripts/run/prep_screen.gd
+msgid "Ferman: %s"
+msgstr "Edict: %s"
+
+#: scripts/ui/army_slot.gd
+msgid "boş"
+msgstr "empty"
+
+#: scripts/ui/card_select.gd
+msgid "%s yenildi!"
+msgstr "%s defeated!"
+
+#: scripts/ui/card_select.gd
+msgid "  +1 can (%d/%d)"
+msgstr "  +1 life (%d/%d)"
+
+#: scripts/ui/card_select.gd
+msgid "Zafer!"
+msgstr "Victory!"
+
+#: scripts/ui/card_select.gd
+msgid "Yenilgi... Bir can kaybettin (kalan: %d)."
+msgstr "Defeat... You lost a life (left: %d)."
+
+#: scripts/ui/card_select.gd
+msgid "%s ganimeti: bir kart seç  ·  Ordun %d/%d bölük"
+msgstr "%s spoils: pick a card  ·  Army %d/%d squads"
+
+#: scripts/ui/card_select.gd
+msgid "Yeniden çek (%d hak)"
+msgstr "Reroll (%d left)"
+
+#: scripts/ui/card_select.gd
+msgid "Kart alma, devam et"
+msgstr "Skip card, continue"
+
+#: scripts/ui/card_select.gd
+msgid "Al"
+msgstr "Take"
+
+#: scripts/ui/card_select.gd
+msgid "TAKVİYE"
+msgstr "REINFORCEMENT"
+
+#: scripts/ui/card_select.gd
+msgid "YENİ BİRLİK"
+msgstr "NEW UNIT"
+
+#: scripts/ui/card_select.gd
+msgid "%d asker"
+msgstr "%d soldiers"
+
+#: scripts/ui/card_select.gd
+msgid "Değerler için üstüne gel."
+msgstr "Hover for stats."
+
+#: scripts/ui/card_select.gd
+msgid "Bölük en üst seviyede."
+msgstr "Squad is at max level."
+
+#: scripts/ui/card_select.gd
+msgid "Ordundaki bölük: %s -> Sv %d"
+msgstr "Squad in your army: %s -> Lv %d"
+
+#: scripts/ui/card_select.gd
+msgid "Ordu dolu: bir bölüğün yerine geçer."
+msgstr "Army full: it replaces a squad."
+
+#: scripts/ui/card_select.gd
+msgid "Yeni bölük olarak ızgaraya girer."
+msgstr "Joins the grid as a new squad."
+
+#: scripts/ui/card_select.gd
+msgid "YÜKSELTME"
+msgstr "UPGRADE"
+
+#: scripts/ui/card_select.gd
+msgid "%s bölüğü"
+msgstr "%s squad"
+
+#: scripts/ui/card_select.gd
+msgid "Seviye: %s -> Sv %d   Güç %d -> %d"
+msgstr "Level: %s -> Lv %d   Power %d -> %d"
+
+#: scripts/ui/card_select.gd
+msgid "FERMAN"
+msgstr "EDICT"
+
+#: scripts/ui/card_select.gd
+msgid "Koşu boyunca kalıcı. Bir krallığın fermanı bir kez alınır."
+msgstr "Lasts the whole run. Each edict can be taken once."
+
+#: scripts/ui/card_select.gd
+msgid "Ordun dolu (%d/%d). %s hangi bölüğün yerine geçsin?"
+msgstr "Your army is full (%d/%d). Which squad should %s replace?"
+
+#: scripts/ui/card_select.gd
+msgid "Yerine geçilen bölük ve seviyeleri kaybolur; yeni bölük onun karesine girer."
+msgstr "The replaced squad and its levels are lost; the new squad takes its cell."
+
+#: scripts/ui/card_select.gd
+msgid "Vazgeç"
+msgstr "Cancel"
+
+#: scripts/ui/kingdom_select.gd
+msgid "Açık krallık: %d/%d"
+msgstr "Kingdoms unlocked: %d/%d"
+
+#: scripts/ui/kingdom_select.gd
+msgid "Şan: %d"
+msgstr "Glory: %d"
+
+#: scripts/ui/kingdom_select.gd
+msgid "Hazine"
+msgstr "Treasury"
+
+#: scripts/ui/kingdom_select.gd
+msgid "Ayarlar"
+msgstr "Settings"
+
+#: scripts/ui/kingdom_select.gd
+msgid "Çık"
+msgstr "Quit"
+
+#: scripts/ui/kingdom_select.gd
+msgid "%s (kilitli)"
+msgstr "%s (locked)"
+
+#: scripts/ui/kingdom_select.gd
+msgid "Koşu: %d savaş, her %d. savaş boss.   Oynanan koşu: %d   Fetih: %d   En uzun: %d. savaş"
+msgstr "Run: %d battles, a boss every %d battles.   Runs: %d   Conquests: %d   Furthest: battle %d"
+
+#: scripts/ui/kingdom_select.gd
+msgid "Yeni koşu başlatırsan yarım kalan koşu silinir.   "
+msgstr "Starting a new run deletes the unfinished one.   "
+
+#: scripts/ui/kingdom_select.gd
+msgid "Devam et: %s, savaş %d"
+msgstr "Continue: %s, battle %d"
+
+#: scripts/ui/kingdom_select.gd
+msgid "Uzmanlık: %s"
+msgstr "Specialty: %s"
+
+#: scripts/ui/kingdom_select.gd
+msgid "Özellik: %s - %s"
+msgstr "Trait: %s - %s"
+
+#: scripts/ui/kingdom_select.gd
+msgid "Başlangıç ordusu: %s"
+msgstr "Starting army: %s"
+
+#: scripts/ui/kingdom_select.gd
+msgid "Birlikleri: %s"
+msgstr "Units: %s"
+
+#: scripts/ui/kingdom_select.gd
+msgid "Boss: %s (%s)"
+msgstr "Boss: %s (%s)"
+
+#: scripts/ui/kingdom_select.gd
+msgid "Bu krallıkla fetih: %d"
+msgstr "Conquests with this kingdom: %d"
+
+#: scripts/ui/kingdom_select.gd
+msgid "%s ile başla"
+msgstr "Start with %s"
+
+#: scripts/ui/kingdom_select.gd
+msgid "KİLİTLİ. Açmak için: bir koşuda %s boss'unu yen (mühür) ve fethi tamamla."
+msgstr "LOCKED. To unlock %s: beat its boss during a run (seal) and finish the conquest."
+
+#: scripts/ui/pause_menu.gd
+msgid "DURAKLATILDI"
+msgstr "PAUSED"
+
+#: scripts/ui/pause_menu.gd
+msgid "Devam"
+msgstr "Continue"
+
+#: scripts/ui/pause_menu.gd
+msgid "Ana menüye dön"
+msgstr "Back to main menu"
+
+#: scripts/ui/run_end.gd
+msgid "FETİH TAMAMLANDI"
+msgstr "CONQUEST COMPLETE"
+
+#: scripts/ui/run_end.gd
+msgid "ORDUN DAĞILDI"
+msgstr "YOUR ARMY HAS FALLEN"
+
+#: scripts/ui/run_end.gd
+msgid "BÜYÜK FETİH KAYBEDİLDİ"
+msgstr "GRAND CONQUEST LOST"
+
+#: scripts/ui/run_end.gd
+msgid "Son savaşı kazanmadan fetih tamamlanmaz."
+msgstr "The conquest is not complete until you win the final battle."
+
+#: scripts/ui/run_end.gd
+msgid "Kazanılan savaş: %d / %d"
+msgstr "Battles won: %d / %d"
+
+#: scripts/ui/run_end.gd
+msgid "Yenilen boss: %d"
+msgstr "Bosses defeated: %d"
+
+#: scripts/ui/run_end.gd
+msgid "+%d Şan  (toplam %d)"
+msgstr "+%d Glory  (total %d)"
+
+#: scripts/ui/run_end.gd
+msgid "Yeni krallık açıldı: %s!"
+msgstr "New kingdom unlocked: %s!"
+
+#: scripts/ui/run_end.gd
+msgid "Mühürler kayboldu: krallık açmak için fethi tamamlamalısın."
+msgstr "Seals lost: you must finish the conquest to unlock kingdoms."
+
+#: scripts/ui/run_end.gd
+msgid "Son ordun:"
+msgstr "Your final army:"
+
+#: scripts/ui/run_map.gd
+msgid "Savaş %d: %s"
+msgstr "Battle %d: %s"
+
+#: scripts/ui/run_map.gd
+msgid " - BÜYÜK FETİH (boss)"
+msgstr " - GRAND CONQUEST (boss)"
+
+#: scripts/ui/run_map.gd
+msgid " - BOSS"
+msgstr " - BOSS"
+
+#: scripts/ui/run_map.gd
+msgid " - kilitli krallık: yenersen mühür"
+msgstr " - locked kingdom: win for a seal"
+
+#: scripts/ui/run_map.gd
+msgid " - kazanıldı"
+msgstr " - won"
+
+#: scripts/ui/run_map.gd
+msgid " - kaybedildi"
+msgstr " - lost"
+
+#: scripts/ui/settings_panel.gd
+msgid "AYARLAR"
+msgstr "SETTINGS"
+
+#: scripts/ui/settings_panel.gd
+msgid "Ana ses"
+msgstr "Master volume"
+
+#: scripts/ui/settings_panel.gd
+msgid "Müzik"
+msgstr "Music"
+
+#: scripts/ui/settings_panel.gd
+msgid "Efektler"
+msgstr "Effects"
+
+#: scripts/ui/settings_panel.gd
+msgid "Tam ekran"
+msgstr "Fullscreen"
+
+#: scripts/ui/settings_panel.gd
+msgid "Pencere boyutu"
+msgstr "Window size"
+
+#: scripts/ui/settings_panel.gd
+msgid "Savaş hızı (başlangıç)"
+msgstr "Battle speed (default)"
+
+#: scripts/ui/settings_panel.gd
+msgid "Ekran sarsıntısı"
+msgstr "Screen shake"
+
+#: scripts/ui/settings_panel.gd
+msgid "Dil / Language"
+msgstr "Language / Dil"
+
+#: scripts/ui/settings_panel.gd
+msgid "İpuçlarını yeniden göster"
+msgstr "Show tips again"
+
+#: scripts/ui/settings_panel.gd
+msgid "İpuçları yeniden gösterilecek"
+msgstr "Tips will be shown again"
+
+#: scripts/ui/settings_panel.gd
+msgid "Kapat"
+msgstr "Close"
+
+#: scripts/ui/tips.gd
+msgid "Anladım"
+msgstr "Got it"
+
+#: scripts/ui/tips.gd
+msgid "Fetih'e hoş geldin"
+msgstr "Welcome to Fetih"
+
+#: scripts/ui/tips.gd
+msgid "Hazırlık"
+msgstr "Preparation"
+
+#: scripts/ui/tips.gd
+msgid "Savaş"
+msgstr "Battle"
+
+#: scripts/ui/tips.gd
+msgid "Ganimet"
+msgstr "Spoils"
+
+#: scripts/ui/tips.gd
+msgid "Bir krallık seç ve 20 savaşlık fethe çık. Her 5. savaşta bir boss bekler."
+msgstr "Pick a kingdom and set out on a 20-battle conquest. A boss waits every 5th battle."
+
+#: scripts/ui/tips.gd
+msgid "Savaşları ordun kendi yapar; senin işin orduyu kurmak ve büyütmek."
+msgstr "Your army fights on its own; your job is to build it and make it grow."
+
+#: scripts/ui/tips.gd
+msgid "Kilitli krallıklar, koşu içinde boss'larını yenip fethi tamamlayınca açılır."
+msgstr "Locked kingdoms open when you beat their boss during a run and finish the conquest."
+
+#: scripts/ui/tips.gd
+msgid "Bölükleri sürükleyip bırakarak yerlerini değiştir. Üst sıra ön cephedir."
+msgstr "Drag and drop squads to rearrange them. The top row is the front line."
+
+#: scripts/ui/tips.gd
+msgid "Sağda sıradaki rakibin ordusu var: rolleri incele, karşılığını öne koy."
+msgstr "The next enemy's army is on the right: check their roles and put your counters in front."
+
+#: scripts/ui/tips.gd
+msgid "Canların üstte yazar. Kaybedilen savaş bir can götürür ve tekrar oynanmaz."
+msgstr "Your lives are shown at the top. A lost battle costs a life and is not replayed."
+
+#: scripts/ui/tips.gd
+msgid "Savaş kendi kendine oynar. Sağ üstten hızlandırabilirsin."
+msgstr "The battle plays itself. Speed it up with the buttons at the top right."
+
+#: scripts/ui/tips.gd
+msgid "Kamera: WASD ya da sağ tuşla sürükle; fare tekerleği yakınlaştırır."
+msgstr "Camera: WASD or drag with the right mouse button; the mouse wheel zooms."
+
+#: scripts/ui/tips.gd
+msgid "Esc: duraklat ve ayarlar."
+msgstr "Esc: pause and settings."
+
+#: scripts/ui/tips.gd
+msgid "Kartlar az önce savaştığın krallıktan gelir. Seçtiğin kart hemen uygulanır."
+msgstr "Cards come from the kingdom you just fought. The card you pick applies right away."
+
+#: scripts/ui/tips.gd
+msgid "Yeni birlik, bölük yükseltmesi ya da koşu boyu süren bir ferman alabilirsin."
+msgstr "You can take a new unit, a squad upgrade or an edict that lasts the whole run."
+
+#: scripts/ui/tips.gd
+msgid "En fazla 5 bölük olur; bölükler en çok 5. seviyeye çıkar."
+msgstr "You can have at most 5 squads; squads go up to level 5."
+
+#: scripts/ui/tips.gd
+msgid "Koşulardan kazandığın Şan ile kalıcı geliştirmeler al."
+msgstr "Spend the Glory you earn in runs on permanent upgrades."
+
+#: scripts/ui/tips.gd
+msgid "Geliştirmeler bundan sonraki bütün koşularda geçerlidir."
+msgstr "Upgrades apply to every future run."
+
+#: scripts/ui/treasury.gd
+msgid "HAZİNE"
+msgstr "TREASURY"
+
+#: scripts/ui/treasury.gd
+msgid "Şan kazanma: kazanılan savaş +%d, yenilen boss +%d, tamamlanan fetih +%d."
+msgstr "Earning Glory: battle won +%d, boss defeated +%d, conquest completed +%d."
+
+#: scripts/ui/treasury.gd
+msgid "Geri"
+msgstr "Back"
+
+#: scripts/ui/treasury.gd
+msgid "Tamamlandı"
+msgstr "Complete"
+
+#: scripts/ui/treasury.gd
+msgid "Al (%d Şan)"
+msgstr "Buy (%d Glory)"
+
+#: scripts/ui/ui_kit.gd
+msgid "Can %s   Hasar %s   Saldırı %s/sn\nMenzil %s   Hız %s   Zırh %s"
+msgstr "HP %s   Damage %s   Attacks %s/s\nRange %s   Speed %s   Armor %s"
+
+#: scripts/ui/ui_kit.gd
+msgid "Saldırı eğitimi"
+msgstr "Attack training"
+
+#: scripts/ui/ui_kit.gd
+msgid "Savunma eğitimi"
+msgstr "Defense training"
+
+#: scripts/ui/ui_kit.gd
+msgid "Takviye"
+msgstr "Reinforcement"
+
+#: scripts/ui/ui_kit.gd
+msgid "Hasar x%s -> x%s"
+msgstr "Damage x%s -> x%s"
+
+#: scripts/ui/ui_kit.gd
+msgid "Alınan hasar %%%d -> %%%d"
+msgstr "Damage taken %d%% -> %d%%"
+
+#: scripts/ui/ui_kit.gd
+msgid "Asker %d -> %d"
+msgstr "Soldiers %d -> %d"
+
+#: scripts/ui/ui_kit.gd
+msgid "Sv %d/%d"
+msgstr "Lv %d/%d"
+
+#: scripts/ui/ui_kit.gd
+msgid "%s birliklerine +%%25 hasar"
+msgstr "+25%% damage vs %s"
+
+#: scripts/ui/ui_kit.gd
+msgid "Zırhı deler"
+msgstr "Pierces armor"
+
+#: scripts/ui/ui_kit.gd
+msgid "Alan hasarı"
+msgstr "Area damage"
+
+#: scripts/ui/ui_kit.gd
+msgid "Hücum: ilk vuruş x%s"
+msgstr "Charge: first hit x%s"
+
+#: scripts/ui/ui_kit.gd
+msgid "Önce okçu ve büyücüleri avlar"
+msgstr "Hunts archers and mages first"
+
+#: scripts/ui/ui_kit.gd
+msgid "Süvari hücumunu karşılar"
+msgstr "Stops cavalry charges"
+
+#: scripts/ui/ui_kit.gd
+msgid "Yakar: +%%%d ateş hasarı (3 sn)"
+msgstr "Burns: +%d%% fire damage (3 s)"
+
+#: scripts/ui/ui_kit.gd
+msgid "Yavaşlatır: -%%%d hız (2 sn)"
+msgstr "Slows: -%d%% speed (2 s)"
+
+#: scripts/ui/ui_kit.gd
+msgid "Onarır: saniyede canın %%%s'i"
+msgstr "Regenerates %s%% of HP per second"
+
+#: scripts/ui/ui_kit.gd
+msgid "Dirilir: bir kez, %%%d canla"
+msgstr "Revives once with %d%% HP"
+
+#: scripts/ui/ui_kit.gd
+msgid "Bölünür: yok olunca iki küçük bölüğe ayrılır"
+msgstr "Splits: becomes two smaller squads when destroyed"
+
+#: scripts/ui/ui_kit.gd
+msgid "Yakın dövüşte zayıf"
+msgstr "Weak in melee"
+
+#: data/bosses/centaur_boss.tres
+msgid "Han Thoros"
+msgstr "Khan Thoros"
+
+#: data/bosses/demon_boss.tres
+msgid "Azmodan"
+msgstr "Azmodan"
+
+#: data/bosses/dwarf_boss.tres
+msgid "Dağ Kralı Thrain"
+msgstr "Thrain the Mountain King"
+
+#: data/bosses/elf_boss.tres
+msgid "Kraliçe Sylwen"
+msgstr "Queen Sylwen"
+
+#: data/bosses/golem_boss.tres
+msgid "Kadim Golem Ur"
+msgstr "Ur the Ancient Golem"
+
+#: data/bosses/human_boss.tres
+msgid "Kral Aldric"
+msgstr "King Aldric"
+
+#: data/bosses/mud_boss.tres
+msgid "Bataklık Anası"
+msgstr "Mother of the Marsh"
+
+#: data/bosses/orc_boss.tres
+msgid "Savaş Ağası Grukk"
+msgstr "Warlord Grukk"
+
+#: data/bosses/slime_boss.tres
+msgid "Slime Kral Blorb"
+msgstr "Slime King Blorb"
+
+#: data/bosses/undead_boss.tres
+msgid "Lich Kral Morvath"
+msgstr "Lich King Morvath"
+
+#: data/kingdoms/centaurs.tres
+msgid "Kentaurlar"
+msgstr "Centaurs"
+
+#: data/kingdoms/centaurs.tres
+msgid "Bozkırın efendileri. En hızlı süvariler ve at üstünden ok atan okçular."
+msgstr "Lords of the steppe. The fastest cavalry and archers who shoot from horseback."
+
+#: data/kingdoms/demons.tres
+msgid "İblisler"
+msgstr "Demons"
+
+#: data/kingdoms/demons.tres
+msgid "Her şeyi yakar. Vuruşları ateş bırakır; iblis büyücüleri alanı alevle doldurur."
+msgstr "They burn everything. Their hits leave fire; demon mages flood the field with flames."
+
+#: data/kingdoms/demons.tres
+msgid "Ateş (yanma)"
+msgstr "Fire (burning)"
+
+#: data/kingdoms/dwarves.tres
+msgid "Cüceler"
+msgstr "Dwarves"
+
+#: data/kingdoms/dwarves.tres
+msgid "Dağların ustaları. Toplar uzaktan ezer, demir kalkanlar cepheyi tutar."
+msgstr "Masters of the mountains. Cannons crush from afar, iron shields hold the line."
+
+#: data/kingdoms/elves.tres
+msgid "Elfler"
+msgstr "Elves"
+
+#: data/kingdoms/elves.tres
+msgid "Uzaktan öldürür. En iyi okçular, zırh delen büyücüler ve çevik adımlar; yakın dövüşte kırılgan."
+msgstr "Death from afar. The best archers, armor-piercing mages and nimble feet; fragile in melee."
+
+#: data/kingdoms/golems.tres
+msgid "Golemler"
+msgstr "Golems"
+
+#: data/kingdoms/golems.tres
+msgid "Yavaş ama yıkılmaz. Oyunun en sağlam tankları; kaya fırlatanlar uzaktan ezer."
+msgstr "Slow but unbreakable. The toughest tanks in the game; boulder throwers crush from afar."
+
+#: data/kingdoms/humans.tres
+msgid "İnsanlar"
+msgstr "Humans"
+
+#: data/kingdoms/humans.tres
+msgid "Disiplinli ve dengeli. Kraliyet sancağı ön cepheyi güçlendirir; mızrak duvarları süvariyi durdurur."
+msgstr "Disciplined and balanced. The royal banner strengthens the front line; pike walls stop cavalry."
+
+#: data/kingdoms/mud.tres
+msgid "Çamurlar"
+msgstr "Mudfolk"
+
+#: data/kingdoms/mud.tres
+msgid "Bataklığın ruhları. Düşmanı yavaşlatır, yaraları zamanla kapanır."
+msgstr "Spirits of the marsh. They slow the enemy, and their wounds close over time."
+
+#: data/kingdoms/mud.tres
+msgid "Kontrol (yavaşlatma)"
+msgstr "Control (slowing)"
+
+#: data/kingdoms/orcs.tres
+msgid "Orklar"
+msgstr "Orcs"
+
+#: data/kingdoms/orcs.tres
+msgid "Kaba kuvvet. En güçlü savaşçılar ve kalın kalkanlar; savaş davullarıyla hızlı vururlar."
+msgstr "Brute force. The strongest warriors and thick shields; war drums make them strike fast."
+
+#: data/kingdoms/slimes.tres
+msgid "Slime'lar"
+msgstr "Slimes"
+
+#: data/kingdoms/slimes.tres
+msgid "Ezildikçe çoğalırlar. Yok olan her bölük iki küçük bölüğe bölünür."
+msgstr "Crush them and they multiply. Every destroyed squad splits into two smaller ones."
+
+#: data/kingdoms/slimes.tres
+msgid "Sürü (bölünme)"
+msgstr "Swarm (splitting)"
+
+#: data/kingdoms/undead.tres
+msgid "Ölüler"
+msgstr "Undead"
+
+#: data/kingdoms/undead.tres
+msgid "Ölüm onları durdurmaz. Yok olan bölükler bir kez daha kalkar."
+msgstr "Death does not stop them. Destroyed squads rise once more."
+
+#: data/kingdoms/undead.tres
+msgid "Diriliş"
+msgstr "Revival"
+
+#: data/passives/centaur_hooves.tres
+msgid "Toynak Gürültüsü"
+msgstr "Thunder of Hooves"
+
+#: data/passives/centaur_hooves.tres
+msgid "Süvari bölüklerinin hasarı +%35."
+msgstr "Cavalry squads deal +35% damage."
+
+#: data/passives/centaur_volley.tres
+msgid "Ok Yağmuru"
+msgstr "Rain of Arrows"
+
+#: data/passives/centaur_volley.tres
+msgid "Okçu bölüklerinin saldırı hızı +%30."
+msgstr "Archer squads attack 30% faster."
+
+#: data/passives/centaur_wind.tres
+msgid "Rüzgâr Gibi"
+msgstr "Like the Wind"
+
+#: data/passives/centaur_wind.tres
+msgid "Bütün bölükler %30 daha hızlı yürür."
+msgstr "All squads move 30% faster."
+
+#: data/passives/demon_hellfire.tres
+msgid "Cehennem Ateşi"
+msgstr "Hellfire"
+
+#: data/passives/demon_hellfire.tres
+msgid "Bütün bölüklerin vuruşları +%30 ateş hasarı bırakır."
+msgstr "All squads' hits leave +30% fire damage."
+
+#: data/passives/demon_soul_harvest.tres
+msgid "Ruh Hasadı"
+msgstr "Soul Harvest"
+
+#: data/passives/demon_soul_harvest.tres
+msgid "Büyücü bölüklerinin hasarı +%40."
+msgstr "Mage squads deal +40% damage."
+
+#: data/passives/demon_sulfur.tres
+msgid "Kükürt Zırhı"
+msgstr "Brimstone Armor"
+
+#: data/passives/demon_sulfur.tres
+msgid "Savaşçı ve tank bölükleri %23 daha az hasar alır."
+msgstr "Warrior and tank squads take 23% less damage."
+
+#: data/passives/dwarf_mountain_armor.tres
+msgid "Dağ Zırhı"
+msgstr "Mountain Armor"
+
+#: data/passives/dwarf_mountain_armor.tres
+msgid "Bütün bölüklerin zırhı +1."
+msgstr "All squads get +1 armor."
+
+#: data/passives/dwarf_powder.tres
+msgid "Barut"
+msgstr "Gunpowder"
+
+#: data/passives/dwarf_powder.tres
+msgid "Kuşatma bölüklerinin hasarı +%40."
+msgstr "Siege squads deal +40% damage."
+
+#: data/passives/dwarf_tunnels.tres
+msgid "Tünel Ustaları"
+msgstr "Tunnel Masters"
+
+#: data/passives/dwarf_tunnels.tres
+msgid "Ön cephedeki bölükler %23 daha az hasar alır."
+msgstr "Front-line squads take 23% less damage."
+
+#: data/passives/elf_forest_step.tres
+msgid "Orman Adımı"
+msgstr "Forest Step"
+
+#: data/passives/elf_keen_arrows.tres
+msgid "Keskin Oklar"
+msgstr "Keen Arrows"
+
+#: data/passives/elf_keen_arrows.tres
+msgid "Okçu ve büyücü bölüklerinin hasarı +%40."
+msgstr "Archer and mage squads deal +40% damage."
+
+#: data/passives/elf_wind_arrows.tres
+msgid "Rüzgâr Okları"
+msgstr "Wind Arrows"
+
+#: data/passives/elf_wind_arrows.tres
+msgid "Arka saftaki (ızgaranın alt satırı) okçu ve büyücülerin menzili +1."
+msgstr "Archers and mages in the back row (bottom row of the grid) get +1 range."
+
+#: data/passives/golem_heavy_step.tres
+msgid "Ağır Adım"
+msgstr "Heavy Step"
+
+#: data/passives/golem_heavy_step.tres
+msgid "Tank bölükleri %30 daha az hasar alır."
+msgstr "Tank squads take 30% less damage."
+
+#: data/passives/golem_quake.tres
+msgid "Yer Sarsıntısı"
+msgstr "Earthquake"
+
+#: data/passives/golem_quake.tres
+msgid "Kuşatma ve büyücü bölüklerinin alan hasarı +0.5 karo genişler."
+msgstr "Siege and mage squads' area damage grows by +0.5 tiles."
+
+#: data/passives/golem_stone_skin.tres
+msgid "Taş Deri"
+msgstr "Stone Skin"
+
+#: data/passives/golem_stone_skin.tres
+msgid "Bütün bölüklerin zırhı +2."
+msgstr "All squads get +2 armor."
+
+#: data/passives/human_banner.tres
+msgid "Kraliyet Sancağı"
+msgstr "Royal Banner"
+
+#: data/passives/human_banner.tres
+msgid "Ön cephedeki (ızgaranın üst satırı) bölüklerin hasarı +%30."
+msgstr "Squads in the front line (top row of the grid) deal +30% damage."
+
+#: data/passives/human_pike_wall.tres
+msgid "Mızrak Duvarı"
+msgstr "Pike Wall"
+
+#: data/passives/human_pike_wall.tres
+msgid "Mızrakçı ve tank bölükleri %30 daha az hasar alır."
+msgstr "Spearman and tank squads take 30% less damage."
+
+#: data/passives/human_smithy.tres
+msgid "Kraliyet Demirhanesi"
+msgstr "Royal Smithy"
+
+#: data/passives/mud_blood.tres
+msgid "Bataklık Kanı"
+msgstr "Marsh Blood"
+
+#: data/passives/mud_blood.tres
+msgid "Bütün bölükler saniyede canının %1'i kadar iyileşir."
+msgstr "All squads heal 1% of their HP per second."
+
+#: data/passives/mud_fog.tres
+msgid "Bataklık Sisi"
+msgstr "Marsh Fog"
+
+#: data/passives/mud_fog.tres
+msgid "Arka saftaki bölükler %30 daha az hasar alır."
+msgstr "Back-row squads take 30% less damage."
+
+#: data/passives/mud_sticky.tres
+msgid "Yapışkan Çamur"
+msgstr "Sticky Mud"
+
+#: data/passives/mud_sticky.tres
+msgid "Bütün bölüklerin vuruşları düşmanı %20 yavaşlatır."
+msgstr "All squads' hits slow the enemy by 20%."
+
+#: data/passives/orc_blood_rage.tres
+msgid "Kan Öfkesi"
+msgstr "Blood Rage"
+
+#: data/passives/orc_blood_rage.tres
+msgid "Savaşçı bölüklerinin hasarı +%40."
+msgstr "Warrior squads deal +40% damage."
+
+#: data/passives/orc_war_drums.tres
+msgid "Savaş Davulları"
+msgstr "War Drums"
+
+#: data/passives/orc_war_drums.tres
+msgid "Bütün bölüklerin saldırı hızı +%15."
+msgstr "All squads attack 15% faster."
+
+#: data/passives/orc_wolf_pack.tres
+msgid "Kurt Sürüsü"
+msgstr "Wolf Pack"
+
+#: data/passives/orc_wolf_pack.tres
+msgid "Süvarilerin hücum vuruşu 1 kat daha güçlü (x2 yerine x3)."
+msgstr "Cavalry charge hits are stronger (x3 instead of x2)."
+
+#: data/passives/slime_acid_blood.tres
+msgid "Asit Kanı"
+msgstr "Acid Blood"
+
+#: data/passives/slime_bounce.tres
+msgid "Sıçrayış"
+msgstr "Bounce"
+
+#: data/passives/slime_jelly_wall.tres
+msgid "Jöle Duvar"
+msgstr "Jelly Wall"
+
+#: data/passives/undead_bone_army.tres
+msgid "Kemik Ordusu"
+msgstr "Bone Army"
+
+#: data/passives/undead_bone_army.tres
+msgid "Bütün bölükler yok olunca bir kez, canlarının %25'iyle dirilir."
+msgstr "All squads revive once with 25% HP when destroyed."
+
+#: data/passives/undead_dark_rite.tres
+msgid "Karanlık Ayin"
+msgstr "Dark Rite"
+
+#: data/passives/undead_grave_chill.tres
+msgid "Mezar Soğuğu"
+msgstr "Grave Chill"
+
+#: data/passives/undead_grave_chill.tres
+msgid "Bütün bölüklerin vuruşları düşmanı %15 yavaşlatır."
+msgstr "All squads' hits slow the enemy by 15%."
+
+#: data/units/centaur_archer.tres
+msgid "Atlı Okçu"
+msgstr "Horse Archer"
+
+#: data/units/centaur_lancer.tres
+msgid "Kentaur Mızraklı"
+msgstr "Centaur Lancer"
+
+#: data/units/centaur_shaman.tres
+msgid "Bozkır Şamanı"
+msgstr "Steppe Shaman"
+
+#: data/units/centaur_warrior.tres
+msgid "Kentaur Savaşçısı"
+msgstr "Centaur Warrior"
+
+#: data/units/demon_brute.tres
+msgid "Cehennem Zebanisi"
+msgstr "Hell Brute"
+
+#: data/units/demon_hellhound.tres
+msgid "Cehennem Tazısı"
+msgstr "Hellhound"
+
+#: data/units/demon_imp.tres
+msgid "İmp"
+msgstr "Imp"
+
+#: data/units/demon_warlock.tres
+msgid "İblis Büyücüsü"
+msgstr "Demon Warlock"
+
+#: data/units/dwarf_axe.tres
+msgid "Cüce Baltacı"
+msgstr "Dwarf Axeman"
+
+#: data/units/dwarf_cannon.tres
+msgid "Cüce Topçusu"
+msgstr "Dwarf Cannoneer"
+
+#: data/units/dwarf_crossbow.tres
+msgid "Cüce Arbaletçi"
+msgstr "Dwarf Crossbowman"
+
+#: data/units/dwarf_shield.tres
+msgid "Demir Kalkan"
+msgstr "Iron Shield"
+
+#: data/units/elf_archer.tres
+msgid "Elf Okçusu"
+msgstr "Elf Archer"
+
+#: data/units/elf_blade_dancer.tres
+msgid "Kılıç Dansçısı"
+msgstr "Blade Dancer"
+
+#: data/units/elf_mage.tres
+msgid "Orman Büyücüsü"
+msgstr "Forest Mage"
+
+#: data/units/elf_stag_rider.tres
+msgid "Geyik Binicisi"
+msgstr "Stag Rider"
+
+#: data/units/golem_boulder.tres
+msgid "Kaya Fırlatan"
+msgstr "Boulder Thrower"
+
+#: data/units/golem_crusher.tres
+msgid "Ezici Golem"
+msgstr "Crusher Golem"
+
+#: data/units/golem_crystal.tres
+msgid "Kristal Golem"
+msgstr "Crystal Golem"
+
+#: data/units/golem_stone_guard.tres
+msgid "Taş Muhafız"
+msgstr "Stone Guard"
+
+#: data/units/human_crossbowman.tres
+msgid "Arbaletçi"
+msgstr "Crossbowman"
+
+#: data/units/human_knight.tres
+msgid "Şövalye"
+msgstr "Knight"
+
+#: data/units/human_spearman.tres
+msgid "İnsan Mızrakçı"
+msgstr "Human Spearman"
+
+#: data/units/human_swordsman.tres
+msgid "Kılıçlı Piyade"
+msgstr "Swordsman"
+
+#: data/units/mud_lurker.tres
+msgid "Bataklık Pususu"
+msgstr "Marsh Lurker"
+
+#: data/units/mud_mass.tres
+msgid "Çamur Kütlesi"
+msgstr "Mud Mass"
+
+#: data/units/mud_spitter.tres
+msgid "Balçık Tüküren"
+msgstr "Mud Spitter"
+
+#: data/units/mud_witch.tres
+msgid "Bataklık Cadısı"
+msgstr "Marsh Witch"
+
+#: data/units/orc_shaman.tres
+msgid "Ork Şamanı"
+msgstr "Orc Shaman"
+
+#: data/units/orc_shieldbearer.tres
+msgid "Kalkanlı Ork"
+msgstr "Orc Shieldbearer"
+
+#: data/units/orc_warrior.tres
+msgid "Ork Savaşçısı"
+msgstr "Orc Warrior"
+
+#: data/units/orc_wolf_rider.tres
+msgid "Kurt Binicisi"
+msgstr "Wolf Rider"
+
+#: data/units/slime_acid.tres
+msgid "Asit Slime"
+msgstr "Acid Slime"
+
+#: data/units/slime_big.tres
+msgid "Dev Slime"
+msgstr "Giant Slime"
+
+#: data/units/slime_bouncer.tres
+msgid "Zıplayan Slime"
+msgstr "Bouncing Slime"
+
+#: data/units/slime_green.tres
+msgid "Yeşil Slime"
+msgstr "Green Slime"
+
+#: data/units/undead_archer.tres
+msgid "İskelet Okçu"
+msgstr "Skeleton Archer"
+
+#: data/units/undead_knight.tres
+msgid "Ölüm Şövalyesi"
+msgstr "Death Knight"
+
+#: data/units/undead_necromancer.tres
+msgid "Nekromant"
+msgstr "Necromancer"
+
+#: data/units/undead_skeleton.tres
+msgid "İskelet Savaşçı"
+msgstr "Skeleton Warrior"

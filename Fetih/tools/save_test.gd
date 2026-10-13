@@ -4,7 +4,9 @@ extends SceneTree
 
 const ProfileScript = preload("res://scripts/meta/profile.gd")
 const RunStateScript = preload("res://scripts/run/run_state.gd")
+const SettingsScript = preload("res://scripts/meta/settings.gd")
 const TEST_PATH := "user://test_save.json"
+const TEST_SETTINGS_PATH := "user://test_settings.cfg"
 
 var failures := 0
 
@@ -152,7 +154,51 @@ func _init() -> void:
 			changed = true
 	check("yeniden çekme kartları değiştirdi, hak azaldı", changed and run4.rerolls_left == 1)
 
-	for node in [a, b, c, d, run1, run2, run3, run4]:
+	# 7) Başlangıç ipuçları
+	var e := new_profile()
+	e.load_profile()
+	e.mark_tip_seen("prep")
+	var tips_reload := new_profile()
+	tips_reload.load_profile()
+	check("görülen ipucu kayda geçti", tips_reload.tips_seen == ["prep"])
+	tips_reload.reset_tips()
+	e.load_profile()
+	check("ipuçları sıfırlandı", e.tips_seen.is_empty())
+
+	# 8) Ayarlar (ayrı dosya: user://test_settings.cfg)
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(TEST_SETTINGS_PATH))
+	var s1: Node = SettingsScript.new()
+	s1.settings_path = TEST_SETTINGS_PATH
+	s1.load_settings()
+	check("ayar dosyası yoksa varsayılanlar", s1.battle_speed == 1 and s1.screen_shake and s1.language == "")
+	var locale_before := TranslationServer.get_locale()
+	s1.set_volume(&"Music", 0.35)
+	s1.set_battle_speed(4)
+	s1.set_screen_shake(false)
+	s1.set_language("en")
+	var s2: Node = SettingsScript.new()
+	s2.settings_path = TEST_SETTINGS_PATH
+	s2.load_settings()
+	check("ayarlar geri yüklendi", is_equal_approx(s2.volumes[&"Music"], 0.35) and s2.battle_speed == 4
+			and not s2.screen_shake and s2.language == "en")
+	s2.set_battle_speed(3)
+	check("geçersiz savaş hızı x1'e döner", s2.battle_speed == 1)
+
+	# 9) Çeviri: İngilizce .po yüklü, Türkçe kaynak metin olduğu gibi kalır
+	TranslationServer.set_locale("en")
+	check("İngilizce çeviri", TranslationServer.translate("Savaşa başla") == "Start battle")
+	check("veri metni çevrildi", TranslationServer.translate("Elf Okçusu") == "Elf Archer")
+	check("çok satırlı metin çevrildi", TranslationServer.translate(
+			"Can %s   Hasar %s   Saldırı %s/sn
+Menzil %s   Hız %s   Zırh %s").contains("
+Range"))
+	TranslationServer.set_locale("tr")
+	check("Türkçede metin aynen kalır (İngilizceye düşmez)",
+			TranslationServer.translate("Savaşa başla") == "Savaşa başla")
+	TranslationServer.set_locale(locale_before)
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(TEST_SETTINGS_PATH))
+
+	for node in [a, b, c, d, e, tips_reload, s1, s2, run1, run2, run3, run4]:
 		node.free()
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(TEST_PATH))
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(TEST_PATH + ".bozuk"))

@@ -16,6 +16,8 @@ func _ready() -> void:
 	Profile.store_run(RunState.to_dict("cards"))
 	_root = UiKit.screen_root(self, 12)
 	_show_offers()
+	add_child(PauseMenu.new(tr("Koşun kayıtlı: ana menüden \"Devam et\" ile buraya dönersin.")))
+	Tips.show_once(self, Tips.CARDS)
 
 
 func _clear() -> void:
@@ -28,7 +30,7 @@ func _show_offers() -> void:
 	_clear()
 	var opponent := RunState.current_opponent()
 	if RunState.last_battle_won and RunState.is_boss_battle():
-		var text := tr("%s yenildi!") % opponent.boss.display_name
+		var text := tr("%s yenildi!") % tr(opponent.boss.display_name)
 		if RunState.last_life_restored:
 			text += tr("  +1 can (%d/%d)") % [RunState.lives, RunState.max_lives]
 		_root.add_child(UiKit.centered(text, 18, UiKit.COLOR_GOLD))
@@ -38,7 +40,7 @@ func _show_offers() -> void:
 		_root.add_child(UiKit.centered(tr("Yenilgi... Bir can kaybettin (kalan: %d).") % RunState.lives,
 				16, UiKit.COLOR_BAD))
 	_root.add_child(UiKit.centered(tr("%s ganimeti: bir kart seç  ·  Ordun %d/%d bölük") % [
-			opponent.display_name, RunState.army.size(), Balance.MAX_SQUADS], UiKit.FONT_SIZE, UiKit.COLOR_MUTED))
+			tr(opponent.display_name), RunState.army.size(), Balance.MAX_SQUADS], UiKit.FONT_SIZE, UiKit.COLOR_MUTED))
 
 	var row := UiKit.hbox(8)
 	row.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -91,7 +93,7 @@ func _fill_unit_card(box: VBoxContainer, offer: CardOffer) -> void:
 	title.add_child(UiKit.unit_icon(unit, 2 if _compact else 3))
 	var name_box := UiKit.vbox(0)
 	name_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	name_box.add_child(UiKit.wrapped(unit.display_name, 12 if _compact else 14, unit.placeholder_color))
+	name_box.add_child(UiKit.wrapped(tr(unit.display_name), 12 if _compact else 14, unit.placeholder_color))
 	name_box.add_child(UiKit.label(UiKit.role_name(unit.role), 10, UiKit.COLOR_MUTED))
 	title.add_child(name_box)
 	box.add_child(title)
@@ -123,7 +125,7 @@ func _fill_upgrade_card(box: VBoxContainer, offer: CardOffer) -> void:
 	var squad := offer.target
 	box.add_child(UiKit.label(tr("YÜKSELTME"), 9, UiKit.COLOR_MUTED))
 	box.add_child(UiKit.label(UiKit.upgrade_name(offer.upgrade), 14, UiKit.COLOR_GOLD))
-	box.add_child(UiKit.label(tr("%s bölüğü") % squad.unit.display_name, 10, squad.unit.placeholder_color))
+	box.add_child(UiKit.label(tr("%s bölüğü") % tr(squad.unit.display_name), 10, squad.unit.placeholder_color))
 	box.add_child(UiKit.label(UiKit.upgrade_effect(squad, offer.upgrade), 14))
 	box.add_child(UiKit.wrapped(tr("Seviye: %s -> Sv %d   Güç %d -> %d") % [UiKit.level_text(squad),
 			squad.level() + 1, roundi(squad.power()),
@@ -136,8 +138,8 @@ func _fill_passive_card(box: VBoxContainer, offer: CardOffer) -> void:
 	var passive := offer.passive
 	var kingdom := KingdomCatalog.get_kingdom(passive.kingdom)
 	box.add_child(UiKit.label(tr("FERMAN"), 9, UiKit.COLOR_MUTED))
-	box.add_child(UiKit.label(passive.display_name, 14, kingdom.color if kingdom else UiKit.COLOR_GOLD))
-	box.add_child(UiKit.wrapped(passive.description, 10))
+	box.add_child(UiKit.label(tr(passive.display_name), 14, kingdom.color if kingdom else UiKit.COLOR_GOLD))
+	box.add_child(UiKit.wrapped(tr(passive.description), 10))
 	box.add_child(UiKit.spacer(true))
 	box.add_child(UiKit.wrapped(tr("Koşu boyunca kalıcı. Bir krallığın fermanı bir kez alınır."), 9,
 			UiKit.COLOR_MUTED))
@@ -157,12 +159,12 @@ func _on_take(offer: CardOffer) -> void:
 func _show_replace(offer: CardOffer) -> void:
 	_clear()
 	_root.add_child(UiKit.centered(tr("Ordun dolu (%d/%d). %s hangi bölüğün yerine geçsin?") % [
-			RunState.army.size(), Balance.MAX_SQUADS, offer.unit.display_name], 13))
+			RunState.army.size(), Balance.MAX_SQUADS, tr(offer.unit.display_name)], 13))
 	_root.add_child(UiKit.centered(tr("Yerine geçilen bölük ve seviyeleri kaybolur; yeni bölük onun karesine girer."),
 			9, UiKit.COLOR_MUTED))
 	for squad in RunState.army:
 		var b := UiKit.button("%s  ·  %d %s (%s)  ·  %s" % [UiKit.level_text(squad), squad.count,
-				squad.unit.display_name, UiKit.role_name(squad.unit.role), tr("Güç %d") % roundi(squad.power())],
+				tr(squad.unit.display_name), UiKit.role_name(squad.unit.role), tr("Güç %d") % roundi(squad.power())],
 				_on_replace.bind(offer, squad))
 		_root.add_child(b)
 	_root.add_child(UiKit.spacer(true))

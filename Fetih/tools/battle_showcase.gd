@@ -4,16 +4,30 @@ extends SceneTree
 ##   Kayıt: sona --write-movie out.png --quit-after 900 ekle (-- işaretinden önce).
 ##   Seed listesi: godot --headless --path Fetih -s res://tools/battle_showcase.gd -- list
 ##   Boss savaşı: -- boss <krallık sırası 0-9> [hız]  (koşu modunda 5. savaş; kayıt ayrı dosyaya)
-##   Başka ekran: -- scene res://scenes/run/prep.tscn  (kayıt ayrı dosyaya)
+##   Başka ekran: -- scene res://scenes/run/prep.tscn [settings|pause]  (kayıt ayrı dosyaya)
+##   İngilizce: en baştaki argüman "en" olursa dil İngilizce olur (ayar dosyasına yazılmaz).
 
 const SHOWCASE_SAVE := "user://showcase_save.json"  ## Oyuncunun gerçek kaydına asla yazılmaz.
 
 
 func _initialize() -> void:
-	var args := OS.get_cmdline_user_args()
+	await process_frame  # autoload'lar hazır olsun (Settings dili kendi ayarına göre kurar)
+	var args := Array(OS.get_cmdline_user_args())
+	if not args.is_empty() and args[0] == "en":
+		TranslationServer.set_locale("en")
+		args.pop_front()
 	if args.size() > 1 and args[0] == "scene":
 		root.get_node("Profile").save_path = SHOWCASE_SAVE
-		root.add_child(load(args[1]).instantiate())
+		var screen: Node = load(args[1]).instantiate()
+		root.add_child(screen)
+		# Sınıflar load() ile alınır: doğrudan ad kullanılsa bu araç autoload'lar kurulmadan
+		# derlenirken (Settings, RunState) "Identifier not found" hatası verir.
+		if args.has("settings"):
+			load("res://scripts/ui/settings_panel.gd").open(screen, true)
+		if args.has("pause"):
+			for child in screen.get_children():
+				if child.get_script() == load("res://scripts/ui/pause_menu.gd"):
+					child.open()
 		return
 	var battle: Node = load("res://scenes/battle/battle.tscn").instantiate()
 	if args.size() > 0 and args[0] == "list":
