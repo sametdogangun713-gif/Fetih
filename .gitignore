@@ -18,5 +18,6 @@ Thumbs.db
 desktop.ini
 .DS_Store
 
-# Editör
+# Editör ve araçlar
 .vscode/
+.serena/
