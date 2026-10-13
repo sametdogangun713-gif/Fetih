@@ -38,6 +38,16 @@ const ZONE_NAMES := {
 var _hovered_cell := Vector2i(-1, -1)
 
 
+## Geliştirici araçları: fare altındaki karo vurgusu, koordinat yazısı, tıklanan karo çıktısı.
+## Koşuda kapalı (savaşta karo seçilmez); sahne tek başına açılınca (test modu) açık.
+func set_debug_tools(on: bool) -> void:
+	$DebugHUD.visible = on
+	set_process(on)
+	set_process_unhandled_input(on)
+	if not on:
+		highlight.clear()
+
+
 ## Savaş alanı koordinatını ekran (dünya) konumuna çevirir.
 ## Tam sayı koordinatlar karo merkezlerine denk gelir; map_to_local() ile aynı sonucu verir.
 static func field_to_world(p: Vector2) -> Vector2:

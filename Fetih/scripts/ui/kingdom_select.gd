@@ -56,6 +56,7 @@ func _ready() -> void:
 			int(stats.get("victories", 0)), int(stats.get("best_battle", 0))]
 	if Profile.has_saved_run():
 		footer = tr("Yeni koşu başlatırsan yarım kalan koşu silinir.   ") + footer
+	footer += "   v%s" % ProjectSettings.get_setting("application/config/version")
 	root.add_child(UiKit.centered(footer, 9, UiKit.COLOR_MUTED))
 
 	for kingdom in KingdomCatalog.all():

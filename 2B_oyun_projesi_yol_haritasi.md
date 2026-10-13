@@ -219,6 +219,14 @@ Her krallık için: 4-5 birim, 1 boss, kombo bonusu, denge testi.
 - **Çıktı:** Yayınlanabilir sürüm
 
 ### Aşama 11: Yayın (bkz. bölüm 5)
+Yerel hazırlık (kod tarafı):
+- [x] Windows export ayarı (`Fetih/export_presets.cfg`); `.pck` dışa aktarımı denendi, çeviri içinde, `tools/` dışında
+- [x] Geçici uygulama ikonu (`tools/build_icon.gd`), sürüm `0.10.0` (ana menüde görünür)
+- [x] Mağaza metni (EN + TR), sistem gereksinimi tahmini, yayın kontrol listesi: `yayin/magaza_metni.md`
+- [x] 8 ekran görüntüsü 1920x1080 (geçici sprite'larla): `yayin/ekran_goruntuleri/`
+- [x] Savaşta karo vurgusu ve koordinat çıktısı sadece test modunda
+- [ ] Export şablonları kurulmadı (Godot editörü → Export Şablonlarını Yönet); `.exe` henüz üretilmedi
+- [ ] Kalanlar: gerçek çizim/ses, kapsül görselleri, fragman, oyun testi, itch.io / Steam (bkz. `yayin/magaza_metni.md`)
 
 **Gerçekçi toplam süre:** Godot'u yeni öğrenen biri için **8-12 ay** (haftada 15-20 saat).
 

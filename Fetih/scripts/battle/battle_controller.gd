@@ -33,7 +33,7 @@ func _ready() -> void:
 		button.pressed.connect(UiKit.click_sound)
 	continue_button.pressed.connect(UiKit.click_sound)
 	continue_button.pressed.connect(_on_continue)
-	battlefield.get_node("DebugHUD").visible = not RunState.active
+	battlefield.set_debug_tools(not RunState.active)
 	battlefield.fx.camera = battlefield.camera
 	_set_speed(Settings.battle_speed)
 	_pause_menu = PauseMenu.new(tr("Koşun kayıtlı. Ana menüye dönersen bu savaş baştan oynanır (sonuç değişmez).")

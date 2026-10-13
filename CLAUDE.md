@@ -31,6 +31,7 @@
 - Pencereler: `Overlay` (karartma + panel), `SettingsPanel.open()`, `PauseMenu` (ekran kendine ekler), `Tips.show_once()` (görülenler Profile'da).
 - Ses: `Audio` autoload (`Audio.play("hit")`, `Audio.play_music("battle")`); dosyalar `assets/audio/sfx|music/<ad>.wav`. Geçici sesler `res://tools/build_audio.gd` ile üretilir (sonra `--import`). Araç scriptleri (`-s`) autoload adlarını derleme anında tanımaz: araçların derlediği zincirdeki scriptler (UiKit, battlefield → battle_fx, settings) autoload'a `get_node` / preload ile erişir; araçlar UI sınıflarını `load()` ile alır.
 - Savaş gösterimi / kayıt: `res://tools/battle_showcase.gd -- <seed>|list|boss <krallık>|scene <yol>` (kayıt ayrı dosyaya yazılır). `--quit-after` ile kapanışta çıkan "resources still in use" mesajı ani kapanıştan; normal çıkışta yok.
+- Yayın: `Fetih/export_presets.cfg` ("Windows Desktop", çıktı `Fetih/build/windows/`, git dışı). Export şablonu gerekir; şablonsuz deneme: `--export-pack "Windows Desktop" build/test/Fetih.pck`. Mağaza metni ve ekran görüntüleri `yayin/`. Sürüm `project.godot` → `config/version`.
 - Boss'lar `Fetih/data/bosses/` altında (kart havuzuna girmez); krallık `.tres` dosyası boss'u ve başlangıç fermanını gösterir.
 
 ## Temel tasarım kuralları
