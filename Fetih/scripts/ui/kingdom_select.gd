@@ -9,6 +9,7 @@ var _selected: KingdomData
 
 
 func _ready() -> void:
+	Audio.play_music("menu")
 	RunState.end_run()
 	var root := UiKit.screen_root(self, 10)
 

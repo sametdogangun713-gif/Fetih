@@ -32,9 +32,15 @@ func setup(p_cell: Vector2i, p_squad: ArmySquad, highlighted := false) -> void:
 		style.border_color = Color(1, 1, 1, 0.08)
 	add_theme_stylebox_override("panel", style)
 
+	var row := UiKit.hbox(3)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE  # sürükleme kareye ulaşsın
+	add_child(row)
+	if squad:
+		row.add_child(UiKit.unit_icon(squad.unit))
 	var box := UiKit.vbox(0)
-	box.mouse_filter = Control.MOUSE_FILTER_IGNORE  # sürükleme kareye ulaşsın
-	add_child(box)
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(box)
 	if squad:
 		box.add_child(UiKit.label(squad.unit.display_name, 10))
 		var line := UiKit.hbox(4)

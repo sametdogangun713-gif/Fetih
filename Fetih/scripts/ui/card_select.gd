@@ -9,6 +9,7 @@ var _compact := false
 
 
 func _ready() -> void:
+	Audio.play_music("menu")
 	if not RunState.active:  # sahne tek başına (F6) çalıştırılırsa deneme koşusu
 		RunState.start_run(KingdomCatalog.all()[0], 1)
 		RunState.finish_battle(true)
@@ -86,8 +87,14 @@ func _fill_unit_card(box: VBoxContainer, offer: CardOffer) -> void:
 	var unit := offer.unit
 	var existing := RunState.find_squad(unit)
 	box.add_child(UiKit.label(tr("TAKVİYE") if existing else tr("YENİ BİRLİK"), 9, UiKit.COLOR_MUTED))
-	box.add_child(UiKit.wrapped(unit.display_name, 12 if _compact else 14, unit.placeholder_color))
-	box.add_child(UiKit.label(UiKit.role_name(unit.role), 10, UiKit.COLOR_MUTED))
+	var title := UiKit.hbox(4)
+	title.add_child(UiKit.unit_icon(unit, 2 if _compact else 3))
+	var name_box := UiKit.vbox(0)
+	name_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	name_box.add_child(UiKit.wrapped(unit.display_name, 12 if _compact else 14, unit.placeholder_color))
+	name_box.add_child(UiKit.label(UiKit.role_name(unit.role), 10, UiKit.COLOR_MUTED))
+	title.add_child(name_box)
+	box.add_child(title)
 	if existing:
 		box.add_child(UiKit.label(UiKit.upgrade_effect(existing, ArmySquad.Upgrade.REINFORCE),
 				14 if _compact else 16, UiKit.COLOR_GOLD))
@@ -137,6 +144,7 @@ func _fill_passive_card(box: VBoxContainer, offer: CardOffer) -> void:
 
 
 func _on_take(offer: CardOffer) -> void:
+	Audio.play("card")
 	if RunState.needs_replace(offer):
 		# Ekran yeniden kurulurken basılan düğme de silinir; bu yüzden işlem bittikten sonra.
 		_show_replace.call_deferred(offer)

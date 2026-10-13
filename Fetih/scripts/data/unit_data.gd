@@ -42,7 +42,11 @@ extends Resource
 @export var splits := false
 
 @export_group("Görünüm")
-@export var placeholder_color: Color = Color.WHITE  ## Gerçek sprite gelene kadar asker rengi.
+## Birliğin ana rengi: koddan üretilen sprite'ı boyar, arayüzde birliği belirtir.
+@export var placeholder_color: Color = Color.WHITE
+## Gerçek çizim: yan yana 4 eşit kare (durma, yürüme A, yürüme B, saldırı), figür sağa bakar.
+## Boşsa sprite role göre koddan üretilir (bkz. UnitSprites).
+@export var sprite_sheet: Texture2D
 
 
 func is_ranged() -> bool:

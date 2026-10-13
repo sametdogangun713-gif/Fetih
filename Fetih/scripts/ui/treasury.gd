@@ -5,6 +5,7 @@ var _root: VBoxContainer
 
 
 func _ready() -> void:
+	Audio.play_music("menu")
 	_root = UiKit.screen_root(self, 14)
 	_build()
 
@@ -56,5 +57,6 @@ func _upgrade_row(def: Dictionary) -> Control:
 
 
 func _on_buy(id: String) -> void:
+	Audio.play("card")
 	Profile.buy(id)
 	_build.call_deferred()

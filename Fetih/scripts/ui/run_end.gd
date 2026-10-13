@@ -4,6 +4,7 @@ extends Control
 
 
 func _ready() -> void:
+	Audio.play_music("menu")
 	if not RunState.active:  # sahne tek başına (F6) çalıştırılırsa deneme verisi
 		RunState.start_run(KingdomCatalog.all()[0], 1)
 	var glory := RunState.glory_earned()

@@ -29,8 +29,11 @@ func _ready() -> void:
 	for i in SPEEDS.size():
 		var button: Button = speed_buttons.get_child(i)
 		button.pressed.connect(_set_speed.bind(SPEEDS[i]))
+		button.pressed.connect(UiKit.click_sound)
+	continue_button.pressed.connect(UiKit.click_sound)
 	continue_button.pressed.connect(_on_continue)
 	battlefield.get_node("DebugHUD").visible = not RunState.active
+	battlefield.fx.camera = battlefield.camera
 	_set_speed(1)
 	_start_battle()
 
@@ -43,7 +46,8 @@ func _process(delta: float) -> void:
 		_accumulator -= BattleSimulation.TICK
 	var alpha := _accumulator / BattleSimulation.TICK
 	for view: SquadView in _views.values():
-		view.update_visual(alpha, delta)
+		view.update_visual(alpha, delta * _speed)
+	battlefield.fx.advance(delta * _speed)
 	if RunState.active:
 		info_label.text = tr("Süre: %.1f sn") % simulation.elapsed
 	else:
@@ -71,6 +75,7 @@ func _start_battle() -> void:
 	for view: SquadView in _views.values():
 		view.queue_free()
 	_views.clear()
+	battlefield.fx.clear()
 	_accumulator = 0.0
 	result_label.text = ""
 	continue_button.visible = false
@@ -81,12 +86,15 @@ func _start_battle() -> void:
 	simulation = BattleSimulation.new(seed_value, battlefield.field_rect())
 	simulation.squad_attacked.connect(_on_squad_attacked)
 	simulation.battle_finished.connect(_on_battle_finished)
-	simulation.squad_spawned.connect(_add_view)  # bölünen slime'ların yeni bölükleri
+	simulation.squad_spawned.connect(_on_squad_spawned)  # bölünen slime'ların yeni bölükleri
+	simulation.squad_destroyed.connect(func(squad: SquadState) -> void: battlefield.fx.squad_down(_views[squad]))
+	simulation.squad_revived.connect(func(squad: SquadState) -> void: battlefield.fx.revive(_views[squad]))
 
 	if RunState.active:
 		_setup_run_battle()
 	else:
 		_setup_test_battle()
+	_start_music()
 
 
 func _setup_run_battle() -> void:
@@ -144,8 +152,18 @@ func _add_state(squad: SquadState) -> void:
 func _add_view(squad: SquadState) -> void:
 	var view := SquadView.new()
 	view.setup(squad)
+	view.soldier_died.connect(battlefield.fx.soldier_died)
 	battlefield.units.add_child(view)
 	_views[squad] = view
+
+
+## Boss savaşında boss müziği ve kükreme; diğerlerinde savaş müziği ve boru sesi.
+func _start_music() -> void:
+	var boss := false
+	for squad: SquadState in _views:
+		boss = boss or squad.unit.is_boss
+	Audio.play_music("boss" if boss else "battle")
+	Audio.play("boss_roar" if boss else "horn", -3.0, 0.0)
 
 
 func _set_speed(value: int) -> void:
@@ -155,8 +173,20 @@ func _set_speed(value: int) -> void:
 		button.disabled = SPEEDS[i] == value
 
 
-func _on_squad_attacked(_attacker: SquadState, target: SquadState) -> void:
-	_views[target].flash()
+## Uzak birlik yakına yakalanmadıysa mermi fırlatır; yoksa yakın dövüş vuruşu.
+func _on_squad_attacked(attacker: SquadState, target: SquadState) -> void:
+	var attacker_view: SquadView = _views[attacker]
+	attacker_view.play_attack()
+	var gap := attacker.position.distance_to(target.position) - 2.0 * BattleSimulation.SQUAD_RADIUS
+	if attacker.unit.is_ranged() and gap > BattleSimulation.MELEE_GAP:
+		battlefield.fx.launch(attacker_view, _views[target])
+	else:
+		battlefield.fx.melee_hit(attacker_view, _views[target])
+
+
+func _on_squad_spawned(squad: SquadState) -> void:
+	_add_view(squad)
+	battlefield.fx.split(_views[squad])
 
 
 func _on_battle_finished(winner: SquadState.Team) -> void:
@@ -165,6 +195,7 @@ func _on_battle_finished(winner: SquadState.Team) -> void:
 	for squad: SquadState in _views:
 		if squad.team == winner:
 			survivors += squad.alive_count()
+	Audio.play("victory" if won else "defeat", 0.0, 0.0, 0.0)
 	if won:
 		result_label.text = tr("ZAFER! (%d asker hayatta)") % survivors
 		result_label.add_theme_color_override("font_color", UiKit.COLOR_GOOD)

@@ -25,6 +25,9 @@
 - Ekransız test: `godot --headless --path Fetih -s <script>`; ekran görüntüsü: `--write-movie out.png --quit-after N`.
 - Denge testi: `powershell -ExecutionPolicy Bypass -File Fetih\tools\run_balance_test.ps1` — birlik değeri değişince çalıştır.
 - Koşu zorluğu: `godot --headless --path Fetih -s res://tools/run_test.gd` (botlarla fetih oranı). Yükseltme eşitliği: `res://tools/upgrade_test.gd`. Boss gücü: `res://tools/boss_test.gd`.
+- Görsel: sprite sayfası 4 kare (durma, yürüme A, yürüme B, saldırı), figür sağa bakar. `UnitData.sprite_sheet` boşsa `UnitSprites` role göre koddan üretir. Efektler `BattleFx` (sadece görüntü; simülasyona dokunmaz). Önizleme: `res://tools/sprite_preview.gd -- out.png`.
+- Ses: `Audio` autoload (`Audio.play("hit")`, `Audio.play_music("battle")`); dosyalar `assets/audio/sfx|music/<ad>.wav`. Geçici sesler `res://tools/build_audio.gd` ile üretilir (sonra `--import`). Araç scriptleri (`-s`) autoload adlarını derleme anında tanımaz: ortak sınıflarda (UiKit gibi) autoload'a `get_node_or_null` ile eriş.
+- Savaş gösterimi / kayıt: `res://tools/battle_showcase.gd -- <seed>|list|boss <krallık>|scene <yol>` (kayıt ayrı dosyaya yazılır). `--quit-after` ile kapanışta çıkan "resources still in use" mesajı ani kapanıştan; normal çıkışta yok.
 - Boss'lar `Fetih/data/bosses/` altında (kart havuzuna girmez); krallık `.tres` dosyası boss'u ve başlangıç fermanını gösterir.
 
 ## Temel tasarım kuralları

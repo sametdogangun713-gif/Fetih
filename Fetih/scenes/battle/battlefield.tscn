@@ -3,6 +3,7 @@
 [ext_resource type="Script" path="res://scripts/battle/battlefield.gd" id="1_field"]
 [ext_resource type="TileSet" path="res://assets/tiles/battlefield_tileset.tres" id="2_tiles"]
 [ext_resource type="Script" path="res://scripts/battle/battle_camera.gd" id="3_camera"]
+[ext_resource type="Script" path="res://scripts/battle/battle_fx.gd" id="4_fx"]
 
 [node name="Battlefield" type="Node2D"]
 script = ExtResource("1_field")
@@ -13,8 +14,13 @@ tile_set = ExtResource("2_tiles")
 [node name="Highlight" type="TileMapLayer" parent="."]
 tile_set = ExtResource("2_tiles")
 
+[node name="GroundFx" type="Node2D" parent="."]
+
 [node name="Units" type="Node2D" parent="."]
 y_sort_enabled = true
+
+[node name="Fx" type="Node2D" parent="."]
+script = ExtResource("4_fx")
 
 [node name="BattleCamera" type="Camera2D" parent="."]
 script = ExtResource("3_camera")

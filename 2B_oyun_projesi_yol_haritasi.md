@@ -199,10 +199,15 @@ Her krallık için: 4-5 birim, 1 boss, kombo bonusu, denge testi.
 - [x] Zorluk %85 → %82 (10 krallıklı rakip havuzu için)
 
 ### Aşama 9: Oyun hissi, grafik, ses (1-2 ay)
-- [ ] Vuruş efektleri: kısa yanıp sönme, parçacık, ekran sarsıntısı (boss'ta)
-- [ ] Ölüm animasyonları, ok ve büyü mermileri
-- [ ] Gerçek sprite'lar (kendi çizimin veya satın alınmış paket)
-- [ ] Ses efektleri ve müzik (menü, savaş, boss)
+- [x] Vuruş efektleri: beyaz parlama, kıvılcım parçacıkları, ekran sarsıntısı (boss vuruşu, gülle, boss ölümü)
+- [x] Ölüm animasyonları (asker yere yığılır, solar; bölük düşünce toz halkası), ok / büyü mermisi / gülle
+- [x] Diriliş ve bölünme efektleri; yanma kıvılcımı, yavaşlatma çamuru
+- [x] Sprite sistemi: 4 karelik sayfa (durma, 2 yürüme, saldırı), sola bakarken çevrilir; boss 2x + taç
+- [x] Geçici sprite'lar koddan üretiliyor (role göre figür, krallık rengiyle boyalı); kart ve ordu kutularında ikon
+- [ ] Gerçek sprite'lar (kendi çizimin veya satın alınmış paket): `UnitData.sprite_sheet` alanına konur, kod hazır
+- [x] Ses sistemi (`Audio` autoload, Müzik / SFX kanalları, x4 hızda ses yığılması sınırı)
+- [x] Geçici 18 efekt + 3 müzik (menü, savaş, boss) koddan sentezlendi (`tools/build_audio.gd`)
+- [ ] Gerçek ses ve müzik: aynı adla `assets/audio/` altına konur (müzik .ogg da olabilir)
 - **Çıktı:** Görsel ve sesle tamamlanmış oyun
 
 ### Aşama 10: Cila ve ayarlar (2-3 hafta)

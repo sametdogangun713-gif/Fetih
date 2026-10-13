@@ -65,8 +65,28 @@ static func button(text: String, on_pressed: Callable) -> Button:
 	var b := Button.new()
 	b.text = text
 	b.focus_mode = Control.FOCUS_NONE
+	b.pressed.connect(click_sound)
 	b.pressed.connect(on_pressed)
 	return b
+
+
+## Düğme sesi. Audio autoload'una düğüm yolundan ulaşılır: araç scriptleri (-s) UiKit'i
+## autoload'lar kurulmadan derler, doğrudan "Audio" adı orada derleme hatası verir.
+static func click_sound() -> void:
+	var audio := (Engine.get_main_loop() as SceneTree).root.get_node_or_null(^"Audio")
+	if audio:
+		audio.play("click", -2.0, 0.05)
+
+
+## Birliğin sprite'ı (durma karesi), piksel sanat bozulmasın diye tam sayı katıyla büyütülür.
+static func unit_icon(unit: UnitData, scale := 2) -> TextureRect:
+	var icon := TextureRect.new()
+	icon.texture = UnitSprites.icon(unit)
+	icon.custom_minimum_size = icon.texture.get_size() * scale
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return icon
 
 
 static func panel(color := COLOR_PANEL) -> PanelContainer:

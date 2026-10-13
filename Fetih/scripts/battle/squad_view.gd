@@ -1,37 +1,43 @@
 class_name SquadView
 extends Node2D
 ## Bir bölüğü ekrana çizer. Simülasyondaki SquadState'i sadece okur, hiçbir şeyi değiştirmez.
-## Gerçek sprite'lar gelene kadar her asker küçük bir dikdörtgendir.
+## Her asker UnitSprites sayfasından bir karedir: yürürken iki kare arasında gidip gelir,
+## saldırınca kısa süre saldırı karesine geçer.
+
+## Bir asker düştü. at: askerin konumu (bu düğümün ebeveyninin koordinatında).
+signal soldier_died(view: SquadView, at: Vector2)
 
 const COLUMNS := 5  ## Formasyonun genişliği (asker).
-const SOLDIER_SPACING := 0.2  ## Askerler arası mesafe (karo).
-## Geçici asker boyutu (piksel), role göre: rolü ekranda ayırt etmek için.
-const ROLE_SIZES := {
-	RoleRules.WARRIOR: Vector2(4, 9),
-	RoleRules.SPEARMAN: Vector2(3, 10),
-	RoleRules.TANK: Vector2(6, 10),
-	RoleRules.ARCHER: Vector2(3, 8),
-	RoleRules.MAGE: Vector2(3, 9),
-	RoleRules.CAVALRY: Vector2(8, 8),
-	RoleRules.SIEGE: Vector2(8, 5),
-}
+const SOLDIER_SPACING := 0.24  ## Askerler arası mesafe (karo).
 const HIT_FLASH_TIME := 0.12
+const ATTACK_ANIM_TIME := 0.2  ## Saldırı karesinin ekranda kalma süresi.
+const WALK_FPS := 7.0  ## Yürüme animasyonunda saniyede kare değişimi.
+## Askerler aynı anda saldırmasın: üç gruba ayrılır, her grup bir öncekinden bu kadar geç vurur.
+const ATTACK_STAGGER := 0.04
 const TEAM_COLORS := {
 	SquadState.Team.PLAYER: Color("3d6fd1"),
 	SquadState.Team.ENEMY: Color("c8443a"),
 }
 
 var squad: SquadState
+var sheet: UnitSprites.Sheet
+var flip := false  ## Sola bakıyor mu (sprite yatay çevrilir).
 
 var _slots: Array[Vector2] = []  ## Her askerin formasyondaki yeri: x = yana, y = geriye (karo).
 var _alive_slots: Array[int] = []
+var _offsets := {}  ## yer -> bölük merkezine göre ekran konumu (bu kare)
 var _flash := 0.0
+var _attack_time := 0.0  ## Son saldırıdan beri geçen süre.
+var _anim_time := 0.0
+var _moving := false
 ## Sadece görsel rastgelelik (hangi askerin düşeceği). Simülasyonun sonucunu etkilemez.
 var _visual_rng := RandomNumberGenerator.new()
 
 
 func setup(p_squad: SquadState) -> void:
 	squad = p_squad
+	sheet = UnitSprites.sheet_for(squad.unit)
+	_attack_time = ATTACK_ANIM_TIME * 2.0
 	var rows := ceili(float(squad.max_count) / COLUMNS)
 	for i in squad.max_count:
 		var col := i % COLUMNS
@@ -44,8 +50,14 @@ func setup(p_squad: SquadState) -> void:
 
 
 ## Her karede çağrılır. alpha: iki simülasyon adımı arasında nerede olduğumuz (0-1).
+## delta: savaş hızıyla çarpılmış süre (x4'te animasyonlar da hızlanır).
 func update_visual(alpha: float, delta: float) -> void:
 	position = Battlefield.field_to_world(squad.previous_position.lerp(squad.position, alpha))
+	_moving = squad.position.distance_squared_to(squad.previous_position) > 0.000001
+	var world_facing := Battlefield.field_offset_to_world(squad.facing)
+	if absf(world_facing.x) > 0.01:
+		flip = world_facing.x < 0.0
+	_update_offsets()
 	var alive := mini(squad.alive_count(), _slots.size())
 	while _alive_slots.size() > alive:
 		_remove_front_soldier()
@@ -56,12 +68,41 @@ func update_visual(alpha: float, delta: float) -> void:
 			_alive_slots.append(i)
 		i -= 1
 	_flash = maxf(_flash - delta, 0.0)
+	_attack_time += delta
+	_anim_time += delta
 	visible = squad.is_alive()
 	queue_redraw()
 
 
 func flash() -> void:
 	_flash = HIT_FLASH_TIME
+
+
+## Bölük saldırdı: askerler saldırı karesine geçer.
+func play_attack() -> void:
+	_attack_time = 0.0
+
+
+## Hayattaki bir askerin konumu (ebeveyn koordinatında). Mermiler buradan çıkar / buraya iner.
+func random_soldier_position(rng: RandomNumberGenerator) -> Vector2:
+	if _alive_slots.is_empty():
+		return position + Vector2(0, -6)
+	var slot := _alive_slots[rng.randi_range(0, _alive_slots.size() - 1)]
+	return position + _offsets.get(slot, Vector2.ZERO) + Vector2(0, -sheet.frame_size.y / 2.0)
+
+
+## Ekranda bölüğün üst ortası (boss için gövdenin ortası). Efektler buraya çizilir.
+func center() -> Vector2:
+	return position + Vector2(0, -sheet.frame_size.y / 2.0)
+
+
+## Formasyonu bölüğün baktığı yöne çevir: ileri = facing, yan = ona dik.
+func _update_offsets() -> void:
+	var forward := squad.facing
+	var side := Vector2(-forward.y, forward.x)
+	for slot in _slots.size():
+		var s := _slots[slot]
+		_offsets[slot] = Battlefield.field_offset_to_world(side * s.x - forward * s.y).round()
 
 
 ## Ölen asker, en öndeki sıradan rastgele seçilir.
@@ -73,80 +114,71 @@ func _remove_front_soldier() -> void:
 	for slot in _alive_slots:
 		if is_equal_approx(_slots[slot].y, front_row):
 			candidates.append(slot)
-	_alive_slots.erase(candidates[_visual_rng.randi_range(0, candidates.size() - 1)])
+	var dead := candidates[_visual_rng.randi_range(0, candidates.size() - 1)]
+	_alive_slots.erase(dead)
+	soldier_died.emit(self, position + _offsets.get(dead, Vector2.ZERO))
 
 
 func _draw() -> void:
-	# Formasyonu bölüğün baktığı yöne çevir: ileri = facing, yan = ona dik.
-	var forward := squad.facing
-	var side := Vector2(-forward.y, forward.x)
-	var offsets: Array[Vector2] = []
-	for slot in _alive_slots:
-		var s := _slots[slot]
-		offsets.append(Battlefield.field_offset_to_world(side * s.x - forward * s.y))
-	# Ekranda yukarıda olan asker önce çizilir (bölük içi derinlik sıralaması).
-	offsets.sort_custom(func(a: Vector2, b: Vector2) -> bool: return a.y < b.y)
-
-	var body := squad.unit.placeholder_color
-	if _flash > 0.0:
-		body = body.lerp(Color.WHITE, 0.7)
-	var head := body.lightened(0.35)
 	if squad.unit.is_boss:
-		_draw_boss(body, head)
+		_draw_soldier(Vector2.ZERO, 0)
+		_draw_boss_bar()
 		return
-	var role := squad.unit.role
-	var size: Vector2 = ROLE_SIZES.get(role, Vector2(4, 9))
-	for o in offsets:
-		var rect := Rect2(o - Vector2(size.x / 2.0, size.y), size)
-		draw_rect(rect, body)
-		draw_rect(Rect2(rect.position, Vector2(size.x, 2)), head)
-		match role:
-			RoleRules.SPEARMAN:  # mızrak ucu
-				draw_line(rect.position + Vector2(size.x, 2), rect.position + Vector2(size.x, -4), Color("d0d0d0"))
-			RoleRules.MAGE:  # parlayan asa ucu
-				draw_rect(Rect2(rect.position + Vector2(size.x, -3), Vector2(2, 2)), Color("8ff0ff"))
-			RoleRules.CAVALRY:  # binek gövdesi (alt yarı koyu)
-				draw_rect(Rect2(rect.position + Vector2(0, size.y - 4), Vector2(size.x, 4)), body.darkened(0.4))
-			RoleRules.SIEGE:  # top namlusu ve tekerlekler
-				draw_rect(Rect2(rect.position + Vector2(size.x - 2, -2), Vector2(3, 2)), Color("404040"))
-				draw_rect(Rect2(rect.position + Vector2(0, size.y - 1), Vector2(2, 2)), Color("3a2a1a"))
-				draw_rect(Rect2(rect.position + Vector2(size.x - 2, size.y - 1), Vector2(2, 2)), Color("3a2a1a"))
-		if squad.burn_time > 0.0:  # yanan bölüğün askerlerinin başında kıvılcım
-			draw_rect(Rect2(rect.position + Vector2(0, -2), Vector2(2, 2)), Color("ff9a30"))
-		elif squad.slow_time > 0.0:  # yavaşlatılmış bölük: ayakta çamur
-			draw_rect(Rect2(rect.position + Vector2(0, size.y - 1), Vector2(size.x, 1)), Color("6a5a2a"))
-
+	# Ekranda yukarıda olan asker önce çizilir (bölük içi derinlik sıralaması).
+	var order := _alive_slots.duplicate()
+	order.sort_custom(func(a: int, b: int) -> bool: return _offsets[a].y < _offsets[b].y)
+	for slot: int in order:
+		_draw_soldier(_offsets[slot], slot)
 	_draw_banner()
 
 
-## Boss: tek dev figür, taç ve can çubuğu (tek asker olduğu için sayı yerine can gösterilir).
-func _draw_boss(body: Color, head: Color) -> void:
-	var size := Vector2(12, 22)
-	var rect := Rect2(Vector2(-size.x / 2.0, -size.y), size)
-	draw_rect(rect, body)
-	draw_rect(Rect2(rect.position, Vector2(size.x, 4)), head)
-	# taç
-	var crown_y := rect.position.y - 3
-	for x in [-6, -2, 3]:
-		draw_rect(Rect2(Vector2(x, crown_y), Vector2(3, 3)), UiKit.COLOR_GOLD)
-	# can çubuğu
-	var max_hp := squad.unit.hp * squad.max_count
-	var ratio := clampf(squad.hp_pool / max_hp, 0.0, 1.0)
-	var bar := Rect2(Vector2(-14, crown_y - 6), Vector2(28, 3))
+## Askerin karesi: saldırı > yürüme > durma. Ayak ortası `at` noktasına oturur.
+func _draw_soldier(at: Vector2, slot: int) -> void:
+	var frame := UnitSprites.Frame.IDLE
+	var since_attack := _attack_time - (slot % 3) * ATTACK_STAGGER
+	if since_attack >= 0.0 and since_attack < ATTACK_ANIM_TIME:
+		frame = UnitSprites.Frame.ATTACK
+	elif _moving:
+		# Her asker farklı adımda: hepsi aynı anda adım atmasın.
+		var step := int(_anim_time * WALK_FPS + slot * 0.5) % 2
+		frame = UnitSprites.Frame.WALK_A if step == 0 else UnitSprites.Frame.WALK_B
+	var size := Vector2(sheet.frame_size)
+	# Negatif genişlikle çizmek resmi yatay çevirir (Sprite2D'nin flip_h'si de böyle yapar).
+	var dest := Rect2(at + Vector2(-size.x / 2.0, 1.0 - size.y), size)
+	if flip:
+		dest = Rect2(at + Vector2(size.x / 2.0, 1.0 - size.y), Vector2(-size.x, size.y))
+	var source := sheet.region(frame)
+	draw_texture_rect_region(sheet.texture, dest, source)
+	if _flash > 0.0:
+		draw_texture_rect_region(sheet.flash, dest, source, Color(1, 1, 1, 0.75))
+	var top := at + Vector2(-2, 1.0 - size.y)
+	if squad.burn_time > 0.0:  # yanan bölüğün askerlerinin başında kıvılcım
+		var spark := int(_anim_time * 10.0 + slot) % 2
+		draw_rect(Rect2(top + Vector2(spark, -2), Vector2(2, 2)), Color("ff9a30"))
+		draw_rect(Rect2(top + Vector2(spark + 1, -3), Vector2(1, 1)), Color("ffe080"))
+	elif squad.slow_time > 0.0:  # yavaşlatılmış bölük: ayakta çamur
+		draw_rect(Rect2(at + Vector2(-3, -1), Vector2(6, 2)), Color("6a5a2a"))
+
+
+## Boss tek asker olduğu için sayı yerine can çubuğu ve adı.
+func _draw_boss_bar() -> void:
+	var top := 1.0 - sheet.frame_size.y
+	var ratio := clampf(squad.hp_pool / squad.max_hp, 0.0, 1.0)
+	var bar := Rect2(Vector2(-14, top - 5), Vector2(28, 3))
 	draw_rect(bar, Color(0, 0, 0, 0.6))
 	draw_rect(Rect2(bar.position, Vector2(bar.size.x * ratio, bar.size.y)), TEAM_COLORS[squad.team])
-	draw_string(ThemeDB.fallback_font, Vector2(-30, crown_y - 9), squad.unit.display_name,
-			HORIZONTAL_ALIGNMENT_CENTER, 60, 8, UiKit.COLOR_GOLD)
+	draw_string(ThemeDB.fallback_font, Vector2(-50, top - 8), squad.unit.display_name,
+			HORIZONTAL_ALIGNMENT_CENTER, 100, 8, UiKit.COLOR_GOLD)
 
 
 ## Bölüğün üstünde takım renginde sancak ve asker sayısı.
 func _draw_banner() -> void:
-	var pole_top := Vector2(0, -26)
-	draw_line(Vector2(0, -12), pole_top, Color("3a2a1a"), 1.0)
+	var pole_top := Vector2(0, -28)
+	draw_line(Vector2(0, -14), pole_top, Color("3a2a1a"), 1.0)
 	draw_rect(Rect2(pole_top, Vector2(7, 5)), TEAM_COLORS[squad.team])
 	var font := ThemeDB.fallback_font
 	draw_string(font, pole_top + Vector2(-12, -2), str(squad.alive_count()),
 			HORIZONTAL_ALIGNMENT_CENTER, 24, 10)
 	# Seviye: sancak direğinin yanında küçük altın noktalar (Sv 2 = 1 nokta ... Sv 5 = 4 nokta).
 	for i in squad.level - 1:
-		draw_rect(Rect2(Vector2(-4, -24 + i * 3), Vector2(2, 2)), UiKit.COLOR_GOLD)
+		draw_rect(Rect2(Vector2(-4, -26 + i * 3), Vector2(2, 2)), UiKit.COLOR_GOLD)

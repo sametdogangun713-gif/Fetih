@@ -31,7 +31,8 @@ const ZONE_NAMES := {
 @onready var ground: TileMapLayer = $Ground
 @onready var highlight: TileMapLayer = $Highlight
 @onready var units: Node2D = $Units
-@onready var camera: Camera2D = $BattleCamera
+@onready var fx: BattleFx = $Fx
+@onready var camera: BattleCamera = $BattleCamera
 @onready var cell_label: Label = $DebugHUD/CellLabel
 
 var _hovered_cell := Vector2i(-1, -1)

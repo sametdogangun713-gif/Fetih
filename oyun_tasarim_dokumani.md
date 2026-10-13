@@ -286,7 +286,7 @@ extends Resource
 @export var armor: float = 0.0
 @export var placeholder_color: Color  # sprite gelene kadar
 ```
-Güncel hali: `Fetih/scripts/data/unit_data.gd`. Sprite alanı Aşama 9'da eklenecek.
+Güncel hali: `Fetih/scripts/data/unit_data.gd`. Aşama 9'da `sprite_sheet` alanı eklendi (boşsa sprite koddan üretilir, bkz. `scripts/battle/unit_sprites.gd`).
 
 ---
 

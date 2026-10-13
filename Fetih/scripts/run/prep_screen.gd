@@ -6,6 +6,7 @@ var _info: Label
 
 
 func _ready() -> void:
+	Audio.play_music("menu")
 	if not RunState.active:  # sahne tek başına (F6) çalıştırılırsa deneme koşusu başlat
 		RunState.start_run(KingdomCatalog.all()[0], 1)
 	Profile.store_run(RunState.to_dict("prep"))  # oyun kapanırsa buradan devam edilir
