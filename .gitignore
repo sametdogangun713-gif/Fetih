@@ -1,0 +1,19 @@
+# Godot 4
+.godot/
+*.tmp
+/Fetih/android/
+
+# Export çıktıları (build'ler repoya girmez)
+/Fetih/build/
+*.exe
+*.pck
+
+# Aseprite yedekleri ve işletim sistemi dosyaları
+*.ase~
+*.aseprite~
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Editör
+.vscode/

@@ -1,0 +1,12 @@
+# Metin dosyalarında satır sonlarını tek tipte tut
+* text=auto eol=lf
+
+# İkili dosyalar
+*.png binary
+*.aseprite binary
+*.ase binary
+*.wav binary
+*.ogg binary
+*.mp3 binary
+*.ttf binary
+*.otf binary
