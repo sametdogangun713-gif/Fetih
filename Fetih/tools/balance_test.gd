@@ -12,9 +12,11 @@ extends SceneTree
 ## Örnek: +0.40 = satırdaki birlik ortalama canının %40'ı ile kazanıyor.
 
 const REPORT_PATH := "res://tools/reports/balance_latest.md"
-const PLAYER_SLOTS: Array[Vector2] = [Vector2(3, 13), Vector2(6, 13)]
-const ENEMY_SLOTS: Array[Vector2] = [Vector2(3, 2), Vector2(6, 2)]
-const FIELD_RECT := Rect2(0, 0, 9, 15)
+## Oyundaki gibi: bölükler 3x3 ızgaraya rollerine göre dizilir (ArmyGenerator.auto_arrange),
+## sonra Formation ile savaş alanına yerleşir. Böylece başlangıç mesafeleri gerçek oyunla aynıdır.
+const GRID_SIZE := Vector2i(3, 3)
+const SQUADS_PER_SIDE := 2
+const FIELD_RECT := Rect2(0, 0, Battlefield.FIELD_WIDTH - 1, Battlefield.FIELD_DEPTH - 1)
 
 ## Bu aralığın dışındaki genel kazanma oranı "dengesiz" sayılır.
 const FAIR_MIN := 0.35
@@ -101,12 +103,8 @@ func _matchup(a: UnitData, b: UnitData) -> Array:
 ## Tek savaş. [kazanan takım, kazananın kalan can oranı, süre]
 func _fight(player: UnitData, enemy: UnitData, seed_value: int) -> Array:
 	var sim := BattleSimulation.new(seed_value, FIELD_RECT)
-	for slot in PLAYER_SLOTS:
-		sim.add_squad(SquadState.new(player, SquadState.Team.PLAYER,
-				UnitCatalog.count_for_budget(player, budget), slot))
-	for slot in ENEMY_SLOTS:
-		sim.add_squad(SquadState.new(enemy, SquadState.Team.ENEMY,
-				UnitCatalog.count_for_budget(enemy, budget), slot))
+	_deploy(sim, player, SquadState.Team.PLAYER)
+	_deploy(sim, enemy, SquadState.Team.ENEMY)
 	while not sim.finished:
 		sim.step()
 
@@ -121,6 +119,16 @@ func _fight(player: UnitData, enemy: UnitData, seed_value: int) -> Array:
 	return result
 
 
+func _deploy(sim: BattleSimulation, unit: UnitData, team: SquadState.Team) -> void:
+	var army: Array[ArmySquad] = []
+	for i in SQUADS_PER_SIDE:
+		army.append(ArmySquad.new(unit, UnitCatalog.count_for_budget(unit, budget), ArmyGenerator.NO_CELL))
+	ArmyGenerator.auto_arrange(army, GRID_SIZE)
+	for squad in army:
+		sim.add_squad(SquadState.new(unit, team, squad.count,
+				Formation.grid_to_field(squad.cell, GRID_SIZE, team)))
+
+
 func _build_report() -> String:
 	var n := units.size()
 	var lines: PackedStringArray = []
@@ -128,7 +136,7 @@ func _build_report() -> String:
 	lines.append("")
 	lines.append("- Tarih: %s" % Time.get_datetime_string_from_system(false, true))
 	lines.append("- Eşleşme başına %d seed x 2 taraf, bölük bütçesi %d, taraf başına %d bölük" % [
-			seeds, budget, PLAYER_SLOTS.size()])
+			seeds, budget, SQUADS_PER_SIDE])
 	lines.append("- Toplam %d savaş" % battle_count)
 	lines.append("")
 

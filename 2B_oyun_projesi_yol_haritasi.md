@@ -128,16 +128,18 @@ Her aşama sonunda **çalışan** bir sürüm olmalı. Grafik son aşamalara kad
 - **Çıktı:** 12 birim, ölçülebilir denge
 
 ### Aşama 4: Koşu döngüsü (2 hafta)
-- [ ] Koşu durumu autoload'u (`RunState`): ordu, can, savaş sırası
-- [ ] Krallık seçim ekranı (3 açık krallık)
-- [ ] Rakip ordu üretici: tur numarasına göre bütçe
-- [ ] Savaş → sonuç → kart seçimi → sonraki savaş
-- [ ] 3 can, kaybedilen savaş tekrar oynanmaz
-- [ ] Kart seçim ekranı: savaşılan krallığın 3 kartı, 1 seç
-- [ ] **Ordu ızgarası (3x3):** seçilen bölüğü boş kareye sürükle-bırak, bölüklerin yerini değiştir
-- [ ] Izgaradaki yer → savaş alanındaki başlangıç noktası (üst satır = ön cephe)
-- [ ] Sıradaki rakibin krallığını hazırlık ekranında göster
-- [ ] Tüm UI metinleri baştan `tr()` ile
+- [x] Koşu durumu autoload'u (`RunState`): ordu, can, savaş sırası, seed
+- [x] Krallık seçim ekranı (3 açık krallık) — oyunun ana ekranı
+- [x] Rakip ordu üretici: bütçe 180 + savaş başına 100, %40 krallık uzmanı (`ArmyGenerator`)
+- [x] Savaş → sonuç → kart seçimi → sonraki savaş → koşu sonu ekranı
+- [x] 3 can, kaybedilen savaş tekrar oynanmaz
+- [x] Kart seçim ekranı: savaşılan krallığın 3 kartı (kaybedince 2), 1 seç; aynı birlik mevcut bölüğe eklenir
+- [x] **Ordu ızgarası (3x3):** bölükleri sürükle-bırak ile yer değiştir; yeni bölük role uygun boş kareye girer
+- [x] Izgaradaki yer → savaş alanındaki başlangıç noktası (üst satır = ön cephe) (`Formation`)
+- [x] Sıradaki rakibin krallığı ve ordusu hazırlık ekranında görünür
+- [x] Tüm UI metinleri `tr()` / `UiKit.t()` ile
+- [x] Denge aracı oyundaki ızgara dizilişini kullanıyor
+- Not: Otomatik oyuncu (hep ilk kart) 5 savaşlık koşuda İnsanlar 25/30, Elfler 18/30, Orklar 27/30 fetih yapıyor. Zorluk Aşama 6'da ayarlanacak.
 - **Çıktı:** Baştan sona oynanabilen kısa (ör. 5 savaşlık) bir koşu
 
 ### Aşama 5: Kart çeşitliliği ve kombolar (2 hafta)

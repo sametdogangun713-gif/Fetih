@@ -132,6 +132,9 @@ Kalın olan, krallığın uzmanlık birliği.
 - Diğer savaşlar: rastgele seçilen rakip krallıkların normal orduları.
 - Rakip ordular bilgisayar tarafından üretilir: her savaşa bir **ordu bütçesi** verilir, bütçe her turda artar.
 
+### Kayıplar
+- Ordular her savaşa **tam güçle** girer (9 Kings'teki gibi). Savaşta ölen askerler bir sonraki savaşta geri gelir; kalıcı kayıp yoktur. Ordunun gücü sadece kartlarla değişir.
+
 ### Can sistemi
 - Oyuncunun **3 canı** var.
 - Kaybedilen savaşta 1 can gider. **Savaş tekrar oynanmaz**, sıradaki rakibe geçilir.

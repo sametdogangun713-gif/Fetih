@@ -31,6 +31,15 @@ static func get_unit(id: StringName) -> UnitData:
 	return null
 
 
+## Bir krallığın birlikleri, rol sırasına göre.
+static func units_of(kingdom: StringName) -> Array[UnitData]:
+	var result: Array[UnitData] = []
+	for unit in all():
+		if unit.kingdom == kingdom:
+			result.append(unit)
+	return result
+
+
 ## Verilen bütçeyle bu birlikten kaç asker alınır (en az 1).
 static func count_for_budget(unit: UnitData, budget: float) -> int:
 	return maxi(1, roundi(budget / unit.cost))

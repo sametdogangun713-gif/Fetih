@@ -1,34 +1,36 @@
 extends Node2D
 ## Savaşı yürütür: simülasyonu sabit adımlarla ilerletir, bölük görüntülerini günceller.
-## Aşama 3 test savaşı: katalogdan seed'e göre seçilen iki birlik, taraf başına 2 bölük, eşit bütçe.
-## R: aynı savaşı tekrar. N: yeni seed ve yeni eşleşme. Hız düğmeleri: x1 / x2 / x4.
+##
+## İki modda çalışır:
+## - Koşu modu (RunState.active): ordular RunState'ten gelir; savaş bitince "Devam" düğmesi çıkar.
+## - Test modu (sahne tek başına, F6): seed'e göre rastgele iki birlik, taraf başına 2 bölük.
+##   R: aynı savaşı tekrar. N: yeni seed ve yeni eşleşme.
 
 const SPEEDS: Array[int] = [1, 2, 4]
-const SQUAD_BUDGET := 100.0
-const PLAYER_SLOTS: Array[Vector2] = [Vector2(3, 13), Vector2(6, 13)]
-const ENEMY_SLOTS: Array[Vector2] = [Vector2(3, 2), Vector2(6, 2)]
-const TEAM_NAMES := {
-	SquadState.Team.PLAYER: "Oyuncu",
-	SquadState.Team.ENEMY: "Düşman",
-}
+const TEST_SQUAD_BUDGET := 100.0
+const TEST_PLAYER_SLOTS: Array[Vector2] = [Vector2(3, 13), Vector2(6, 13)]
+const TEST_ENEMY_SLOTS: Array[Vector2] = [Vector2(3, 2), Vector2(6, 2)]
 
 @onready var battlefield: Battlefield = $Battlefield
 @onready var speed_buttons: HBoxContainer = $HUD/SpeedButtons
 @onready var info_label: Label = $HUD/InfoLabel
 @onready var matchup_label: Label = $HUD/MatchupLabel
 @onready var result_label: Label = $HUD/ResultLabel
+@onready var continue_button: Button = $HUD/ContinueButton
 
 var simulation: BattleSimulation
 var _views := {}  ## SquadState -> SquadView
 var _accumulator := 0.0
 var _speed := 1
-var _seed := 1
+var _test_seed := 1
 
 
 func _ready() -> void:
 	for i in SPEEDS.size():
 		var button: Button = speed_buttons.get_child(i)
 		button.pressed.connect(_set_speed.bind(SPEEDS[i]))
+	continue_button.pressed.connect(_on_continue)
+	battlefield.get_node("DebugHUD").visible = not RunState.active
 	_set_speed(1)
 	_start_battle()
 
@@ -42,7 +44,10 @@ func _process(delta: float) -> void:
 	var alpha := _accumulator / BattleSimulation.TICK
 	for view: SquadView in _views.values():
 		view.update_visual(alpha, delta)
-	info_label.text = "Seed: %d   Süre: %.1f sn   (R: tekrar, N: yeni)" % [_seed, simulation.elapsed]
+	if RunState.active:
+		info_label.text = tr("Süre: %.1f sn") % simulation.elapsed
+	else:
+		info_label.text = "Seed: %d   Süre: %.1f sn   (R: tekrar, N: yeni)" % [_test_seed, simulation.elapsed]
 
 
 func _exit_tree() -> void:
@@ -51,12 +56,14 @@ func _exit_tree() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if RunState.active:
+		return  # koşuda savaş tekrar oynanmaz
 	if event is InputEventKey and event.pressed and not event.echo:
 		match event.physical_keycode:
 			KEY_R:
 				_start_battle()
 			KEY_N:
-				_seed += 1
+				_test_seed += 1
 				_start_battle()
 
 
@@ -66,28 +73,50 @@ func _start_battle() -> void:
 	_views.clear()
 	_accumulator = 0.0
 	result_label.text = ""
+	continue_button.visible = false
 	if simulation:
 		simulation.dispose()
 
-	simulation = BattleSimulation.new(_seed, battlefield.field_rect())
+	var seed_value := RunState.battle_seed() if RunState.active else _test_seed
+	simulation = BattleSimulation.new(seed_value, battlefield.field_rect())
 	simulation.squad_attacked.connect(_on_squad_attacked)
 	simulation.battle_finished.connect(_on_battle_finished)
 
-	var matchup := _choose_matchup()
-	var player_unit: UnitData = matchup[0]
-	var enemy_unit: UnitData = matchup[1]
-	for slot in PLAYER_SLOTS:
-		_add_squad(player_unit, SquadState.Team.PLAYER, slot)
-	for slot in ENEMY_SLOTS:
-		_add_squad(enemy_unit, SquadState.Team.ENEMY, slot)
-	matchup_label.text = "%s  vs  %s" % [_describe(player_unit), _describe(enemy_unit)]
+	if RunState.active:
+		_setup_run_battle()
+	else:
+		_setup_test_battle()
+
+
+func _setup_run_battle() -> void:
+	var grid := RunState.GRID_SIZE
+	for squad in RunState.army:
+		_add_squad(squad.unit, squad.count, SquadState.Team.PLAYER,
+				Formation.grid_to_field(squad.cell, grid, SquadState.Team.PLAYER))
+	for squad in RunState.current_enemy_army():
+		_add_squad(squad.unit, squad.count, SquadState.Team.ENEMY,
+				Formation.grid_to_field(squad.cell, grid, SquadState.Team.ENEMY))
+	var opponent := RunState.current_opponent()
+	matchup_label.text = tr("Savaş %d / %d  -  Rakip: %s") % [RunState.battle_index + 1,
+			RunState.RUN_LENGTH, opponent.display_name]
+
+
+func _setup_test_battle() -> void:
+	var matchup := _choose_test_matchup()
+	for slot in TEST_PLAYER_SLOTS:
+		_add_squad(matchup[0], UnitCatalog.count_for_budget(matchup[0], TEST_SQUAD_BUDGET),
+				SquadState.Team.PLAYER, slot)
+	for slot in TEST_ENEMY_SLOTS:
+		_add_squad(matchup[1], UnitCatalog.count_for_budget(matchup[1], TEST_SQUAD_BUDGET),
+				SquadState.Team.ENEMY, slot)
+	matchup_label.text = "%s  vs  %s" % [_describe(matchup[0]), _describe(matchup[1])]
 
 
 ## Seed'e göre iki farklı birlik seçer; aynı seed hep aynı eşleşmeyi verir.
-func _choose_matchup() -> Array[UnitData]:
+func _choose_test_matchup() -> Array[UnitData]:
 	var units := UnitCatalog.all()
 	var rng := RandomNumberGenerator.new()
-	rng.seed = _seed
+	rng.seed = _test_seed
 	var a := rng.randi_range(0, units.size() - 1)
 	var b := rng.randi_range(0, units.size() - 2)
 	if b >= a:
@@ -96,12 +125,12 @@ func _choose_matchup() -> Array[UnitData]:
 
 
 func _describe(unit: UnitData) -> String:
-	return "2x%d %s (%s)" % [UnitCatalog.count_for_budget(unit, SQUAD_BUDGET), unit.display_name,
-			RoleRules.ROLE_NAMES[unit.role]]
+	return "2x%d %s (%s)" % [UnitCatalog.count_for_budget(unit, TEST_SQUAD_BUDGET),
+			unit.display_name, UiKit.role_name(unit.role)]
 
 
-func _add_squad(unit: UnitData, team: SquadState.Team, at: Vector2) -> void:
-	var squad := SquadState.new(unit, team, UnitCatalog.count_for_budget(unit, SQUAD_BUDGET), at)
+func _add_squad(unit: UnitData, count: int, team: SquadState.Team, at: Vector2) -> void:
+	var squad := SquadState.new(unit, team, count, at)
 	simulation.add_squad(squad)
 	var view := SquadView.new()
 	view.setup(squad)
@@ -121,8 +150,21 @@ func _on_squad_attacked(_attacker: SquadState, target: SquadState) -> void:
 
 
 func _on_battle_finished(winner: SquadState.Team) -> void:
+	var won := winner == SquadState.Team.PLAYER
 	var survivors := 0
 	for squad: SquadState in _views:
 		if squad.team == winner:
 			survivors += squad.alive_count()
-	result_label.text = "Kazanan: %s (%d asker hayatta)" % [TEAM_NAMES[winner], survivors]
+	if won:
+		result_label.text = tr("ZAFER! (%d asker hayatta)") % survivors
+		result_label.add_theme_color_override("font_color", UiKit.COLOR_GOOD)
+	else:
+		result_label.text = tr("YENİLGİ (rakipte %d asker kaldı)") % survivors
+		result_label.add_theme_color_override("font_color", UiKit.COLOR_BAD)
+	if RunState.active:
+		RunState.finish_battle(won)
+		continue_button.visible = true
+
+
+func _on_continue() -> void:
+	Screens.after_battle()

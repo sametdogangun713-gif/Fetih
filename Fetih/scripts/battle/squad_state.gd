@@ -24,6 +24,7 @@ func _init(p_unit: UnitData, p_team: Team, p_count: int, p_position: Vector2) ->
 	hp_pool = p_unit.hp * p_count
 	position = p_position
 	previous_position = p_position
+	facing = Vector2.UP if p_team == Team.PLAYER else Vector2.DOWN
 
 
 func is_alive() -> bool:

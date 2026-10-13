@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="KingdomData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/kingdom_data.gd" id="1_hx3xi"]
+[ext_resource type="Script" path="res://scripts/data/unit_data.gd" id="2_nr2e7"]
+[ext_resource type="Resource" path="res://data/units/human_spearman.tres" id="3_2r2cu"]
+[ext_resource type="Resource" path="res://data/units/human_crossbowman.tres" id="4_udqrw"]
+
+[resource]
+script = ExtResource("1_hx3xi")
+id = &"humans"
+display_name = "İnsanlar"
+description = "Disiplinli ve dengeli. Mızrak duvarları süvari hücumunu durdurur, arbaletler arkadan destek verir."
+specialty_role = &"spearman"
+color = Color(0.49803922, 0.654902, 0.8784314, 1)
+starting_units = Array[ExtResource("2_nr2e7")]([ExtResource("3_2r2cu"), ExtResource("4_udqrw")])

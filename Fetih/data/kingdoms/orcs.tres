@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="KingdomData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/kingdom_data.gd" id="1_hmgpx"]
+[ext_resource type="Script" path="res://scripts/data/unit_data.gd" id="2_ttmkv"]
+[ext_resource type="Resource" path="res://data/units/orc_warrior.tres" id="3_y2at8"]
+[ext_resource type="Resource" path="res://data/units/orc_shaman.tres" id="4_tieym"]
+
+[resource]
+script = ExtResource("1_hmgpx")
+id = &"orcs"
+display_name = "Orklar"
+description = "Kaba kuvvet. En güçlü savaşçılar, kalın kalkanlar ve büyüleriyle zırh delen şamanlar."
+specialty_role = &"warrior"
+color = Color(0.84313726, 0.47843137, 0.30980393, 1)
+starting_units = Array[ExtResource("2_ttmkv")]([ExtResource("3_y2at8"), ExtResource("4_tieym")])

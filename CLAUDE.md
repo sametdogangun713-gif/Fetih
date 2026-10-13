@@ -17,7 +17,11 @@
 - Fizik motoru kullanılmaz; bölük tabanlı simülasyon, basit matematik.
 - Savaş deterministik olmalı (seed'li `RandomNumberGenerator`).
 - Veri odaklı: birlik/krallık/kart verileri `Fetih/data/` altında `.tres` dosyaları.
-- UI metinleri baştan `tr()` ile yazılır (TR + EN).
+- UI metinleri baştan `tr()` ile yazılır (TR + EN); statik fonksiyonlarda `UiKit.t()`.
+- Koşu durumu `RunState` autoload'unda (`scripts/run/run_state.gd`); ekran geçişleri `Screens` ile.
+- Arayüz kodla kurulur (`UiKit` yardımcıları); ekran sahneleri sadece kök Control + script.
+- Ekransız test: `godot --headless --path Fetih -s <script>`; ekran görüntüsü: `--write-movie out.png --quit-after N`.
+- Denge testi: `powershell -ExecutionPolicy Bypass -File Fetih\tools\run_balance_test.ps1` — birlik değeri değişince çalıştır.
 
 ## Temel tasarım kuralları
 - Savaştan sonra sunulan kartlar, **o savaşta karşılaşılan krallığın** kartlarıdır.
