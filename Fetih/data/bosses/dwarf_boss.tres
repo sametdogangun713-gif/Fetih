@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="UnitData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/unit_data.gd" id="1_nvwyr"]
+
+[resource]
+script = ExtResource("1_nvwyr")
+id = &"dwarf_boss"
+kingdom = &"dwarves"
+role = &"siege"
+display_name = "Dağ Kralı Thrain"
+cost = 150.0
+hp = 308.0
+damage = 44.0
+attack_speed = 0.35
+attack_range = 6.5
+move_speed = 0.7
+armor = 4.0
+splash_radius = 1.8
+is_boss = true
+placeholder_color = Color(0.8784314, 0.627451, 0.3137255, 1)

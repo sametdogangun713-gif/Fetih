@@ -3,7 +3,8 @@ class_name UnitCatalog
 ## ResourceLoader.list_directory() export edilmiş oyunda da doğru dosya adlarını verir.
 
 const UNITS_DIR := "res://data/units/"
-const KINGDOM_ORDER: Array[StringName] = [&"humans", &"elves", &"orcs"]
+const KINGDOM_ORDER: Array[StringName] = [&"humans", &"elves", &"orcs", &"golems", &"centaurs",
+		&"demons", &"dwarves", &"mud", &"undead", &"slimes"]
 
 static var _units: Array[UnitData] = []
 

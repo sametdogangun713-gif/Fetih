@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="UnitData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/unit_data.gd" id="1_nkygl"]
+
+[resource]
+script = ExtResource("1_nkygl")
+id = &"centaur_lancer"
+kingdom = &"centaurs"
+role = &"cavalry"
+display_name = "Kentaur Mızraklı"
+cost = 10.0
+hp = 17.0
+damage = 4.4
+attack_speed = 0.9
+move_speed = 2.8
+armor = 2.0
+charge_multiplier = 2.3
+prefers_ranged_targets = true
+placeholder_color = Color(0.8509804, 0.64705884, 0.3529412, 1)

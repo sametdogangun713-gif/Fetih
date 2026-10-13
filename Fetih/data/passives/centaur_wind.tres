@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="PassiveData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/passive_data.gd" id="1_n5y1s"]
+
+[resource]
+script = ExtResource("1_n5y1s")
+id = &"centaur_wind"
+kingdom = &"centaurs"
+display_name = "Rüzgâr Gibi"
+description = "Bütün bölükler %30 daha hızlı yürür."
+stat = &"move_speed"
+amount = 1.3

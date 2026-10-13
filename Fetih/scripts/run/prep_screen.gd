@@ -91,28 +91,48 @@ func _opponent_column() -> Control:
 	var title := UiKit.hbox(8)
 	title.add_child(UiKit.label(opponent.display_name, 16, opponent.color))
 	title.add_child(UiKit.label(tr("Güç %d") % roundi(RunState.army_power(enemy_army)), 10, UiKit.COLOR_MUTED))
+	title.add_child(UiKit.label(UiKit.kingdom_specialty(opponent), 10, UiKit.COLOR_GOLD))
 	box.add_child(title)
-	box.add_child(UiKit.label(tr("Uzmanlık: %s") % UiKit.role_name(opponent.specialty_role),
-			10, UiKit.COLOR_GOLD))
-	for squad in enemy_army:
-		if squad.unit.is_boss:
-			box.add_child(UiKit.label("• %s %s (%s)" % [tr("BOSS:"), squad.unit.display_name,
-					UiKit.role_name(squad.unit.role)], 10, UiKit.COLOR_GOLD))
-		else:
-			box.add_child(UiKit.label("• %d %s (%s)  %s" % [squad.count, squad.unit.display_name,
-					UiKit.role_name(squad.unit.role), UiKit.level_text(squad)], 10))
+	if RunState.is_boss_battle() and RunState.locked.has(opponent.id):
+		box.add_child(UiKit.wrapped(tr("Kilitli krallık: boss'u yen, mühür al; fetihle %s açılır.") % opponent.display_name,
+				9, UiKit.COLOR_GOLD))
+	for line in _enemy_lines(enemy_army):
+		box.add_child(line)
 	var fermans := RunState.enemy_passives()
 	if not fermans.is_empty():
 		var names: PackedStringArray = []
 		for passive in fermans:
 			names.append(passive.display_name)
 		box.add_child(UiKit.wrapped(tr("Fermanları: %s") % ", ".join(names), 9, UiKit.COLOR_GOLD))
-	box.add_child(UiKit.wrapped(tr("Savaştan sonra %s ordusundan kart seçeceksin (kazanırsan 3, kaybedersen 2).") % opponent.display_name,
-			9, UiKit.COLOR_MUTED))
+	box.add_child(UiKit.label(tr("Ganimet: %s kartları") % opponent.display_name, 9, UiKit.COLOR_MUTED))
 	box.add_child(HSeparator.new())
 	_info = UiKit.wrapped(tr("Bir bölüğün üstüne gel: ayrıntıları burada görünür."), 9, UiKit.COLOR_MUTED)
 	box.add_child(_info)
 	return card
+
+
+## Rakip ordusunun satırları. Aynı birlik + aynı asker sayısı + aynı seviyedeki bölükler tek satırda.
+func _enemy_lines(enemy_army: Array[ArmySquad]) -> Array[Label]:
+	var lines: Array[Label] = []
+	var groups := {}  ## anahtar -> [bölük, adet]
+	var order: Array[String] = []
+	for squad in enemy_army:
+		var key := "%s|%d|%d" % [squad.unit.id, squad.count, squad.level()]
+		if not groups.has(key):
+			groups[key] = [squad, 0]
+			order.append(key)
+		groups[key][1] += 1
+	for key in order:
+		var squad: ArmySquad = groups[key][0]
+		var copies: int = groups[key][1]
+		if squad.unit.is_boss:
+			lines.append(UiKit.label("• %s %s (%s)" % [tr("BOSS:"), squad.unit.display_name,
+					UiKit.role_name(squad.unit.role)], 10, UiKit.COLOR_GOLD))
+			continue
+		var prefix := "%dx " % copies if copies > 1 else ""
+		lines.append(UiKit.label("• %s%d %s (%s)  %s" % [prefix, squad.count, squad.unit.display_name,
+				UiKit.role_name(squad.unit.role), UiKit.level_text(squad)], 10))
+	return lines
 
 
 func _refresh_grid() -> void:

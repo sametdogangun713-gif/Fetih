@@ -13,6 +13,7 @@ const ROLE_SIZES := {
 	RoleRules.ARCHER: Vector2(3, 8),
 	RoleRules.MAGE: Vector2(3, 9),
 	RoleRules.CAVALRY: Vector2(8, 8),
+	RoleRules.SIEGE: Vector2(8, 5),
 }
 const HIT_FLASH_TIME := 0.12
 const TEAM_COLORS := {
@@ -45,8 +46,15 @@ func setup(p_squad: SquadState) -> void:
 ## Her karede çağrılır. alpha: iki simülasyon adımı arasında nerede olduğumuz (0-1).
 func update_visual(alpha: float, delta: float) -> void:
 	position = Battlefield.field_to_world(squad.previous_position.lerp(squad.position, alpha))
-	while _alive_slots.size() > squad.alive_count():
+	var alive := mini(squad.alive_count(), _slots.size())
+	while _alive_slots.size() > alive:
 		_remove_front_soldier()
+	# Onarım ve diriliş asker sayısını artırabilir: boş yerleri arkadan doldur.
+	var i := _slots.size() - 1
+	while _alive_slots.size() < alive and i >= 0:
+		if not _alive_slots.has(i):
+			_alive_slots.append(i)
+		i -= 1
 	_flash = maxf(_flash - delta, 0.0)
 	visible = squad.is_alive()
 	queue_redraw()
@@ -99,6 +107,14 @@ func _draw() -> void:
 				draw_rect(Rect2(rect.position + Vector2(size.x, -3), Vector2(2, 2)), Color("8ff0ff"))
 			RoleRules.CAVALRY:  # binek gövdesi (alt yarı koyu)
 				draw_rect(Rect2(rect.position + Vector2(0, size.y - 4), Vector2(size.x, 4)), body.darkened(0.4))
+			RoleRules.SIEGE:  # top namlusu ve tekerlekler
+				draw_rect(Rect2(rect.position + Vector2(size.x - 2, -2), Vector2(3, 2)), Color("404040"))
+				draw_rect(Rect2(rect.position + Vector2(0, size.y - 1), Vector2(2, 2)), Color("3a2a1a"))
+				draw_rect(Rect2(rect.position + Vector2(size.x - 2, size.y - 1), Vector2(2, 2)), Color("3a2a1a"))
+		if squad.burn_time > 0.0:  # yanan bölüğün askerlerinin başında kıvılcım
+			draw_rect(Rect2(rect.position + Vector2(0, -2), Vector2(2, 2)), Color("ff9a30"))
+		elif squad.slow_time > 0.0:  # yavaşlatılmış bölük: ayakta çamur
+			draw_rect(Rect2(rect.position + Vector2(0, size.y - 1), Vector2(size.x, 1)), Color("6a5a2a"))
 
 	_draw_banner()
 

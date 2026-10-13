@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="UnitData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/unit_data.gd" id="1_1pk0s"]
+
+[resource]
+script = ExtResource("1_1pk0s")
+id = &"mud_spitter"
+kingdom = &"mud"
+role = &"archer"
+display_name = "Balçık Tüküren"
+hp = 8.0
+damage = 2.2
+attack_speed = 0.8
+attack_range = 4.5
+move_speed = 0.9
+slow_amount = 0.3
+placeholder_color = Color(0.5411765, 0.47843137, 0.2509804, 1)

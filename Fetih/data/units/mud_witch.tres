@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="UnitData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/unit_data.gd" id="1_updhj"]
+
+[resource]
+script = ExtResource("1_updhj")
+id = &"mud_witch"
+kingdom = &"mud"
+role = &"mage"
+display_name = "Bataklık Cadısı"
+cost = 8.0
+hp = 9.0
+damage = 4.3
+attack_speed = 0.5
+attack_range = 3.5
+move_speed = 0.9
+ignores_armor = true
+splash_radius = 1.3
+slow_amount = 0.4
+placeholder_color = Color(0.6039216, 0.5411765, 0.3137255, 1)

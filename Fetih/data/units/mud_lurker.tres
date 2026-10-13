@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="UnitData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/unit_data.gd" id="1_ki6i1"]
+
+[resource]
+script = ExtResource("1_ki6i1")
+id = &"mud_lurker"
+kingdom = &"mud"
+role = &"warrior"
+display_name = "Bataklık Pususu"
+hp = 11.0
+damage = 2.7
+move_speed = 1.1
+armor = 1.0
+regen_ratio = 0.01
+placeholder_color = Color(0.3529412, 0.3137255, 0.1882353, 1)

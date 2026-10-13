@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="UnitData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/unit_data.gd" id="1_8q2ig"]
+
+[resource]
+script = ExtResource("1_8q2ig")
+id = &"mud_boss"
+kingdom = &"mud"
+role = &"tank"
+display_name = "Bataklık Anası"
+cost = 150.0
+hp = 349.0
+damage = 11.6
+attack_speed = 0.8
+attack_range = 0.4
+move_speed = 0.7
+armor = 3.0
+splash_radius = 1.2
+is_boss = true
+slow_amount = 0.4
+regen_ratio = 0.02
+placeholder_color = Color(0.627451, 0.5647059, 0.2509804, 1)

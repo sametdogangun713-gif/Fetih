@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="UnitData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/unit_data.gd" id="1_rggep"]
+
+[resource]
+script = ExtResource("1_rggep")
+id = &"dwarf_crossbow"
+kingdom = &"dwarves"
+role = &"archer"
+display_name = "Cüce Arbaletçi"
+hp = 9.0
+damage = 3.4
+attack_speed = 0.55
+attack_range = 4.5
+move_speed = 0.8
+armor = 2.0
+placeholder_color = Color(0.72156864, 0.5647059, 0.3764706, 1)

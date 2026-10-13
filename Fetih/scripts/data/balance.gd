@@ -43,8 +43,8 @@ const THIRD_CARD_UPGRADE := 0.30
 
 ## Rakip gücü = beklenen oyuncu gücü x zorluk. Zorluk ilk savaştan son savaşa doğru artar.
 ## Oyuncunun avantajı: rakibi önceden görür, ona göre kart seçer ve dizer.
-const DIFFICULTY_START := 0.85
-const DIFFICULTY_END := 0.85
+const DIFFICULTY_START := 0.82
+const DIFFICULTY_END := 0.82
 ## Ortalama bir yükseltmenin güç katkısı: 40 + karışım payı.
 const EXPECTED_UPGRADE_VALUE := 44.0
 

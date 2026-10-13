@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="UnitData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/unit_data.gd" id="1_as2jt"]
+
+[resource]
+script = ExtResource("1_as2jt")
+id = &"demon_boss"
+kingdom = &"demons"
+role = &"mage"
+display_name = "Azmodan"
+cost = 150.0
+hp = 276.0
+damage = 27.6
+attack_speed = 0.8
+attack_range = 4.0
+armor = 1.0
+ignores_armor = true
+splash_radius = 1.6
+is_boss = true
+burn_ratio = 0.5
+placeholder_color = Color(1, 0.1882353, 0.1254902, 1)

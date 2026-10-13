@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="PassiveData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/passive_data.gd" id="1_qgeo3"]
+
+[resource]
+script = ExtResource("1_qgeo3")
+id = &"centaur_hooves"
+kingdom = &"centaurs"
+display_name = "Toynak Gürültüsü"
+description = "Süvari bölüklerinin hasarı +%35."
+stat = &"damage"
+amount = 1.35
+roles = Array[StringName]([&"cavalry"])

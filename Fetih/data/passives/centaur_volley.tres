@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="PassiveData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/passive_data.gd" id="1_tq1rf"]
+
+[resource]
+script = ExtResource("1_tq1rf")
+id = &"centaur_volley"
+kingdom = &"centaurs"
+display_name = "Ok Yağmuru"
+description = "Okçu bölüklerinin saldırı hızı +%30."
+stat = &"attack_speed"
+amount = 1.3
+roles = Array[StringName]([&"archer"])

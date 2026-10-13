@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="PassiveData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/passive_data.gd" id="1_nwxwn"]
+
+[resource]
+script = ExtResource("1_nwxwn")
+id = &"mud_fog"
+kingdom = &"mud"
+display_name = "Bataklık Sisi"
+description = "Arka saftaki bölükler %30 daha az hasar alır."
+stat = &"toughness"
+amount = 1.43
+row = 1

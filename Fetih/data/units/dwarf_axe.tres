@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="UnitData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/unit_data.gd" id="1_cdeai"]
+
+[resource]
+script = ExtResource("1_cdeai")
+id = &"dwarf_axe"
+kingdom = &"dwarves"
+role = &"warrior"
+display_name = "Cüce Baltacı"
+hp = 12.0
+damage = 2.7
+attack_speed = 0.9
+move_speed = 0.9
+armor = 2.0
+placeholder_color = Color(0.65882355, 0.4392157, 0.2509804, 1)

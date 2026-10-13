@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="KingdomData" format=3]
+
+[ext_resource type="Resource" path="res://data/bosses/undead_boss.tres" id="1_8ga5w"]
+[ext_resource type="Script" path="res://scripts/data/kingdom_data.gd" id="2_aqft2"]
+[ext_resource type="Script" path="res://scripts/data/passive_data.gd" id="3_2me15"]
+[ext_resource type="Resource" path="res://data/passives/undead_grave_chill.tres" id="4_0dqf7"]
+[ext_resource type="Script" path="res://scripts/data/unit_data.gd" id="5_wqv3y"]
+[ext_resource type="Resource" path="res://data/units/undead_skeleton.tres" id="6_71euk"]
+[ext_resource type="Resource" path="res://data/units/undead_necromancer.tres" id="7_bfavg"]
+
+[resource]
+script = ExtResource("2_aqft2")
+id = &"undead"
+display_name = "Ölüler"
+description = "Ölüm onları durdurmaz. Yok olan bölükler bir kez daha kalkar."
+specialty_role = &"mage"
+specialty_label = "Diriliş"
+color = Color(0.6039216, 0.6901961, 0.72156864, 1)
+starts_unlocked = false
+starting_units = Array[ExtResource("5_wqv3y")]([ExtResource("6_71euk"), ExtResource("7_bfavg")])
+starting_passives = Array[ExtResource("3_2me15")]([ExtResource("4_0dqf7")])
+boss = ExtResource("1_8ga5w")

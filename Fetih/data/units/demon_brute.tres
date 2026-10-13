@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="UnitData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/unit_data.gd" id="1_gq2yb"]
+
+[resource]
+script = ExtResource("1_gq2yb")
+id = &"demon_brute"
+kingdom = &"demons"
+role = &"tank"
+display_name = "Cehennem Zebanisi"
+cost = 7.0
+hp = 19.0
+damage = 1.8
+attack_speed = 0.8
+move_speed = 0.9
+armor = 4.0
+burn_ratio = 0.4
+placeholder_color = Color(0.627451, 0.1882353, 0.15686275, 1)

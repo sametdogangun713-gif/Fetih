@@ -77,6 +77,32 @@ Her krallıkta 6 rolün hepsi olmak zorunda değil. Her krallık **4-5 birim + 1
 - **Okçu / büyücü:** yakın dövüşe yakalanırsa hasarı yarıya düşer.
 - **Maliyet:** her birliğin asker başına güç puanı var. 100 puanlık bölük, maliyeti 5 olan birlikten 20, maliyeti 12 olan Şövalye'den 8 asker eder.
 
+### 10 krallık (Aşama 8)
+İlk 3 açık; diğer 7 kilitli (boss'unu yen + fethi tamamla).
+
+| Krallık | Uzmanlık | Mekanik | Başlangıç ordusu | Özellik | Boss |
+|---|---|---|---|---|---|
+| İnsanlar | Mızrakçı | — | Mızrakçı, Arbaletçi | Kraliyet Sancağı | Kral Aldric |
+| Elfler | Okçu | — | Elf Okçusu, Orman Büyücüsü | Orman Adımı | Kraliçe Sylwen |
+| Orklar | Savaşçı | — | Ork Savaşçısı, Kalkanlı Ork | Savaş Davulları | Savaş Ağası Grukk |
+| Golemler | Tank | Yüksek zırh | Taş Muhafız, Ezici Golem | Taş Deri | Kadim Golem Ur |
+| Kentaurlar | Süvari | Hız | Kentaur Mızraklı, Atlı Okçu | Ok Yağmuru | Han Thoros |
+| İblisler | Ateş | Yanma | İblis Büyücüsü, İmp | Cehennem Ateşi | Azmodan |
+| Cüceler | Kuşatma | Uzun menzil top | Cüce Topçusu, Demir Kalkan | Barut | Dağ Kralı Thrain |
+| Çamurlar | Kontrol | Yavaşlatma, onarım | Balçık Tüküren, Bataklık Cadısı | Bataklık Kanı | Bataklık Anası |
+| Ölüler | Diriliş | Bir kez dirilme | İskelet Savaşçı, Nekromant | Mezar Soğuğu | Lich Kral Morvath |
+| Slime'lar | Sürü | Bölünme | Yeşil Slime, Dev Slime | Sıçrayış | Slime Kral Blorb |
+
+**Yeni mekanikler:**
+- **Yanma:** vuruş hasarının bir oranı (çoğunlukla %40) 3 saniyeye yayılan ek ateş hasarı.
+- **Yavaşlatma:** vurulan bölüğün hareket ve saldırı hızı 2 saniye düşer (%30–40).
+- **Onarım:** bölük saniyede toplam canının %1–2'si kadar iyileşir.
+- **Diriliş:** bölük ilk kez yok olunca canının %35–40'ıyla bir kez kalkar.
+- **Bölünme:** bölük yok olunca yarı can ve yarı hasarlı iki küçük bölüğe ayrılır.
+- **7. rol, Kuşatma:** uzun menzil (6+), büyük alan hasarı, yavaş atış. Tankları yener, süvariye yenilir.
+
+**Denge (Aşama 8 ölçümü):** 40 birliğin 37'si %35–65 genel kazanma aralığında, krallıklar %46–58. 10 boss %44–61. Akıllı bot 10 krallıkla %45–70 fetih (ortalama ~%53). Elfler en kolay (%70): yeni oyuncu için başlangıç krallığı olarak bilinçli bırakıldı.
+
 ### İlk 12 birlik
 Değerler `Fetih/data/units/*.tres` dosyalarında; denge raporu için `tools/run_balance_test.ps1`.
 

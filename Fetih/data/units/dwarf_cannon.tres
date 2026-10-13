@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="UnitData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/unit_data.gd" id="1_y3n50"]
+
+[resource]
+script = ExtResource("1_y3n50")
+id = &"dwarf_cannon"
+kingdom = &"dwarves"
+role = &"siege"
+display_name = "Cüce Topçusu"
+cost = 9.0
+hp = 12.0
+damage = 8.5
+attack_speed = 0.3
+attack_range = 6.5
+move_speed = 0.7
+armor = 2.0
+splash_radius = 1.4
+placeholder_color = Color(0.7529412, 0.5411765, 0.2901961, 1)

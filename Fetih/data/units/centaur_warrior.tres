@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="UnitData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/unit_data.gd" id="1_8j8te"]
+
+[resource]
+script = ExtResource("1_8j8te")
+id = &"centaur_warrior"
+kingdom = &"centaurs"
+role = &"warrior"
+display_name = "Kentaur Savaşçısı"
+cost = 6.0
+hp = 13.0
+damage = 3.4
+move_speed = 1.8
+armor = 1.0
+placeholder_color = Color(0.72156864, 0.52156866, 0.2901961, 1)

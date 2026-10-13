@@ -190,6 +190,14 @@ Sıra önerisi (kolaydan zora):
 
 Her krallık için: 4-5 birim, 1 boss, kombo bonusu, denge testi.
 
+**Durum: tamamlandı.**
+- [x] 7 krallık: 28 birlik, 7 boss, 21 ferman (hepsi kilitli başlar)
+- [x] Yeni mekanikler: yanma, yavaşlatma, onarım, diriliş, bölünme; 7. rol Kuşatma
+- [x] Ana menü 10 krallık için yeniden düzenlendi (liste + ayrıntı paneli)
+- [x] Koşu haritası: iki harfli kısaltma, kilitli krallık boss'unda mühür işareti
+- [x] Denge: 37/40 birlik dengeli, boss'lar %44–61, krallıklar %45–70 fetih (akıllı bot)
+- [x] Zorluk %85 → %82 (10 krallıklı rakip havuzu için)
+
 ### Aşama 9: Oyun hissi, grafik, ses (1-2 ay)
 - [ ] Vuruş efektleri: kısa yanıp sönme, parçacık, ekran sarsıntısı (boss'ta)
 - [ ] Ölüm animasyonları, ok ve büyü mermileri

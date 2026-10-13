@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="KingdomData" format=3]
+
+[ext_resource type="Resource" path="res://data/bosses/slime_boss.tres" id="1_epn60"]
+[ext_resource type="Script" path="res://scripts/data/kingdom_data.gd" id="2_m3wgl"]
+[ext_resource type="Script" path="res://scripts/data/passive_data.gd" id="3_354b3"]
+[ext_resource type="Resource" path="res://data/passives/slime_bounce.tres" id="4_ypi3n"]
+[ext_resource type="Script" path="res://scripts/data/unit_data.gd" id="5_ch3p1"]
+[ext_resource type="Resource" path="res://data/units/slime_green.tres" id="6_xjum0"]
+[ext_resource type="Resource" path="res://data/units/slime_big.tres" id="7_ny0ha"]
+
+[resource]
+script = ExtResource("2_m3wgl")
+id = &"slimes"
+display_name = "Slime'lar"
+description = "Ezildikçe çoğalırlar. Yok olan her bölük iki küçük bölüğe bölünür."
+specialty_role = &"warrior"
+specialty_label = "Sürü (bölünme)"
+color = Color(0.3137255, 0.8784314, 0.6901961, 1)
+starts_unlocked = false
+starting_units = Array[ExtResource("5_ch3p1")]([ExtResource("6_xjum0"), ExtResource("7_ny0ha")])
+starting_passives = Array[ExtResource("3_354b3")]([ExtResource("4_ypi3n")])
+boss = ExtResource("1_epn60")

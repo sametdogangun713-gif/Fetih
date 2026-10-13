@@ -30,6 +30,16 @@ extends Resource
 @export var prefers_ranged_targets := false  ## Önce okçu ve büyücüleri hedefler.
 ## Krallık boss'u: tek askerli dev kahraman. data/bosses/ altında durur; kart havuzuna girmez.
 @export var is_boss := false
+## Yanma: vuruşun verdiği hasarın bu oranı kadar ek ateş hasarı 3 saniyeye yayılarak işler.
+@export var burn_ratio := 0.0
+## Yavaşlatma: vurduğu bölüğün hareket ve saldırı hızı 2 saniye bu oranda düşer (0.3 = %30).
+@export var slow_amount := 0.0
+## Onarım: bölük saniyede en fazla toplam canının bu oranı kadar iyileşir (0.02 = %2/sn).
+@export var regen_ratio := 0.0
+## Diriliş: bölük ilk kez yok olunca toplam canının bu oranıyla bir kez geri kalkar.
+@export var revive_ratio := 0.0
+## Bölünme: bölük yok olunca yarı can ve yarı hasarlı iki küçük bölüğe ayrılır (bir kez).
+@export var splits := false
 
 @export_group("Görünüm")
 @export var placeholder_color: Color = Color.WHITE  ## Gerçek sprite gelene kadar asker rengi.

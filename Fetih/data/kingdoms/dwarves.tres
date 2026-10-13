@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="KingdomData" format=3]
+
+[ext_resource type="Resource" path="res://data/bosses/dwarf_boss.tres" id="1_7lvl2"]
+[ext_resource type="Script" path="res://scripts/data/kingdom_data.gd" id="2_nnnyb"]
+[ext_resource type="Script" path="res://scripts/data/passive_data.gd" id="3_vob3v"]
+[ext_resource type="Resource" path="res://data/passives/dwarf_powder.tres" id="4_m8ubi"]
+[ext_resource type="Script" path="res://scripts/data/unit_data.gd" id="5_pdyvj"]
+[ext_resource type="Resource" path="res://data/units/dwarf_cannon.tres" id="6_do6le"]
+[ext_resource type="Resource" path="res://data/units/dwarf_shield.tres" id="7_b0pmo"]
+
+[resource]
+script = ExtResource("2_nnnyb")
+id = &"dwarves"
+display_name = "Cüceler"
+description = "Dağların ustaları. Toplar uzaktan ezer, demir kalkanlar cepheyi tutar."
+specialty_role = &"siege"
+color = Color(0.7529412, 0.5411765, 0.2901961, 1)
+starts_unlocked = false
+starting_units = Array[ExtResource("5_pdyvj")]([ExtResource("6_do6le"), ExtResource("7_b0pmo")])
+starting_passives = Array[ExtResource("3_vob3v")]([ExtResource("4_m8ubi")])
+boss = ExtResource("1_7lvl2")

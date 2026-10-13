@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="PassiveData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/passive_data.gd" id="1_dbwot"]
+
+[resource]
+script = ExtResource("1_dbwot")
+id = &"dwarf_mountain_armor"
+kingdom = &"dwarves"
+display_name = "Dağ Zırhı"
+description = "Bütün bölüklerin zırhı +1."
+stat = &"armor"
+is_multiplier = false

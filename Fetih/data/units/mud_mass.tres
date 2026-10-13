@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="UnitData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/unit_data.gd" id="1_jj1fg"]
+
+[resource]
+script = ExtResource("1_jj1fg")
+id = &"mud_mass"
+kingdom = &"mud"
+role = &"tank"
+display_name = "Çamur Kütlesi"
+cost = 7.0
+hp = 17.0
+damage = 1.8
+attack_speed = 0.8
+move_speed = 0.7
+armor = 3.0
+slow_amount = 0.3
+regen_ratio = 0.01
+placeholder_color = Color(0.47843137, 0.41568628, 0.22745098, 1)

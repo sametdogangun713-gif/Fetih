@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="UnitData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/unit_data.gd" id="1_6rno6"]
+
+[resource]
+script = ExtResource("1_6rno6")
+id = &"undead_archer"
+kingdom = &"undead"
+role = &"archer"
+display_name = "İskelet Okçu"
+cost = 4.0
+hp = 6.0
+damage = 2.0
+attack_speed = 0.8
+attack_range = 5.0
+move_speed = 0.9
+revive_ratio = 0.4
+placeholder_color = Color(0.7529412, 0.7529412, 0.6901961, 1)

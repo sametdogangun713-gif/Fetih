@@ -81,6 +81,7 @@ func _start_battle() -> void:
 	simulation = BattleSimulation.new(seed_value, battlefield.field_rect())
 	simulation.squad_attacked.connect(_on_squad_attacked)
 	simulation.battle_finished.connect(_on_battle_finished)
+	simulation.squad_spawned.connect(_add_view)  # bölünen slime'ların yeni bölükleri
 
 	if RunState.active:
 		_setup_run_battle()
@@ -137,6 +138,10 @@ func _add_squad(unit: UnitData, count: int, team: SquadState.Team, at: Vector2) 
 
 func _add_state(squad: SquadState) -> void:
 	simulation.add_squad(squad)
+	_add_view(squad)
+
+
+func _add_view(squad: SquadState) -> void:
 	var view := SquadView.new()
 	view.setup(squad)
 	battlefield.units.add_child(view)

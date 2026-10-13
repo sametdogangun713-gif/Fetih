@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="KingdomData" format=3]
+
+[ext_resource type="Resource" path="res://data/bosses/centaur_boss.tres" id="1_jl1mq"]
+[ext_resource type="Script" path="res://scripts/data/kingdom_data.gd" id="2_6uswi"]
+[ext_resource type="Script" path="res://scripts/data/passive_data.gd" id="3_4jo0a"]
+[ext_resource type="Resource" path="res://data/passives/centaur_volley.tres" id="4_4ci33"]
+[ext_resource type="Script" path="res://scripts/data/unit_data.gd" id="5_ugmxu"]
+[ext_resource type="Resource" path="res://data/units/centaur_lancer.tres" id="6_r2af6"]
+[ext_resource type="Resource" path="res://data/units/centaur_archer.tres" id="7_pv87w"]
+
+[resource]
+script = ExtResource("2_6uswi")
+id = &"centaurs"
+display_name = "Kentaurlar"
+description = "Bozkırın efendileri. En hızlı süvariler ve at üstünden ok atan okçular."
+specialty_role = &"cavalry"
+color = Color(0.8509804, 0.64705884, 0.3529412, 1)
+starts_unlocked = false
+starting_units = Array[ExtResource("5_ugmxu")]([ExtResource("6_r2af6"), ExtResource("7_pv87w")])
+starting_passives = Array[ExtResource("3_4jo0a")]([ExtResource("4_4ci33")])
+boss = ExtResource("1_jl1mq")

@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="PassiveData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/passive_data.gd" id="1_51c5g"]
+
+[resource]
+script = ExtResource("1_51c5g")
+id = &"slime_acid_blood"
+kingdom = &"slimes"
+display_name = "Asit Kanı"
+description = "Savaşçı bölüklerinin hasarı +%40."
+stat = &"damage"
+amount = 1.4
+roles = Array[StringName]([&"warrior"])

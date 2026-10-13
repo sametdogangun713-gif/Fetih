@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="UnitData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/unit_data.gd" id="1_4a1su"]
+
+[resource]
+script = ExtResource("1_4a1su")
+id = &"golem_stone_guard"
+kingdom = &"golems"
+role = &"tank"
+display_name = "Taş Muhafız"
+cost = 8.0
+hp = 21.5
+damage = 2.2
+attack_speed = 0.7
+move_speed = 0.6
+armor = 7.0
+placeholder_color = Color(0.65882355, 0.60784316, 0.5411765, 1)

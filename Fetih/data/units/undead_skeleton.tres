@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="UnitData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/unit_data.gd" id="1_81de0"]
+
+[resource]
+script = ExtResource("1_81de0")
+id = &"undead_skeleton"
+kingdom = &"undead"
+role = &"warrior"
+display_name = "İskelet Savaşçı"
+cost = 4.0
+hp = 7.5
+damage = 2.6
+armor = 1.0
+revive_ratio = 0.35
+placeholder_color = Color(0.84705883, 0.84705883, 0.78431374, 1)

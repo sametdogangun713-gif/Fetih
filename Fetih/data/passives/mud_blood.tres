@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="PassiveData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/passive_data.gd" id="1_hyqo8"]
+
+[resource]
+script = ExtResource("1_hyqo8")
+id = &"mud_blood"
+kingdom = &"mud"
+display_name = "Bataklık Kanı"
+description = "Bütün bölükler saniyede canının %1'i kadar iyileşir."
+stat = &"regen_ratio"
+amount = 0.01
+is_multiplier = false

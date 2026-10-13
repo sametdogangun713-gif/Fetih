@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="KingdomData" format=3]
+
+[ext_resource type="Resource" path="res://data/bosses/demon_boss.tres" id="1_qb0f4"]
+[ext_resource type="Script" path="res://scripts/data/kingdom_data.gd" id="2_l7765"]
+[ext_resource type="Script" path="res://scripts/data/passive_data.gd" id="3_mruw1"]
+[ext_resource type="Resource" path="res://data/passives/demon_hellfire.tres" id="4_lhmby"]
+[ext_resource type="Script" path="res://scripts/data/unit_data.gd" id="5_j5t6v"]
+[ext_resource type="Resource" path="res://data/units/demon_warlock.tres" id="6_cyjef"]
+[ext_resource type="Resource" path="res://data/units/demon_imp.tres" id="7_tk5cs"]
+
+[resource]
+script = ExtResource("2_l7765")
+id = &"demons"
+display_name = "İblisler"
+description = "Her şeyi yakar. Vuruşları ateş bırakır; iblis büyücüleri alanı alevle doldurur."
+specialty_role = &"mage"
+specialty_label = "Ateş (yanma)"
+color = Color(0.8784314, 0.27058825, 0.22745098, 1)
+starts_unlocked = false
+starting_units = Array[ExtResource("5_j5t6v")]([ExtResource("6_cyjef"), ExtResource("7_tk5cs")])
+starting_passives = Array[ExtResource("3_mruw1")]([ExtResource("4_lhmby")])
+boss = ExtResource("1_qb0f4")

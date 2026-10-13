@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="PassiveData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/passive_data.gd" id="1_hqcbu"]
+
+[resource]
+script = ExtResource("1_hqcbu")
+id = &"golem_quake"
+kingdom = &"golems"
+display_name = "Yer Sarsıntısı"
+description = "Kuşatma ve büyücü bölüklerinin alan hasarı +0.5 karo genişler."
+stat = &"splash_radius"
+amount = 0.5
+is_multiplier = false
+roles = Array[StringName]([&"siege", &"mage"])

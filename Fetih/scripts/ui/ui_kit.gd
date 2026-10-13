@@ -153,9 +153,11 @@ static func level_text(squad: ArmySquad) -> String:
 ## Birliğin özel yetenekleri, okunur cümleler olarak.
 static func unit_traits(unit: UnitData) -> PackedStringArray:
 	var traits: PackedStringArray = []
-	var beats: StringName = RoleRules.COUNTERS.get(unit.role, &"")
-	if beats != &"":
-		traits.append(t("%s birliklerine +%%25 hasar") % role_name(beats))
+	var beats: PackedStringArray = []
+	for role in RoleRules.COUNTERS.get(unit.role, []):
+		beats.append(role_name(role))
+	if not beats.is_empty():
+		traits.append(t("%s birliklerine +%%25 hasar") % ", ".join(beats))
 	if unit.ignores_armor:
 		traits.append(t("Zırhı deler"))
 	if unit.splash_radius > 0.0:
@@ -166,6 +168,23 @@ static func unit_traits(unit: UnitData) -> PackedStringArray:
 		traits.append(t("Önce okçu ve büyücüleri avlar"))
 	if unit.role == RoleRules.SPEARMAN:
 		traits.append(t("Süvari hücumunu karşılar"))
+	if unit.burn_ratio > 0.0:
+		traits.append(t("Yakar: +%%%d ateş hasarı (3 sn)") % roundi(unit.burn_ratio * 100))
+	if unit.slow_amount > 0.0:
+		traits.append(t("Yavaşlatır: -%%%d hız (2 sn)") % roundi(unit.slow_amount * 100))
+	if unit.regen_ratio > 0.0:
+		traits.append(t("Onarır: saniyede canın %%%s'i") % num(unit.regen_ratio * 100))
+	if unit.revive_ratio > 0.0:
+		traits.append(t("Dirilir: bir kez, %%%d canla") % roundi(unit.revive_ratio * 100))
+	if unit.splits:
+		traits.append(t("Bölünür: yok olunca iki küçük bölüğe ayrılır"))
 	if unit.is_ranged():
 		traits.append(t("Yakın dövüşte zayıf"))
 	return traits
+
+
+## Krallığın uzmanlığı: rol adı ya da özel etiket ("Diriliş" gibi).
+static func kingdom_specialty(kingdom: KingdomData) -> String:
+	if kingdom.specialty_label != "":
+		return t(kingdom.specialty_label)
+	return role_name(kingdom.specialty_role)

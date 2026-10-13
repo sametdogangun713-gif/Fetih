@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="UnitData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/unit_data.gd" id="1_a4q5f"]
+
+[resource]
+script = ExtResource("1_a4q5f")
+id = &"centaur_archer"
+kingdom = &"centaurs"
+role = &"archer"
+display_name = "Atlı Okçu"
+damage = 2.6
+attack_speed = 0.8
+attack_range = 4.5
+move_speed = 2.0
+placeholder_color = Color(0.9098039, 0.76862746, 0.5411765, 1)

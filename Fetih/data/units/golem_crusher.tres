@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="UnitData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/unit_data.gd" id="1_hsknf"]
+
+[resource]
+script = ExtResource("1_hsknf")
+id = &"golem_crusher"
+kingdom = &"golems"
+role = &"warrior"
+display_name = "Ezici Golem"
+cost = 7.0
+hp = 17.0
+damage = 4.8
+attack_speed = 0.6
+attack_range = 0.3
+move_speed = 0.7
+armor = 3.0
+splash_radius = 0.8
+placeholder_color = Color(0.5411765, 0.49019608, 0.42352942, 1)

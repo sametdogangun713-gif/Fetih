@@ -15,6 +15,7 @@
 - Renderer: Compatibility. Piksel sanat: viewport 640x360, stretch `viewport`, scale `integer`, texture filter Nearest.
 - İzometrik görünüm (`TileMapLayer`, 64x32 karo), `y_sort_enabled`.
 - Fizik motoru kullanılmaz; bölük tabanlı simülasyon, basit matematik.
+- Özel mekanikler `UnitData` alanlarıyla (burn_ratio, slow_amount, regen_ratio, revive_ratio, splits) ve `BattleSimulation` içinde; yeni mekanik eklerken ferman `stat` alanı da aynı alan adını kullanabilir.
 - Savaş deterministik olmalı (seed'li `RandomNumberGenerator`).
 - Veri odaklı: birlik/krallık/kart verileri `Fetih/data/` altında `.tres` dosyaları.
 - UI metinleri baştan `tr()` ile yazılır (TR + EN); statik fonksiyonlarda `UiKit.t()`.

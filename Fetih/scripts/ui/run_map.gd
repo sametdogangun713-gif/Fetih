@@ -28,9 +28,12 @@ func _draw() -> void:
 			draw_rect(Rect2(rect.position, Vector2(rect.size.x, 3)), UiKit.COLOR_GOLD)
 		if i == RunState.battle_index:
 			draw_rect(rect.grow(1), UiKit.COLOR_GOLD, false, 2.0)
-		var letter := opponent.display_name.left(1)
-		draw_string(font, Vector2(rect.position.x, rect.end.y - 5), letter,
-				HORIZONTAL_ALIGNMENT_CENTER, rect.size.x, 10, UiKit.COLOR_TEXT)
+		# İki harf: İnsanlar (İn) ile İblisler (İb) karışmasın.
+		var letters := opponent.display_name.left(2)
+		draw_string(font, Vector2(rect.position.x, rect.end.y - 6), letters,
+				HORIZONTAL_ALIGNMENT_CENTER, rect.size.x, 8, UiKit.COLOR_TEXT)
+		if RunState.locked.has(opponent.id) and Balance.is_boss_battle(i):
+			draw_rect(Rect2(rect.end - Vector2(5, 5), Vector2(4, 4)), UiKit.COLOR_GOLD)  # mühür fırsatı
 
 
 func _get_tooltip(at_position: Vector2) -> String:
@@ -41,6 +44,8 @@ func _get_tooltip(at_position: Vector2) -> String:
 				text += tr(" - BÜYÜK FETİH (boss)")
 			elif Balance.is_boss_battle(i):
 				text += tr(" - BOSS")
+			if Balance.is_boss_battle(i) and RunState.locked.has(RunState.opponents[i].id):
+				text += tr(" - kilitli krallık: yenersen mühür")
 			if i < RunState.results.size():
 				text += tr(" - kazanıldı") if RunState.results[i] else tr(" - kaybedildi")
 			return text

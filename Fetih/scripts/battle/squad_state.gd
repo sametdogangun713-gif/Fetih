@@ -17,6 +17,13 @@ var attack_cooldown := 0.0
 var distance_since_attack := 0.0  ## Son saldırıdan beri yürünen mesafe (hücum için).
 var toughness := 1.0  ## Dayanıklılık: alınan hasar buna bölünür (Savunma seviyesi, fermanlar).
 var level := 1  ## Bölük seviyesi (sadece gösterim için).
+var max_hp: float  ## Başlangıç toplam canı (onarım ve diriliş buna göre).
+var burn_dps := 0.0  ## Üstündeki ateşin saniyedeki hasarı.
+var burn_time := 0.0  ## Ateşin kalan süresi.
+var slow := 0.0  ## Hız düşüşü (0.3 = %30 yavaş).
+var slow_time := 0.0
+var revived := false  ## Diriliş hakkını kullandı mı.
+var is_split_child := false  ## Bölünmeden doğdu; tekrar bölünmez.
 
 
 func _init(p_unit: UnitData, p_team: Team, p_count: int, p_position: Vector2) -> void:
@@ -24,6 +31,7 @@ func _init(p_unit: UnitData, p_team: Team, p_count: int, p_position: Vector2) ->
 	team = p_team
 	max_count = p_count
 	hp_pool = p_unit.hp * p_count
+	max_hp = hp_pool
 	position = p_position
 	previous_position = p_position
 	facing = Vector2.UP if p_team == Team.PLAYER else Vector2.DOWN
@@ -42,3 +50,8 @@ func alive_count() -> int:
 
 func take_damage(amount: float) -> void:
 	hp_pool = maxf(hp_pool - amount / toughness, 0.0)
+
+
+## Yavaşlatma etkisindeyken hareket ve saldırı hızı çarpanı.
+func speed_multiplier() -> float:
+	return 1.0 - slow if slow_time > 0.0 else 1.0

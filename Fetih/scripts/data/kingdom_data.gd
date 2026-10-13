@@ -7,6 +7,8 @@ extends Resource
 @export var display_name: String  ## Örnek: "Elfler"
 @export_multiline var description: String
 @export var specialty_role: StringName  ## Krallığın en iyi olduğu rol (RoleRules sabitlerinden).
+## Uzmanlık bir mekanikse (Diriliş, Bölünme...) arayüzde rol adı yerine bu yazar.
+@export var specialty_label: String = ""
 @export var color: Color = Color.WHITE  ## Arayüzde krallık adının rengi.
 ## false ise kilitli başlar: koşuda boss'unu yenip (mühür) fethi tamamlayınca açılır.
 @export var starts_unlocked := true

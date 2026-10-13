@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="PassiveData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/passive_data.gd" id="1_oijax"]
+
+[resource]
+script = ExtResource("1_oijax")
+id = &"demon_sulfur"
+kingdom = &"demons"
+display_name = "Kükürt Zırhı"
+description = "Savaşçı ve tank bölükleri %23 daha az hasar alır."
+stat = &"toughness"
+amount = 1.3
+roles = Array[StringName]([&"warrior", &"tank"])

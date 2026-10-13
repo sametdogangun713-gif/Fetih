@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="UnitData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/unit_data.gd" id="1_2ktts"]
+
+[resource]
+script = ExtResource("1_2ktts")
+id = &"centaur_boss"
+kingdom = &"centaurs"
+role = &"cavalry"
+display_name = "Han Thoros"
+cost = 150.0
+hp = 330.0
+damage = 24.2
+attack_range = 0.4
+move_speed = 2.8
+armor = 2.0
+splash_radius = 0.8
+charge_multiplier = 2.5
+prefers_ranged_targets = true
+is_boss = true
+placeholder_color = Color(0.9411765, 0.7529412, 0.4392157, 1)

@@ -9,7 +9,7 @@ const NO_CELL := Vector2i(-1, -1)
 ## (Boss da rolüne göre yerleşir: tank/savaşçı boss önde, büyücü boss arkada.)
 const PLACEMENT_ORDER: Array[StringName] = [
 	RoleRules.TANK, RoleRules.SPEARMAN, RoleRules.WARRIOR,
-	RoleRules.CAVALRY, RoleRules.MAGE, RoleRules.ARCHER,
+	RoleRules.CAVALRY, RoleRules.MAGE, RoleRules.ARCHER, RoleRules.SIEGE,
 ]
 
 
@@ -100,7 +100,7 @@ static func auto_arrange(army: Array[ArmySquad], grid_size: Vector2i) -> void:
 ## Bu rol için en uygun boş kare. occupied: Vector2i -> true. Yer yoksa NO_CELL.
 static func best_free_cell(occupied: Dictionary, grid_size: Vector2i, role: StringName) -> Vector2i:
 	var rows := range(grid_size.y)
-	if role == RoleRules.ARCHER or role == RoleRules.MAGE:
+	if RoleRules.is_ranged_role(role):
 		rows.reverse()  # menzilliler arkadan başlar
 	var cols := _center_out(grid_size.x)
 	if role == RoleRules.CAVALRY:

@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="UnitData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/unit_data.gd" id="1_xoqb5"]
+
+[resource]
+script = ExtResource("1_xoqb5")
+id = &"slime_acid"
+kingdom = &"slimes"
+role = &"archer"
+display_name = "Asit Slime"
+hp = 8.0
+damage = 2.0
+attack_speed = 0.8
+attack_range = 4.0
+move_speed = 0.9
+ignores_armor = true
+splits = true
+placeholder_color = Color(0.6901961, 0.9411765, 0.2509804, 1)

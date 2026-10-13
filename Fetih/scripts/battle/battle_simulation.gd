@@ -6,6 +6,8 @@ extends RefCounted
 
 signal squad_attacked(attacker: SquadState, target: SquadState)
 signal squad_destroyed(squad: SquadState)
+signal squad_spawned(squad: SquadState)  ## Bölünmeden yeni bölük doğdu (görüntü eklenmeli).
+signal squad_revived(squad: SquadState)
 signal battle_finished(winner: SquadState.Team)
 
 const TICK := 1.0 / 30.0  ## Bir simülasyon adımının süresi (saniye).
@@ -20,6 +22,9 @@ const SPLASH_RATIO := 0.5  ## Alan hasarında yandaki bölüklere giden hasar or
 ## Menzil karşılaştırmasındaki tolerans. Olmazsa ondalık yuvarlama yüzünden (0.2500001 > 0.25)
 ## bölük menzil sınırında takılı kalır: ne ilerler ne vurur.
 const RANGE_EPSILON := 0.01
+const BURN_DURATION := 3.0  ## Yanmanın süresi (saniye).
+const SLOW_DURATION := 2.0  ## Yavaşlatmanın süresi (saniye).
+const SPLIT_OFFSET := 0.6  ## Bölünen iki yarının ana bölükten yana uzaklığı (karo).
 
 var squads: Array[SquadState] = []
 var field_rect: Rect2  ## Bölüklerin çıkamayacağı alan (savaş alanı koordinatı).
@@ -59,21 +64,63 @@ func step() -> void:
 	# Hasarlar önce toplanır, adım sonunda birlikte uygulanır.
 	# Böylece listede önce gelen bölük "ilk vuran" avantajı kazanmaz.
 	var pending_damage := {}
-	for squad in squads:
+	_apply_effects(pending_damage)
+	for squad in squads.duplicate():  # bölünme listeye bölük ekleyebilir
 		if squad.is_alive():
 			_update_squad(squad, pending_damage)
 	for target: SquadState in pending_damage:
 		var was_alive := target.is_alive()
 		target.take_damage(pending_damage[target])
 		if was_alive and not target.is_alive():
-			squad_destroyed.emit(target)
+			_on_squad_down(target)
 
 	_separate_squads()
 	_check_end()
 
 
+## Süreli etkiler: yanma hasarı (zırhsız), yavaşlatma süresi, onarım.
+func _apply_effects(pending_damage: Dictionary) -> void:
+	for squad in squads:
+		if not squad.is_alive():
+			continue
+		if squad.burn_time > 0.0:
+			_add_damage(pending_damage, squad, squad.burn_dps * TICK)
+			squad.burn_time -= TICK
+		if squad.slow_time > 0.0:
+			squad.slow_time -= TICK
+		if squad.unit.regen_ratio > 0.0:
+			squad.hp_pool = minf(squad.hp_pool + squad.max_hp * squad.unit.regen_ratio * TICK, squad.max_hp)
+
+
+## Bölük yok oldu: diriliş hakkı varsa geri kalkar, bölünebiliyorsa ikiye ayrılır.
+func _on_squad_down(squad: SquadState) -> void:
+	if squad.unit.revive_ratio > 0.0 and not squad.revived:
+		squad.revived = true
+		squad.hp_pool = squad.max_hp * squad.unit.revive_ratio
+		squad.burn_time = 0.0
+		squad_revived.emit(squad)
+		return
+	squad_destroyed.emit(squad)
+	if squad.unit.splits and not squad.is_split_child:
+		var half_unit: UnitData = squad.unit.duplicate()
+		half_unit.hp *= 0.5
+		half_unit.damage *= 0.5
+		var side := Vector2(-squad.facing.y, squad.facing.x)
+		for dir in [-1.0, 1.0]:
+			var child := SquadState.new(half_unit, squad.team, maxi(1, ceili(squad.max_count / 2.0)),
+					(squad.position + side * dir * SPLIT_OFFSET).clamp(field_rect.position, field_rect.end))
+			child.previous_position = child.position
+			child.facing = squad.facing
+			child.toughness = squad.toughness
+			child.level = squad.level
+			child.is_split_child = true
+			add_squad(child)
+			squad_spawned.emit(child)
+
+
 func _update_squad(squad: SquadState, pending_damage: Dictionary) -> void:
-	squad.attack_cooldown = maxf(squad.attack_cooldown - TICK, 0.0)
+	var speed := squad.speed_multiplier()
+	squad.attack_cooldown = maxf(squad.attack_cooldown - TICK * speed, 0.0)
 	if squad.target == null or not squad.target.is_alive():
 		squad.target = _pick_target(squad)
 	if squad.target == null:
@@ -89,7 +136,7 @@ func _update_squad(squad: SquadState, pending_damage: Dictionary) -> void:
 	# Menzil iki bölüğün kenarları arasında ölçülür.
 	var gap := distance - 2.0 * SQUAD_RADIUS
 	if gap > squad.unit.attack_range + RANGE_EPSILON:
-		var move := minf(squad.unit.move_speed * TICK, gap - squad.unit.attack_range)
+		var move := minf(squad.unit.move_speed * speed * TICK, gap - squad.unit.attack_range)
 		squad.position += squad.facing * move
 		squad.distance_since_attack += move
 		return
@@ -111,7 +158,15 @@ func _attack(squad: SquadState, gap: float, pending_damage: Dictionary) -> void:
 	squad.distance_since_attack = 0.0
 
 	var soldiers := squad.alive_count()
-	_add_damage(pending_damage, target, damage_per_soldier(unit, target.unit) * soldiers * multiplier)
+	var hit := damage_per_soldier(unit, target.unit) * soldiers * multiplier
+	_add_damage(pending_damage, target, hit)
+	if unit.burn_ratio > 0.0:
+		target.burn_dps = maxf(target.burn_dps if target.burn_time > 0.0 else 0.0,
+				hit * unit.burn_ratio / BURN_DURATION)
+		target.burn_time = BURN_DURATION
+	if unit.slow_amount > 0.0:
+		target.slow = maxf(target.slow if target.slow_time > 0.0 else 0.0, minf(unit.slow_amount, 0.8))
+		target.slow_time = SLOW_DURATION
 
 	if unit.splash_radius > 0.0:
 		for other in squads:
