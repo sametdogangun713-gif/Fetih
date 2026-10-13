@@ -1,10 +1,7 @@
 [gd_scene format=3]
 
+[ext_resource type="PackedScene" path="res://scenes/battle/battlefield.tscn" id="1_field"]
+
 [node name="Main" type="Node2D"]
 
-[node name="Title" type="Label" parent="."]
-offset_left = 16.0
-offset_top = 16.0
-offset_right = 316.0
-offset_bottom = 39.0
-text = "Fetih - Aşama 0"
+[node name="Battlefield" parent="." instance=ExtResource("1_field")]

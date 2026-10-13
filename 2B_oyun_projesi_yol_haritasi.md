@@ -100,11 +100,11 @@ Her aşama sonunda **çalışan** bir sürüm olmalı. Grafik son aşamalara kad
 - **Çıktı:** Boş ama düzenli proje
 
 ### Aşama 1: İzometrik harita ve kamera (1 hafta)
-- [ ] `TileMapLayer` ile izometrik savaş alanı (64x32 karo)
-- [ ] Kamera: sürükleyerek kaydırma, tekerlekle yakınlaştırma
-- [ ] Haritada bir kareye tıklayınca karo koordinatını yazdır (koordinat dönüşümünü öğrenmek için)
-- [ ] `y_sort_enabled` ile derinlik sıralaması
-- [ ] Piksel sanat ayarları: Stretch Mode = `viewport`, Default Texture Filter = `Nearest`
+- [x] `TileMapLayer` ile izometrik savaş alanı (64x32 karo, 10x16, oyuncu/düşman yerleşim bölgeleri)
+- [x] Kamera: WASD/ok tuşları, sağ/orta tuşla sürükleme, tekerlekle yakınlaştırma (0.5x / 1x / 2x)
+- [x] Haritada bir kareye tıklayınca karo koordinatını yazdır (koordinat dönüşümünü öğrenmek için)
+- [x] `y_sort_enabled` ile derinlik sıralaması (test askerleri)
+- [x] Piksel sanat ayarları: Stretch Mode = `viewport`, Default Texture Filter = `Nearest`
 - **Çıktı:** Sol üst ön köşeden bakılan, gezilebilen boş savaş alanı
 
 ### Aşama 2: Bölük ve ilk savaş (2 hafta)

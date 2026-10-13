@@ -1,0 +1,28 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battlefield.gd" id="1_field"]
+[ext_resource type="TileSet" path="res://assets/tiles/battlefield_tileset.tres" id="2_tiles"]
+[ext_resource type="Script" path="res://scripts/battle/battle_camera.gd" id="3_camera"]
+
+[node name="Battlefield" type="Node2D"]
+script = ExtResource("1_field")
+
+[node name="Ground" type="TileMapLayer" parent="."]
+tile_set = ExtResource("2_tiles")
+
+[node name="Highlight" type="TileMapLayer" parent="."]
+tile_set = ExtResource("2_tiles")
+
+[node name="Units" type="Node2D" parent="."]
+y_sort_enabled = true
+
+[node name="BattleCamera" type="Camera2D" parent="."]
+script = ExtResource("3_camera")
+
+[node name="DebugHUD" type="CanvasLayer" parent="."]
+
+[node name="CellLabel" type="Label" parent="DebugHUD"]
+offset_left = 8.0
+offset_top = 4.0
+offset_right = 400.0
+offset_bottom = 27.0
