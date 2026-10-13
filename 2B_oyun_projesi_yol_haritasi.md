@@ -108,12 +108,13 @@ Her aşama sonunda **çalışan** bir sürüm olmalı. Grafik son aşamalara kad
 - **Çıktı:** Sol üst ön köşeden bakılan, gezilebilen boş savaş alanı
 
 ### Aşama 2: Bölük ve ilk savaş (2 hafta)
-- [ ] `UnitData` kaynağı (bkz. GDD bölüm 7)
-- [ ] Bölük sahnesi: N asker, formasyon halinde dizilir
-- [ ] Bölük yapay zekâsı: en yakın düşman bölüğünü bul → menzile kadar yürü → saldır
-- [ ] Hasar alınca asker sayısı düşer, askerler tek tek kaybolur
-- [ ] İki tarafın bölükleri: biri kalmayınca savaş biter, `battle_finished(winner)` sinyali
-- [ ] Hız düğmesi (x1 / x2 / x4) — `Engine.time_scale`
+- [x] `UnitData` kaynağı (bkz. GDD bölüm 7)
+- [x] Bölük görüntüsü: N asker, formasyon halinde dizilir, hedefe döner
+- [x] Bölük yapay zekâsı: en yakın düşman bölüğünü bul → menzile kadar yürü → saldır
+- [x] Hasar alınca asker sayısı düşer, askerler ön sıradan tek tek kaybolur
+- [x] İki tarafın bölükleri: biri kalmayınca savaş biter, `battle_finished(winner)` sinyali
+- [x] Hız düğmesi (x1 / x2 / x4) — `Engine.time_scale` yerine simülasyon adım sayısı (deterministik kalsın diye)
+- [x] Simülasyon görüntüden ayrı (`BattleSimulation`), sabit 30 adım/sn, seed ile deterministik
 - **Çıktı:** 2 savaşçı bölüğü vs 2 okçu bölüğü kapışıyor, kazanan belli oluyor
 
 ### Aşama 3: Roller, karşılıklar, denge aracı (2 hafta)

@@ -1,14 +1,18 @@
+class_name Battlefield
 extends Node2D
-## İzometrik savaş alanı (Aşama 1).
+## İzometrik savaş alanı.
 ## - Karoları koddan döşer; savaş alanı boyutu ileride orduya göre değişebilir.
 ## - Fare altındaki karoyu vurgular ve koordinatını gösterir.
-## - Sol tık: karoya test askeri koyar (Y-sort denemesi). C tuşu: test askerlerini siler.
+## - Savaş alanı koordinatı (karo, ondalıklı) <-> ekran konumu dönüşümlerini sağlar.
 
 enum Zone { PLAYER, NEUTRAL, ENEMY }
 
 const FIELD_WIDTH := 10  ## Cephe genişliği (x ekseni, ekranda sağ alta doğru).
 const FIELD_DEPTH := 16  ## İki ordu arası derinlik (y ekseni, ekranda sol alta doğru).
 const DEPLOY_ROWS := 5  ## Her ordunun yerleşim bölgesi kaç satır.
+
+## Karonun yarı boyutu (64x32 karo). Dönüşüm formülleri buna dayanır.
+const TILE_HALF := Vector2(32, 16)
 
 # battlefield_tileset.tres içindeki atlas koordinatları (tools/build_placeholder_tiles.gd ile aynı sıra).
 const SOURCE_ID := 0
@@ -33,6 +37,17 @@ const ZONE_NAMES := {
 var _hovered_cell := Vector2i(-1, -1)
 
 
+## Savaş alanı koordinatını ekran (dünya) konumuna çevirir.
+## Tam sayı koordinatlar karo merkezlerine denk gelir; map_to_local() ile aynı sonucu verir.
+static func field_to_world(p: Vector2) -> Vector2:
+	return field_offset_to_world(p) + TILE_HALF
+
+
+## Savaş alanındaki bir yön/uzaklığı ekran yönüne çevirir (konum değil, fark).
+static func field_offset_to_world(d: Vector2) -> Vector2:
+	return Vector2(TILE_HALF.x * (d.x - d.y), TILE_HALF.y * (d.x + d.y))
+
+
 func _ready() -> void:
 	_build_field()
 	_setup_camera()
@@ -47,10 +62,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		var cell := mouse_cell()
 		if is_inside(cell):
 			print("Tıklanan karo: ", cell, "  dünya konumu: ", ground.map_to_local(cell))
-			_spawn_test_soldier(cell)
-	elif event is InputEventKey and event.pressed and event.physical_keycode == KEY_C:
-		for soldier in units.get_children():
-			soldier.queue_free()
 
 
 ## Oyuncu sol altta (büyük y), düşman sağ üstte (küçük y).
@@ -64,6 +75,11 @@ func zone_of(cell: Vector2i) -> Zone:
 
 func is_inside(cell: Vector2i) -> bool:
 	return cell.x >= 0 and cell.x < FIELD_WIDTH and cell.y >= 0 and cell.y < FIELD_DEPTH
+
+
+## Bölük merkezlerinin çıkamayacağı alan (savaş alanı koordinatı).
+func field_rect() -> Rect2:
+	return Rect2(0, 0, FIELD_WIDTH - 1, FIELD_DEPTH - 1)
 
 
 ## Farenin üstünde durduğu karo. Ekran koordinatı -> harita koordinatı dönüşümü.
@@ -114,15 +130,3 @@ func _update_hover() -> void:
 		cell_label.text = "Karo: %s  -  %s" % [cell, ZONE_NAMES[zone_of(cell)]]
 	else:
 		cell_label.text = ""
-
-
-## Geçici asker: ayakları karonun ortasında duran bir dikdörtgen.
-## Units düğümünde Y-sort açık olduğu için ekranda aşağıda olan önde çizilir.
-func _spawn_test_soldier(cell: Vector2i) -> void:
-	var soldier := Polygon2D.new()
-	soldier.polygon = PackedVector2Array([
-		Vector2(-4, -20), Vector2(4, -20), Vector2(4, 0), Vector2(-4, 0),
-	])
-	soldier.color = Color("c8443a") if zone_of(cell) == Zone.ENEMY else Color("3d6fd1")
-	soldier.position = ground.map_to_local(cell)
-	units.add_child(soldier)

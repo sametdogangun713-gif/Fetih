@@ -155,13 +155,18 @@ extends Resource
 @export var kingdom: StringName     # "elves"
 @export var role: StringName        # "archer"
 @export var display_name: String    # "Elf Okçusu"
-@export var hp: float = 10.0        # tek askerin canı
+@export var hp: float = 10.0          # tek askerin canı
 @export var damage: float = 3.0
 @export var attack_speed: float = 1.0
-@export var range: float = 6.0      # karo cinsinden
+@export var attack_range: float = 0.25  # karo, bölük kenarları arası
 @export var move_speed: float = 1.0
 @export var armor: float = 0.0
-@export var sprite: SpriteFrames
+@export var placeholder_color: Color  # sprite gelene kadar
+```
+Güncel hali: `Fetih/scripts/data/unit_data.gd`.
+
+```text
+(Sprite alanı Aşama 9'da eklenecek.)
 ```
 
 ---

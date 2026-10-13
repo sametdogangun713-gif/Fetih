@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="UnitData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/unit_data.gd" id="1_unit"]
+
+[resource]
+script = ExtResource("1_unit")
+id = &"elf_archer"
+kingdom = &"elves"
+role = &"archer"
+display_name = "Elf Okçusu"
+hp = 7.0
+damage = 2.8
+attack_speed = 0.8
+attack_range = 5.0
+move_speed = 1.0
+armor = 0.0
+placeholder_color = Color(0.86, 0.82, 0.55, 1)
