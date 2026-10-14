@@ -67,7 +67,20 @@ static func button(text: String, on_pressed: Callable) -> Button:
 	b.focus_mode = Control.FOCUS_NONE
 	b.pressed.connect(click_sound)
 	b.pressed.connect(on_pressed)
+	b.mouse_entered.connect(hover_scale.bind(b, true))
+	b.mouse_exited.connect(hover_scale.bind(b, false))
 	return b
+
+
+## Fare üstüne gelince hafifçe büyür, çıkınca geri döner (Tween ile 0.08 sn).
+## pivot_offset ortaya alınır ki ortadan büyüsün. Kapsayıcılar (HBox, VBox) yeniden dizilince
+## ölçeği 1'e çeker; bu sadece anlık bir vurgu olduğu için sorun değil.
+static func hover_scale(control: Control, on: bool, amount := 1.04) -> void:
+	if on and control is BaseButton and control.disabled:
+		return
+	control.pivot_offset = control.size / 2.0
+	var tween := control.create_tween()
+	tween.tween_property(control, "scale", Vector2.ONE * (amount if on else 1.0), 0.08)
 
 
 ## Düğme sesi. Audio autoload'una düğüm yolundan ulaşılır: araç scriptleri (-s) UiKit'i

@@ -49,6 +49,15 @@ static func open(host: Node, allow_language := false) -> Overlay:
 	var shake := _check(Settings.screen_shake)
 	shake.toggled.connect(Settings.set_screen_shake)
 	_row(grid, UiKit.t("Ekran sarsıntısı"), shake)
+	var flash := _check(Settings.flash_effects)
+	flash.toggled.connect(Settings.set_flash_effects)
+	_row(grid, UiKit.t("Vuruş flaşı"), flash)
+	var numbers := _check(Settings.damage_numbers)
+	numbers.toggled.connect(Settings.set_damage_numbers)
+	_row(grid, UiKit.t("Hasar sayıları"), numbers)
+	var hitstop := _check(Settings.hit_stop)
+	hitstop.toggled.connect(Settings.set_hit_stop)
+	_row(grid, UiKit.t("Vuruş duraklaması"), hitstop)
 
 	if allow_language:
 		var lang := OptionButton.new()

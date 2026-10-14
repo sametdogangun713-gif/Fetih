@@ -6,6 +6,7 @@ extends Control
 var _root: VBoxContainer
 ## 4+ kartta (Geniş Ganimet) kartlar sıkışık çizilir: değerler kartın ipucuna taşınır.
 var _compact := false
+var _taking := false  ## Kart seçildi, kısa animasyon oynuyor: ikinci tık yok sayılır.
 
 
 func _ready() -> void:
@@ -49,6 +50,7 @@ func _show_offers() -> void:
 	_compact = offers.size() > 3
 	for offer in offers:
 		row.add_child(_card(offer))
+	_animate_cards(row)
 
 	var bottom := UiKit.hbox()
 	if RunState.rerolls_left > 0:
@@ -79,7 +81,10 @@ func _card(offer: CardOffer) -> Control:
 			_fill_passive_card(box, offer)
 	if _compact and offer.kind == CardOffer.Kind.UNIT:
 		card.tooltip_text = UiKit.unit_stats(offer.unit) + "\n" + "\n".join(UiKit.unit_traits(offer.unit))
-	var take := UiKit.button(tr("Al"), _on_take.bind(offer))
+	card.modulate.a = 0.0  # _animate_cards görünür yapar (ilk karede yanıp sönmesin)
+	card.mouse_entered.connect(UiKit.hover_scale.bind(card, true, 1.03))
+	card.mouse_exited.connect(UiKit.hover_scale.bind(card, false))
+	var take := UiKit.button(tr("Al"), _on_take.bind(offer, card))
 	take.disabled = not RunState.can_take(offer)
 	box.add_child(take)
 	return card
@@ -145,8 +150,38 @@ func _fill_passive_card(box: VBoxContainer, offer: CardOffer) -> void:
 			UiKit.COLOR_MUTED))
 
 
-func _on_take(offer: CardOffer) -> void:
+## Kartlar sırayla aşağıdan kayarak belirir (Tween, kart başına 0.07 sn gecikme).
+## HBoxContainer çocuklarının konumunu kendisi belirler: animasyon dizilim bittikten sonra
+## (bir kare sonra) başlar ve son konum kapsayıcının verdiği konumdur.
+func _animate_cards(row: HBoxContainer) -> void:
+	await get_tree().process_frame
+	for i in row.get_child_count():
+		var card := row.get_child(i) as Control
+		if card == null:
+			continue
+		var end_y := card.position.y
+		card.position.y = end_y + 18.0
+		var tween := card.create_tween().set_parallel()
+		tween.tween_property(card, "position:y", end_y, 0.3).set_delay(i * 0.07) \
+				.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		tween.tween_property(card, "modulate:a", 1.0, 0.2).set_delay(i * 0.07)
+
+
+func _on_take(offer: CardOffer, card: Control) -> void:
+	if _taking:
+		return
+	_taking = true
 	Audio.play("card")
+	# Seçilen kart bir an büyür, diğerleri söner; sonra seçim uygulanır.
+	card.pivot_offset = card.size / 2.0
+	for other in card.get_parent().get_children():
+		if other != card:
+			other.create_tween().tween_property(other, "modulate:a", 0.35, 0.15)
+	var tween := card.create_tween()
+	tween.tween_property(card, "scale", Vector2.ONE * 1.08, 0.08).set_trans(Tween.TRANS_QUAD)
+	tween.tween_property(card, "scale", Vector2.ONE, 0.1)
+	await tween.finished
+	_taking = false
 	if RunState.needs_replace(offer):
 		# Ekran yeniden kurulurken basılan düğme de silinir; bu yüzden işlem bittikten sonra.
 		_show_replace.call_deferred(offer)
