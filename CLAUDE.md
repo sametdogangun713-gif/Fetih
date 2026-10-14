@@ -13,8 +13,8 @@
 ## Teknik
 - Motor: **Godot 4.7.2** (standart, .NET değil). Dil: **GDScript**. API için context7'de `/godotengine/godot-docs` (4.7 dalı) kullan, tahmin etme.
 - Godot yolu: `C:\Users\Samet PC\Desktop\Godot_v4.7.2-stable_win64.exe`
-- Renderer: Compatibility. Arayüz düzeni 640x360 (viewport), stretch `canvas_items`, scale `integer`: her şey pencere çözünürlüğünde çizilir (varsayılan 3x = 1920x1080). Varsayılan texture filter Nearest (piksel sanat birlikler); HD zemin (`GroundArt`) doğrusal süzme kullanır.
-- İzometrik görünüm (64x32 karo), `y_sort_enabled`. `Ground` TileMapLayer görünmez, sadece koordinat için; zemini `GroundArt` çizer (CC0 rubberduck çimen + ağaçlar, rakip krallığa göre `BIOMES`).
+- Renderer: Compatibility. Arayüz düzeni 640x360 (viewport), stretch `canvas_items`, scale `integer`: her şey pencere çözünürlüğünde çizilir (varsayılan 3x = 1920x1080). Varsayılan texture filter Nearest: birlikler, zemin (`GroundArt`) ve ağaçlar hep Nearest, alt-piksel kayma yok.
+- İzometrik görünüm (64x32 karo), `y_sort_enabled`. `Ground` TileMapLayer görünmez, sadece koordinat için; zemini `GroundArt` çizer (CC0 rubberduck çimen + ağaçlar, rakip krallığa göre `BIOMES`). Zemin dokuları `res://tools/build_ground.gd` ile 0.5x küçültülüp Resurrect 64 paletine indirilir (`assets/terrain/px/`; karo 64x32, 1 doku pikseli = 1 dünya pikseli); `BIOMES.ramp` biyomun çim renkleridir.
 - Fizik motoru kullanılmaz; bölük tabanlı simülasyon, basit matematik.
 - Özel mekanikler `UnitData` alanlarıyla (burn_ratio, slow_amount, regen_ratio, revive_ratio, splits) ve `BattleSimulation` içinde; yeni mekanik eklerken ferman `stat` alanı da aynı alan adını kullanabilir.
 - Savaş deterministik olmalı (seed'li `RandomNumberGenerator`).

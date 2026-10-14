@@ -1,56 +1,75 @@
 class_name GroundArt
 extends Node2D
-## Savaş alanının HD zemini (sadece görüntü; simülasyona ve koordinatlara dokunmaz).
+## Savaş alanının piksel zemini (sadece görüntü; simülasyona ve koordinatlara dokunmaz).
 ## Çimen karoları, ot/kaya süsleri, yerleşim bölgesi renkleri ve alanın etrafında arazi çizer;
 ## ağaçları bölüklerle derinlik sıralansın diye Units düğümüne Sprite2D olarak ekler.
 ## Görseller CC0 (rubberduck, OpenGameArt): kaynak_assetler/LISANSLAR.md.
 ##
-## Karo dokusu 128x64, dünyada 64x32 yer kaplar: 3x pencerede (1920x1080) ekranda 192x96 olur.
-## Bu yüzden düğüm doğrusal süzme kullanır (piksel sanat birlikleri Nearest kalır).
+## Dokular tools/build_ground.gd ile 0.5x küçültülüp Resurrect 64'e indirilir: karo 64x32 (dünyada
+## 1:1), süsler 64x64 hücre, ağaçlar 0.34x. Biyom başına bir sayfa (assets/terrain/px/ground_<biyom>.png).
+## Her piksel dünyada 1 piksel: birliklerle aynı ölçek, Nearest süzme, alt-piksel kayma yok.
 
-const SHEET: Texture2D = preload("res://assets/terrain/ground_128x64.png")
-const PLANT_DIR := "res://assets/terrain/plants/"
-const CELL := 128  ## Sayfadaki hücre: karo hücrenin alt yarısında (128x64), süsler hücrenin ortasında.
+const TEX_DIR := "res://assets/terrain/px/"
+const PLANT_DIR := "res://assets/terrain/px/plants/"
+const CELL := 64  ## Sayfadaki hücre: karo hücrenin alt yarısında (64x32), süsler hücrenin tamamında (64x64).
 const GRASS_VARIANTS := 8
+const OUTSIDE_ROW := 7  ## Sayfanın son satırı: alanın dışındaki koyu çimen karoları (alt yarıda).
 ## Süs satırları ve satırdaki adet: 1-2 ot öbeği, 3 yapraklı bitki, 4 kuru ot, 5-6 kaya.
 const TUFTS: Array[Vector2i] = [Vector2i(1, 8), Vector2i(2, 8)]
 const PLANTS: Array[Vector2i] = [Vector2i(3, 8), Vector2i(4, 8)]
 const ROCKS: Array[Vector2i] = [Vector2i(5, 8), Vector2i(6, 4)]
 const MARGIN := 9  ## Savaş alanının etrafında kaç karo arazi çizilir.
 const BACKDROP := Vector2(4000, 2400)  ## Arazinin altındaki düz zemin (dünya pikseli).
-const TREE_SCALE := 0.34  ## 256 piksellik ağaç dokusu dünyada ~85 piksel: 3x pencerede aşağı yukarı 1:1.
 const ZONE_TINT := {
 	Battlefield.Zone.PLAYER: Color(0.25, 0.45, 1.0, 0.16),
 	Battlefield.Zone.ENEMY: Color(1.0, 0.3, 0.2, 0.16),
 }
 
-## Rakip krallığa göre arazi: zemin tonu, ağaç türleri (plants/ klasöründeki dosya adı başları),
-## ağaç yoğunluğu çarpanı.
+## Rakip krallığa göre arazi. tint: yalnızca build_ground.gd süsleri boyarken kullanır (çalışma anında
+## çarpan yok, aksi hâlde palet bozulur). ramp: çimen karosunun koyu-orta-açık Resurrect 64 renkleri.
+## trees: ağaç türleri (plants/ klasöründeki dosya adı başları), density: ağaç yoğunluğu çarpanı.
 const BIOMES := {
-	&"default": {tint = Color(1, 1, 1), trees = ["pine-none", "bigtree", "bush"], density = 1.0},
-	&"humans": {tint = Color(1, 1, 1), trees = ["bigtree", "pine-none", "bush"], density = 1.0},
-	&"elves": {tint = Color(0.9, 1.05, 0.9), trees = ["bigtree", "pine-none"], density = 1.5},
-	&"orcs": {tint = Color(1.08, 0.98, 0.78), trees = ["shrub1", "bush"], density = 0.7},
-	&"dwarves": {tint = Color(1.05, 1.08, 1.15), trees = ["pine-full", "pine-half"], density = 1.1},
-	&"undead": {tint = Color(0.78, 0.8, 0.78), trees = ["pine-half", "shrub2"], density = 0.8},
-	&"demons": {tint = Color(1.1, 0.8, 0.7), trees = ["shrub2", "shrub1"], density = 0.6},
-	&"slimes": {tint = Color(0.9, 1.1, 0.85), trees = ["bush", "bigtree"], density = 1.0},
-	&"mud": {tint = Color(0.8, 0.85, 0.7), trees = ["shrub2", "bush"], density = 1.2},
-	&"golems": {tint = Color(0.95, 0.95, 0.95), trees = ["pine-half", "pine-none"], density = 0.8},
-	&"centaurs": {tint = Color(1.12, 1.05, 0.75), trees = ["shrub1", "bush"], density = 0.4},
+	&"default": {tint = Color(1, 1, 1), ramp = ["165a4c", "239063", "1ebc73"],
+			trees = ["pine-none", "bigtree", "bush"], density = 1.0},
+	&"humans": {tint = Color(1, 1, 1), ramp = ["165a4c", "239063", "1ebc73"],
+			trees = ["bigtree", "pine-none", "bush"], density = 1.0},
+	&"elves": {tint = Color(0.9, 1.05, 0.9), ramp = ["239063", "1ebc73", "91db69"],
+			trees = ["bigtree", "pine-none"], density = 1.5},
+	&"orcs": {tint = Color(1.08, 0.98, 0.78), ramp = ["4c3e24", "676633", "a2a947"],
+			trees = ["shrub1", "bush"], density = 0.7},
+	&"dwarves": {tint = Color(1.05, 1.08, 1.15), ramp = ["374e4a", "547e64", "92a984"],
+			trees = ["pine-full", "pine-half"], density = 1.1},
+	&"undead": {tint = Color(0.78, 0.8, 0.78), ramp = ["313638", "374e4a", "625565"],
+			trees = ["pine-half", "shrub2"], density = 0.8},
+	&"demons": {tint = Color(1.1, 0.8, 0.7), ramp = ["2e222f", "4c3e24", "6e2727"],
+			trees = ["shrub2", "shrub1"], density = 0.6},
+	&"slimes": {tint = Color(0.9, 1.1, 0.85), ramp = ["165a4c", "239063", "0eaf9b"],
+			trees = ["bush", "bigtree"], density = 1.0},
+	&"mud": {tint = Color(0.8, 0.85, 0.7), ramp = ["313638", "4c3e24", "676633"],
+			trees = ["shrub2", "bush"], density = 1.2},
+	&"golems": {tint = Color(0.95, 0.95, 0.95), ramp = ["313638", "625565", "ab947a"],
+			trees = ["pine-half", "pine-none"], density = 0.8},
+	&"centaurs": {tint = Color(1.12, 1.05, 0.75), ramp = ["676633", "a2a947", "cddf6c"],
+			trees = ["shrub1", "bush"], density = 0.4},
 }
 
+static var _sheets := {}  ## biyom id -> Texture2D (ground_<biyom>.png)
+static var _base_cache := {}  ## doku yolu -> gövde dibi (dokunun piksel koordinatı)
+
 var _biome: Dictionary = BIOMES[&"default"]
+var _sheet: Texture2D
 var _trees: Array[Sprite2D] = []
 
 
 func _ready() -> void:
-	texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 
 
 ## Araziyi kurar. biome: krallık id (BIOMES'ta yoksa varsayılan). tree_parent: y-sort'lu Units düğümü.
 func setup(biome: StringName, tree_parent: Node2D) -> void:
-	_biome = BIOMES.get(biome, BIOMES[&"default"])
+	var id := biome if BIOMES.has(biome) else &"default"
+	_biome = BIOMES[id]
+	_sheet = _load_sheet(id)
 	for tree in _trees:
 		tree.queue_free()
 	_trees.clear()
@@ -58,24 +77,35 @@ func setup(biome: StringName, tree_parent: Node2D) -> void:
 	queue_redraw()
 
 
+## Biyom sayfası (bir kez yüklenir). Dosya yoksa varsayılan biyom.
+static func _load_sheet(id: StringName) -> Texture2D:
+	if not _sheets.has(id):
+		var path := TEX_DIR + "ground_%s.png" % id
+		_sheets[id] = load(path) if ResourceLoader.exists(path) else _load_sheet(&"default")
+	return _sheets[id]
+
+
 func _draw() -> void:
+	if _sheet == null:
+		return
 	var w := Battlefield.FIELD_WIDTH
 	var d := Battlefield.FIELD_DEPTH
-	var tint: Color = _biome.tint
-	# Altta düz zemin rengi: karoların yumuşak kenarlarındaki ince boşluklar ve çizilen arazinin
-	# dışı (kamera en uzakta, köşeler) boş kalmasın.
+	# Altta düz zemin rengi: karoların kenarlarındaki ince boşluklar ve çizilen arazinin dışı (kamera
+	# en uzakta, köşeler) boş kalmasın. Rampanın en koyusu (alan dışı karolarla aynı aileden).
 	var mid := Battlefield.field_to_world(Vector2(w, d) / 2.0)
-	draw_rect(Rect2(mid - BACKDROP / 2.0, BACKDROP), Color("3a6326") * tint * Color(0.86, 0.88, 0.84))
+	var dark := SpritePalette.nearest_step(Color(_biome.ramp[0]), Color(_biome.ramp[0]), false)
+	draw_rect(Rect2(mid - BACKDROP / 2.0, BACKDROP), dark)
 	for y in range(-MARGIN, d + MARGIN):
 		for x in range(-MARGIN, w + MARGIN):
 			var cell := Vector2i(x, y)
 			var rng := _cell_rng(cell, 1)
 			var variant := rng.randi_range(0, GRASS_VARIANTS - 1)
 			var inside := x >= 0 and x < w and y >= 0 and y < d
-			var shade := tint if inside else tint * Color(0.86, 0.88, 0.84)
+			var row := 0 if inside else OUTSIDE_ROW
 			var center := Battlefield.field_to_world(Vector2(cell))
-			draw_texture_rect_region(SHEET, Rect2(center - Vector2(33, 17), Vector2(66, 34)),
-					Rect2(variant * CELL, CELL / 2, CELL, CELL / 2), shade)
+			# 64x32 karo 1:1, tam sayı konumda (Nearest, alt-piksel yok).
+			draw_texture_rect_region(_sheet, Rect2(center - Vector2(32, 16), Vector2(64, 32)),
+					Rect2(variant * CELL, row * CELL + CELL / 2, CELL, CELL / 2))
 	# Yerleşim bölgeleri: hafif takım rengi.
 	var rows := Battlefield.DEPLOY_ROWS
 	draw_colored_polygon(_diamond(Vector2(0, d - rows), Vector2(w, d)), ZONE_TINT[Battlefield.Zone.PLAYER])
@@ -87,7 +117,7 @@ func _draw() -> void:
 	_draw_decals(w, d)
 
 
-## Ot, bitki ve kayalar: alan içinde seyrek ve küçük, dışarıda sık.
+## Ot, bitki ve kayalar: alan içinde seyrek, dışarıda sık. Konumlar tam piksele yuvarlanır.
 func _draw_decals(w: int, d: int) -> void:
 	for y in range(-MARGIN, d + MARGIN):
 		for x in range(-MARGIN, w + MARGIN):
@@ -110,10 +140,10 @@ func _draw_decals(w: int, d: int) -> void:
 				continue
 			var row: Vector2i = group[rng.randi_range(0, group.size() - 1)]
 			var col := rng.randi_range(0, row.y - 1)
-			var center := Battlefield.field_to_world(Vector2(cell)) \
-					+ Vector2(rng.randf_range(-14, 14), rng.randf_range(-6, 6))
-			draw_texture_rect_region(SHEET, Rect2(center - Vector2(32, 40), Vector2(64, 64)),
-					Rect2(col * CELL, row.x * CELL, CELL, CELL), _biome.tint)
+			var center := (Battlefield.field_to_world(Vector2(cell)) \
+					+ Vector2(rng.randf_range(-14, 14), rng.randf_range(-6, 6))).round()
+			draw_texture_rect_region(_sheet, Rect2(center - Vector2(32, 40), Vector2(64, 64)),
+					Rect2(col * CELL, row.x * CELL, CELL, CELL))
 
 
 ## Ağaçlar alanın dışında, kenardan uzaklaştıkça sıklaşır. Ekranda alanın önünde (aşağıda) kalan
@@ -141,11 +171,11 @@ func _plant_trees(parent: Node2D) -> void:
 			tree.texture = texture
 			tree.centered = false
 			tree.offset = -_tree_base(texture)
-			tree.scale = Vector2.ONE * TREE_SCALE * rng.randf_range(0.8, 1.15)
 			tree.flip_h = rng.randf() < 0.5
-			tree.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
-			tree.position = Battlefield.field_to_world(Vector2(x, y)) \
-					+ Vector2(rng.randf_range(-12, 12), rng.randf_range(-6, 6))
+			tree.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+			# Tam sayı konum: ağaç pikselleri ekran pikseliyle hizalı kalır.
+			tree.position = (Battlefield.field_to_world(Vector2(x, y)) \
+					+ Vector2(rng.randf_range(-12, 12), rng.randf_range(-6, 6))).round()
 			if tree.flip_h:
 				tree.offset.x = -texture.get_width() - tree.offset.x
 			parent.add_child(tree)
@@ -163,15 +193,12 @@ func _tree_textures() -> Array[Texture2D]:
 	return out
 
 
-static var _base_cache := {}  ## doku yolu -> gövde dibi (dokunun piksel koordinatı)
-
-
-## Ağacın yere bastığı nokta: dolu alanın alt ortası (gölgesi kadar yukarıda).
+## Ağacın yere bastığı nokta: dolu alanın alt ortası (gölgesi kadar yukarıda). Tam sayı piksel.
 static func _tree_base(texture: Texture2D) -> Vector2:
 	if not _base_cache.has(texture.resource_path):
 		var used := texture.get_image().get_used_rect()
-		_base_cache[texture.resource_path] = Vector2(used.position.x + used.size.x / 2.0,
-				used.end.y - used.size.y * 0.12)
+		_base_cache[texture.resource_path] = Vector2(used.position.x + used.size.x / 2,
+				used.end.y - roundi(used.size.y * 0.12))
 	return _base_cache[texture.resource_path]
 
 

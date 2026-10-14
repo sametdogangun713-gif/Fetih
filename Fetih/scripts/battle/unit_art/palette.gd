@@ -85,3 +85,20 @@ static func quantize(img: Image, keep := SpritePainter.OUTLINE) -> void:
 			if c.a == 0.0 or c.is_equal_approx(keep):
 				continue
 			img.set_pixel(x, y, nearest(c))
+
+
+## Palet dışı (opak) piksel sayısı: araçlar indirgemeden sonra doğrulamak için kullanır.
+## keep: istisna renk (kontur).
+static func off_palette_count(img: Image, keep := SpritePainter.OUTLINE) -> int:
+	var lookup := {}
+	for p in colors():
+		lookup[Color(p.r, p.g, p.b)] = true
+	var count := 0
+	for y in img.get_height():
+		for x in img.get_width():
+			var c := img.get_pixel(x, y)
+			if c.a == 0.0 or c.is_equal_approx(keep):
+				continue
+			if not lookup.has(Color(c.r, c.g, c.b)):
+				count += 1
+	return count
