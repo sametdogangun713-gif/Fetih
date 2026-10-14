@@ -20,16 +20,16 @@ msgid "Süre: %.1f sn"
 msgstr "Time: %.1f s"
 
 #: scripts/battle/battle_controller.gd
-msgid "Savaş %d / %d  -  Rakip: %s"
-msgstr "Battle %d / %d  -  Enemy: %s"
+msgid "Savaş %d / %d  ·  Rakip: %s"
+msgstr "Battle %d / %d  ·  Opponent: %s"
 
 #: scripts/battle/battle_controller.gd
-msgid "  -  BÜYÜK FETİH"
-msgstr "  -  GRAND CONQUEST"
+msgid "  ·  BÜYÜK FETİH"
+msgstr "  ·  GRAND CONQUEST"
 
 #: scripts/battle/battle_controller.gd
-msgid "  -  BOSS: %s"
-msgstr "  -  BOSS: %s"
+msgid "  ·  BOSS: %s"
+msgstr "  ·  BOSS: %s"
 
 #: scripts/battle/battle_controller.gd
 msgid "ZAFER! (%d asker hayatta)"
@@ -835,10 +835,6 @@ msgstr "Like the Wind"
 msgid "Bütün bölükler %30 daha hızlı yürür."
 msgstr "All squads move 30% faster."
 
-#: data/passives/elf_forest_step.tres
-msgid "Bütün bölükler %5 daha hızlı yürür."
-msgstr "All squads move 5% faster."
-
 #: data/passives/demon_hellfire.tres
 msgid "Cehennem Ateşi"
 msgstr "Hellfire"
@@ -890,6 +886,10 @@ msgstr "Front-line squads take 23% less damage."
 #: data/passives/elf_forest_step.tres
 msgid "Orman Adımı"
 msgstr "Forest Step"
+
+#: data/passives/elf_forest_step.tres
+msgid "Bütün bölükler %5 daha hızlı yürür."
+msgstr "All squads move 5% faster."
 
 #: data/passives/elf_keen_arrows.tres
 msgid "Keskin Oklar"
