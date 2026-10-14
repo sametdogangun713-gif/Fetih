@@ -3,8 +3,7 @@ class_name SquadBuilder
 ## Birlik verisinin bir kopyası değiştirilir; asıl .tres dosyasına dokunulmaz.
 
 
-static func build(squad: ArmySquad, team: SquadState.Team, passives: Array[PassiveData],
-		grid_size: Vector2i) -> SquadState:
+static func build(squad: ArmySquad, team: SquadState.Team, passives: Array[PassiveData]) -> SquadState:
 	var unit: UnitData = squad.unit.duplicate()
 	var attack := Balance.level_multiplier(squad.attack_level)
 	var defense := Balance.level_multiplier(squad.defense_level)
@@ -13,7 +12,7 @@ static func build(squad: ArmySquad, team: SquadState.Team, passives: Array[Passi
 	var toughness := defense * defense
 
 	for passive in passives:
-		if not passive.applies_to(squad, grid_size):
+		if not passive.applies_to(squad, Balance.GRID_SIZE):
 			continue
 		if passive.stat == PassiveData.TOUGHNESS:
 			toughness *= passive.amount
@@ -22,7 +21,7 @@ static func build(squad: ArmySquad, team: SquadState.Team, passives: Array[Passi
 			unit.set(passive.stat, value * passive.amount if passive.is_multiplier else value + passive.amount)
 
 	var state := SquadState.new(unit, team, squad.count,
-			Formation.grid_to_field(squad.cell, grid_size, team))
+			Formation.deploy_to_field(squad.pos, team))
 	state.toughness = toughness
 	state.level = squad.level()
 	return state

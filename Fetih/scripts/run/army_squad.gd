@@ -8,7 +8,7 @@ enum Upgrade { ATTACK, DEFENSE, REINFORCE }
 
 var unit: UnitData
 var base_power: float  ## Taban bütçe (normalde 100). Asker sayısı buradan hesaplanır.
-var cell: Vector2i  ## Ordu ızgarasındaki yeri. y = 0 ön cephedir.
+var pos: Vector2  ## Bölge koordinatı (Formation): x cephe boyunca, y derinlik (0 = ön).
 var attack_level := 0
 var defense_level := 0
 var reinforce_level := 0
@@ -20,10 +20,10 @@ var count: int:
 		return UnitCatalog.count_for_budget(unit, base_power * Balance.level_multiplier(reinforce_level))
 
 
-func _init(p_unit: UnitData, p_base_power: float, p_cell: Vector2i) -> void:
+func _init(p_unit: UnitData, p_base_power: float, p_pos := Vector2.ZERO) -> void:
 	unit = p_unit
 	base_power = p_base_power
-	cell = p_cell
+	pos = p_pos
 
 
 ## 1 (taban) ile Balance.MAX_LEVEL arası.

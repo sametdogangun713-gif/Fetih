@@ -25,7 +25,7 @@ func applies_to(squad: ArmySquad, grid_size: Vector2i) -> bool:
 		return false
 	match row:
 		Row.FRONT:
-			return squad.cell.y == 0
+			return squad.pos.y < 0.5  # geçici: Task 5'te derinlik bandına geçer
 		Row.BACK:
-			return squad.cell.y == grid_size.y - 1
+			return squad.pos.y >= grid_size.y - 1.5
 	return true

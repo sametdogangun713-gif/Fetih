@@ -149,7 +149,7 @@ func _crowded_army(run: Node) -> void:
 		return UnitCatalog.count_for_budget(a, Balance.SQUAD_BUDGET) > UnitCatalog.count_for_budget(b, Balance.SQUAD_BUDGET))
 	run.army.clear()
 	for i in Balance.MAX_SQUADS:
-		var squad := ArmySquad.new(units[i], Balance.SQUAD_BUDGET, ArmyGenerator.NO_CELL)
+		var squad := ArmySquad.new(units[i], Balance.SQUAD_BUDGET)
 		for k in Balance.MAX_LEVEL - 1:
 			squad.upgrade(ArmySquad.Upgrade.REINFORCE)
 		run.army.append(squad)

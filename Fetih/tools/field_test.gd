@@ -17,6 +17,7 @@ func _initialize() -> void:
 	test_ground()
 	test_buildings()
 	test_layout()
+	test_formation()
 	print("Hata: %d" % failures)
 	quit(1 if failures > 0 else 0)
 
@@ -104,3 +105,39 @@ func test_layout() -> void:
 	check("48 asker 16 px figür çakışmasız (%.1f px)" % min16, min16 >= 16 * 0.7 - 0.5)
 	var one := SquadView.layout(1, 48)
 	check("boss tek yer", one.size() == 1 and one[0] == Vector2.ZERO)
+
+
+## Eski formül (değişiklik öncesi grid_to_field): yeni dönüşüm bununla birebir aynı olmalı.
+func old_grid_to_field(cell: Vector2i, gs: Vector2i, enemy: bool) -> Vector2:
+	var x := (Battlefield.FIELD_WIDTH - 1) / 2.0 + (cell.x - (gs.x - 1) / 2.0) * 1.6
+	var y := float(Battlefield.FIELD_DEPTH - Battlefield.DEPLOY_ROWS) + cell.y * 1.0
+	if enemy:
+		y = (Battlefield.FIELD_DEPTH - 1) - y
+	return Vector2(x, y)
+
+
+func test_formation() -> void:
+	var gs := Vector2i(3, 3)
+	for y in 3:
+		for x in 3:
+			var c := Vector2i(x, y)
+			var d := Formation.cell_to_deploy(c, gs)
+			check("oyuncu %s" % c, Formation.deploy_to_field(d, SquadState.Team.PLAYER).is_equal_approx(old_grid_to_field(c, gs, false)))
+			check("rakip %s" % c, Formation.deploy_to_field(d, SquadState.Team.ENEMY).is_equal_approx(old_grid_to_field(c, gs, true)))
+	var others: Array[Vector2] = [Vector2(4.5, 1.0)]
+	var free := Formation.nearest_free(Vector2(4.6, 1.1), others)
+	check("dolu yerden kaydı", free.distance_to(others[0]) >= Formation.MIN_GAP - 0.001)
+	check("bölgede kaldı", free == Formation.clamp_deploy(free))
+	# Review Focus 2: beş bölük üst üste bırakılsa da hiçbiri MIN_GAP'ten yakın değil.
+	var placed: Array[Vector2] = []
+	for i in 5:
+		placed.append(Formation.nearest_free(Vector2(4.5, 1.0), placed))
+	var ok := true
+	for i in placed.size():
+		for j in range(i + 1, placed.size()):
+			ok = ok and placed[i].distance_to(placed[j]) >= Formation.MIN_GAP - 0.001
+	check("5 bölük ayrık", ok)
+	# Review Focus 1: bölge dışı bırakma kenetlenir.
+	check("kenet ön", Formation.clamp_deploy(Vector2(4, -3)).y == 0.0)
+	check("kenet arka", is_equal_approx(Formation.clamp_deploy(Vector2(4, 9)).y, Formation.DEPLOY_DEPTH))
+	check("kenet yan", Formation.clamp_deploy(Vector2(-5, 1)).x == 0.0)
