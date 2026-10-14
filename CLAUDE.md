@@ -25,7 +25,9 @@
 - Ekransız test: `godot --headless --path Fetih -s <script>`; ekran görüntüsü: `--write-movie out.png --quit-after N`.
 - Denge testi: `powershell -ExecutionPolicy Bypass -File Fetih\tools\run_balance_test.ps1` — birlik değeri değişince çalıştır.
 - Koşu zorluğu: `godot --headless --path Fetih -s res://tools/run_test.gd` (botlarla fetih oranı). Yükseltme eşitliği: `res://tools/upgrade_test.gd`. Boss gücü: `res://tools/boss_test.gd`.
-- Görsel: sprite sayfası 4 kare (durma, yürüme A, yürüme B, saldırı), figür sağa bakar. `UnitData.sprite_sheet` boşsa `UnitSprites` role göre koddan üretir. Efektler `BattleFx` (sadece görüntü; simülasyona dokunmaz). Önizleme: `res://tools/sprite_preview.gd -- out.png`.
+- Görsel: sprite sayfası 4 satır (durma, yürüme, saldırı, ölüm), kare biçimli kareler, figür sağa bakar. `assets/sprites/units/<id>.png` varsa o, yoksa `UnitSprites` role göre koddan üretir. Efektler `BattleFx` (sadece görüntü; simülasyona dokunmaz). Önizleme: `res://tools/sprite_preview.gd -- out.png`.
+- Hazır sprite'lar: CC0 paketler `kaynak_assetler/` (Godot dışı, lisanslar `LISANSLAR.md`). `res://tools/import_sprites.gd` `SPECS` tablosuna göre `assets/sprites/units/` sayfalarını üretir, sonra `godot --headless --path Fetih --import`. Atlılar, toplar, golemler, kentaurlar koddan üretiliyor.
+- Savaş kamerası otomatik takip eder (`BattleCamera.follow`, sadece 0.5/1/2 yakınlık); elle kontrol takibi kapatır, F açar. `BattleController.PLAYBACK` x1 hızını yavaşlatır (sadece gösterim).
 - Ayarlar: `Settings` autoload (`scripts/meta/settings.gd`, `user://settings.cfg`, ConfigFile). İlerlemeden ayrı. Testler `settings_path`'i değiştirir; oyuncunun gerçek ayar dosyasına yazma.
 - Çeviri: kaynak dil Türkçe (msgid), İngilizce `Fetih/i18n/en.po`. Yeni metin ekleyince: `res://tools/update_translations.gd` çalıştır, listelenen çevrilmemiş msgstr'leri doldur. Veri adları (`display_name`, `description`) gösterilirken `tr()` ile sarılır. Yedek dil `tr` (yoksa Türkçe oyuncu İngilizce görür).
 - Pencereler: `Overlay` (karartma + panel), `SettingsPanel.open()`, `PauseMenu` (ekran kendine ekler), `Tips.show_once()` (görülenler Profile'da).

@@ -58,12 +58,15 @@ static func sheet_for(unit: UnitData) -> Sheet:
 	return _cache[unit.id]
 
 
-## Arayüzde (kartlar, ordu kutuları) kullanılacak tek kare: birliğin durma hali.
+## Arayüzde (kartlar, ordu kutuları) kullanılacak tek kare: birliğin durma hali, figürün dolu
+## kısmına kırpılmış (kare boyutu sayfadan sayfaya değişir: 24, 32, 64...).
 static func icon(unit: UnitData) -> Texture2D:
 	var sheet := sheet_for(unit)
+	var region := Rect2i(sheet.region(Anim.IDLE, 0))
+	var used := sheet.texture.get_image().get_region(region).get_used_rect()
 	var atlas := AtlasTexture.new()
 	atlas.atlas = sheet.texture
-	atlas.region = sheet.region(Anim.IDLE, 0)
+	atlas.region = Rect2(region.position + used.position, used.size) if used.has_area() else Rect2(region)
 	return atlas
 
 

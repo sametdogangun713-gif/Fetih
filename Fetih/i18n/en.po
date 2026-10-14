@@ -528,8 +528,8 @@ msgid "Savaş kendi kendine oynar. Sağ üstten hızlandırabilirsin."
 msgstr "The battle plays itself. Speed it up with the buttons at the top right."
 
 #: scripts/ui/tips.gd
-msgid "Kamera: WASD ya da sağ tuşla sürükle; fare tekerleği yakınlaştırır."
-msgstr "Camera: WASD or drag with the right mouse button; the mouse wheel zooms."
+msgid "Kamera savaşı kendisi takip eder. WASD, sağ tuşla sürükleme ya da fare tekerleği elle kontrol eder; F otomatik takibe döner."
+msgstr "The camera follows the battle on its own. WASD, right-drag or the mouse wheel take manual control; F returns to auto-follow."
 
 #: scripts/ui/tips.gd
 msgid "Esc: duraklat ve ayarlar."

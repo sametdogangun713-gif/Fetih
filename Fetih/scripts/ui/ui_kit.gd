@@ -79,10 +79,14 @@ static func click_sound() -> void:
 
 
 ## Birliğin sprite'ı (durma karesi), piksel sanat bozulmasın diye tam sayı katıyla büyütülür.
+## scale, 24 piksellik bir figürün katıdır: küçük figür daha çok, büyük figür daha az büyür,
+## böylece ikonlar aşağı yukarı aynı kutuya sığar.
 static func unit_icon(unit: UnitData, scale := 2) -> TextureRect:
 	var icon := TextureRect.new()
 	icon.texture = UnitSprites.icon(unit)
-	icon.custom_minimum_size = icon.texture.get_size() * scale
+	var size := icon.texture.get_size()
+	var fit := maxi(1, floori(24.0 * scale / maxf(size.x, size.y)))
+	icon.custom_minimum_size = size * fit
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE

@@ -7,7 +7,7 @@ extends SceneTree
 ##   Geç oyun: -- run <krallık sırası> <savaş sayısı> [hız]  (koşu o kadar savaş botla oynanır,
 ##     sonra sıradaki savaş açılır; bot alınabilen ilk kartı alır)
 ##   Başka ekran: -- scene res://scenes/run/prep.tscn [settings|pause]  (kayıt ayrı dosyaya)
-##   Yakın kamera: herhangi bir yerde "zoom".
+##   Yakın kamera: herhangi bir yerde "zoom" (sabit 2x, otomatik takip kapalı).
 ##   İpuçsuz: herhangi bir yerde "notips" (ekran görüntüleri için).
 ##   İngilizce: en baştaki argüman "en" olursa dil İngilizce olur (ayar dosyasına yazılmaz).
 
@@ -76,7 +76,8 @@ func _initialize() -> void:
 	else:
 		battle._test_seed = int(args[0]) if args.size() > 0 else 1
 	root.add_child(battle)
-	if zoom:
+	if zoom:  # sabit 2x yakın kamera: otomatik takip kapanır
+		battle.battlefield.camera.auto_follow = false
 		battle.battlefield.camera._set_zoom_index(2)
 	if args.size() > speed_arg:
 		battle._set_speed(int(args[speed_arg]))

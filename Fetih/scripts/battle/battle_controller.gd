@@ -7,6 +7,12 @@ extends Node2D
 ##   R: aynı savaşı tekrar. N: yeni seed ve yeni eşleşme.
 
 const SPEEDS: Array[int] = [1, 2, 4]
+## x1 hızında simülasyonun gerçek zamana oranı. Savaş gözle takip edilebilsin diye 1'in altında
+## (ortanca savaş ~12 sn simülasyon zamanı, x1'de ~17 sn sürer).
+const PLAYBACK := 0.7
+## Kamera kutusunda bir bölüğün kapladığı alan: yarı genişlik ve ayaktan yukarı yükseklik (piksel).
+## Formasyon ~1 karo yayılır; sancak ve sayı askerlerin üstünde.
+const SQUAD_FRAME_PAD := Vector2(40, 48)
 const TEST_SQUAD_BUDGET := 100.0
 const TEST_PLAYER_SLOTS: Array[Vector2] = [Vector2(3, 13), Vector2(6, 13)]
 const TEST_ENEMY_SLOTS: Array[Vector2] = [Vector2(3, 2), Vector2(6, 2)]
@@ -53,14 +59,17 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	# Simülasyon kare hızından bağımsız: biriken süre kadar sabit adım atılır.
-	_accumulator += delta * _speed
+	# PLAYBACK sadece gösterimi yavaşlatır: adımlar ve sonuç aynı kalır (deterministik).
+	var sim_delta := delta * _speed * PLAYBACK
+	_accumulator += sim_delta
 	while _accumulator >= BattleSimulation.TICK:
 		simulation.step()
 		_accumulator -= BattleSimulation.TICK
 	var alpha := _accumulator / BattleSimulation.TICK
 	for view: SquadView in _views.values():
-		view.update_visual(alpha, delta * _speed)
-	battlefield.fx.advance(delta * _speed)
+		view.update_visual(alpha, sim_delta)
+	battlefield.fx.advance(sim_delta)
+	battlefield.camera.follow(_squads_rect(), delta)  # gerçek süre: x4'te kamera telaşlanmasın
 	if RunState.active:
 		info_label.text = tr("Süre: %.1f sn") % simulation.elapsed
 	else:
@@ -107,6 +116,7 @@ func _start_battle() -> void:
 		_setup_run_battle()
 	else:
 		_setup_test_battle()
+	battlefield.camera.follow(_squads_rect(), 0.0, true)
 	_start_music()
 
 
@@ -160,6 +170,22 @@ func _add_squad(unit: UnitData, count: int, team: SquadState.Team, at: Vector2) 
 func _add_state(squad: SquadState) -> void:
 	simulation.add_squad(squad)
 	_add_view(squad)
+
+
+## Yaşayan bütün bölükleri (askerler, sancak, sayı dahil) kapsayan kutu: kamera bunu takip eder.
+func _squads_rect() -> Rect2:
+	var rect := Rect2()
+	var first := true
+	for squad: SquadState in _views:
+		if not squad.is_alive():
+			continue
+		var view: SquadView = _views[squad]
+		var half := maxf(SQUAD_FRAME_PAD.x, view.sheet.frame_size.x)
+		var top := maxf(SQUAD_FRAME_PAD.y, view.sheet.frame_size.y + 16.0)
+		var box := Rect2(view.position + Vector2(-half, -top), Vector2(half * 2.0, top + 16.0))
+		rect = box if first else rect.merge(box)
+		first = false
+	return rect
 
 
 func _add_view(squad: SquadState) -> void:

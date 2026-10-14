@@ -234,6 +234,10 @@ Yerel hazırlık (kod tarafı):
 - [x] Her askerin ayağında takım renginde gölge (aynı birlikle savaşan iki ordu ayırt edilir)
 - [x] Sancak sayısı ve boss adı konturlu (kalabalıkta okunur)
 - [x] Hata: sola bakan askerler, cesetler ve boss bir kare genişliği sağa çiziliyordu (negatif genişlikli `Rect2`); çevirme artık `draw_set_transform` ölçeğiyle
+- [x] Ücretsiz CC0 sprite'lar: Puny Characters + PunyMonsters (Shade), DungeonTileset II (0x72); `kaynak_assetler/`, `tools/import_sprites.gd` ile 34 sayfa (29 birlik + 5 boss)
+- [ ] Atlılar, toplar, golemler, kentaurlar için uygun ücretsiz sprite yok: koddan üretiliyor (çizim veya ücretli paket)
+- [x] Savaş kamerası otomatik takip: bütün bölükler kadrajda, sığınca 2x yakınlaşır; F ile takibe dönülür
+- [x] Savaş gösterimi x1'de %70 hız (simülasyon ve sonuç aynı)
 
 **Gerçekçi toplam süre:** Godot'u yeni öğrenen biri için **8-12 ay** (haftada 15-20 saat).
 

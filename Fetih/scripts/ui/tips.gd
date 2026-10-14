@@ -60,7 +60,7 @@ static func _lines(id: String) -> PackedStringArray:
 		BATTLE:
 			return [
 				UiKit.t("Savaş kendi kendine oynar. Sağ üstten hızlandırabilirsin."),
-				UiKit.t("Kamera: WASD ya da sağ tuşla sürükle; fare tekerleği yakınlaştırır."),
+				UiKit.t("Kamera savaşı kendisi takip eder. WASD, sağ tuşla sürükleme ya da fare tekerleği elle kontrol eder; F otomatik takibe döner."),
 				UiKit.t("Esc: duraklat ve ayarlar."),
 			]
 		CARDS:
