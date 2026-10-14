@@ -76,6 +76,20 @@ func set_camps(player_kingdom: KingdomData, enemy_kingdom: KingdomData) -> void:
 		_camps.append_array(KingdomCamp.build(units, enemy_kingdom, SquadState.Team.ENEMY))
 
 
+## Kamp yapılarının dünya kutusu (iki kampın sprite'ları birleşik). Kamp yoksa boş Rect2.
+## Godot: Sprite2D.offset ve texture boyutu sprite'ın kutusunu verir (centered kapalı).
+func camps_rect() -> Rect2:
+	var rect := Rect2()
+	var first := true
+	for sprite in _camps:
+		if sprite.texture == null:
+			continue
+		var box := Rect2(sprite.position + sprite.offset, sprite.texture.get_size())
+		rect = box if first else rect.merge(box)
+		first = false
+	return rect
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		print("Tıklanan nokta: ", mouse_field())

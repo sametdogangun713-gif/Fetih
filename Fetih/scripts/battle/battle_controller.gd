@@ -140,7 +140,15 @@ func _start_battle() -> void:
 		_setup_run_battle()
 	else:
 		_setup_test_battle()
-	battlefield.camera.follow(_squads_rect(), 0.0, true)
+	# İlk çerçeve: iki ordu ve iki kampın yapıları; alt bilgi şeridi oyuncu kampını örtmesin diye
+	# kutunun altına şerit yüksekliği kadar pay. Savaş içi takip (_process) sadece bölükleri izler.
+	var first_frame := _squads_rect()
+	var camps := battlefield.camps_rect()
+	if camps.has_area():
+		first_frame = first_frame.merge(camps)
+	# Şerit ekran pikselidir; en uzak yakınlıkta (kutu en küçük görünür) dünya birimine çevrilir.
+	first_frame.size.y += (360.0 - INFO_STRIP_TOP) / BattleCamera.ZOOM_LEVELS[0]
+	battlefield.camera.follow(first_frame, 0.0, true)
 	_start_music()
 
 

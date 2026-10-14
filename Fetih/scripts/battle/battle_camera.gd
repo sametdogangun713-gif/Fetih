@@ -3,7 +3,7 @@ extends Camera2D
 ## Savaş alanı kamerası.
 ## Otomatik takip (varsayılan): follow() her karede yaşayan bölükleri kapsayan kutuyu alır;
 ## kamera kutunun ortasına kayar ve hepsi sığdığı sürece en yakın seviyeye geçer. Savaş başında
-## (instant) kutu yerine bütün alan (bounds) sığdırılır: iki ordu ve kenarlar tek bakışta görünür.
+## (instant) çağıran iki ordu + kamp yapılarını kapsayan kutu verir: hepsi tek bakışta görünür.
 ## Savaşta takip sadece kutu ekranın yarısından küçükse yakınlaşır ve en çok AUTO_MAX_ZOOM'a çıkar
 ## (2x sadece elle).
 ## WASD / ok tuşları: kaydır. Sağ veya orta tuşla sürükle: kaydır. Fare tekerleği: yakınlaştır.
@@ -13,7 +13,8 @@ extends Camera2D
 const PAN_SPEED := 320.0  ## Saniyede kaç ekran pikseli kayar.
 ## Yakınlık seviyeleri. Oyun pencere çözünürlüğünde çizildiği için (canvas_items, 3x pencerede
 ## 1920x1080) ara değerler de temiz görünür; piksel sanat birlikler ekranda 3 x yakınlık katı büyür.
-const ZOOM_LEVELS: Array[float] = [0.75, 1.0, 1.5, 2.0]
+## 2/3: savaş başı çerçevesi (iki kamp + iki ordu) 640x360'a sığsın; 3x pencerede tam 2x piksel.
+const ZOOM_LEVELS: Array[float] = [0.6667, 0.75, 1.0, 1.5, 2.0]
 const AUTO_MAX_ZOOM := 1.5  ## Otomatik takibin çıkabileceği en yakın seviye.
 const SHAKE_DECAY := 18.0  ## Sarsıntı gücü saniyede bu kadar piksel azalır.
 const MAX_SHAKE := 8.0
@@ -67,8 +68,6 @@ func follow(rect: Rect2, delta: float, instant := false) -> void:
 	if not auto_follow or not rect.has_area():
 		return
 	var screen := get_viewport_rect().size
-	if instant and bounds.has_area():
-		rect = bounds  # savaş başı: bütün alan (yapılar dahil) sığsın
 	var current := ZOOM_LEVELS[_zoom_index]
 	var best := ZOOM_LEVELS[0]
 	for level in ZOOM_LEVELS:

@@ -16,6 +16,7 @@ func _initialize() -> void:
 	test_mirror()
 	test_ground()
 	test_buildings()
+	test_layout()
 	print("Hata: %d" % failures)
 	quit(1 if failures > 0 else 0)
 
@@ -78,3 +79,28 @@ func test_buildings() -> void:
 	var enemy := KingdomCamp.build(holder, humans, SquadState.Team.ENEMY)
 	check("rakip kamp ekranda yukarıda", enemy[0].position.y < a[0].position.y)
 	holder.queue_free()
+
+
+func test_layout() -> void:
+	for n in [1, 5, 12, 25, 48]:
+		var slots := SquadView.layout(n, 12)
+		var min_px := INF
+		for i in slots.size():
+			for j in range(i + 1, slots.size()):
+				var d := Battlefield.field_offset_to_world(slots[i] - slots[j]).length()
+				min_px = minf(min_px, d)
+		check("%d asker çakışmasız (%.1f px)" % [n, min_px], n == 1 or min_px >= 12 * 0.7 - 0.5)
+		var span := 0.0
+		for s in slots:
+			span = maxf(span, s.length())
+		var cap := maxf(1.6, 0.9 + 0.015 * n)
+		check("%d asker %.2f karo içinde (%.2f)" % [n, cap, span], span <= cap)
+	# Gerçek figür boyu (16 px) ve boss yolu (tek figür).
+	var mini := SquadView.layout(48, 16)
+	var min16 := INF
+	for i in mini.size():
+		for j in range(i + 1, mini.size()):
+			min16 = minf(min16, Battlefield.field_offset_to_world(mini[i] - mini[j]).length())
+	check("48 asker 16 px figür çakışmasız (%.1f px)" % min16, min16 >= 16 * 0.7 - 0.5)
+	var one := SquadView.layout(1, 48)
+	check("boss tek yer", one.size() == 1 and one[0] == Vector2.ZERO)
