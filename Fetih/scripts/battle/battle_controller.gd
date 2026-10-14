@@ -30,6 +30,9 @@ var _accumulator := 0.0
 var _speed := 1
 var _test_seed := 1
 var _pause_menu: PauseMenu
+## Vuruş duraksaması (hit-stop): boss düşünce gösterim bir anlığına donar. Sadece gösterim
+## bekler; simülasyon adımları ve sonuç aynı kalır (biriken süre bu sırada artmaz).
+var _hitstop := 0.0
 
 
 func _ready() -> void:
@@ -61,6 +64,9 @@ func _process(delta: float) -> void:
 	# Simülasyon kare hızından bağımsız: biriken süre kadar sabit adım atılır.
 	# PLAYBACK sadece gösterimi yavaşlatır: adımlar ve sonuç aynı kalır (deterministik).
 	var sim_delta := delta * _speed * PLAYBACK
+	if _hitstop > 0.0:
+		_hitstop -= delta
+		sim_delta = 0.0
 	_accumulator += sim_delta
 	while _accumulator >= BattleSimulation.TICK:
 		simulation.step()
@@ -99,6 +105,7 @@ func _start_battle() -> void:
 	_views.clear()
 	battlefield.fx.clear()
 	_accumulator = 0.0
+	_hitstop = 0.0
 	result_label.text = ""
 	continue_button.visible = false
 	if simulation:
@@ -109,7 +116,7 @@ func _start_battle() -> void:
 	simulation.squad_attacked.connect(_on_squad_attacked)
 	simulation.battle_finished.connect(_on_battle_finished)
 	simulation.squad_spawned.connect(_on_squad_spawned)  # bölünen slime'ların yeni bölükleri
-	simulation.squad_destroyed.connect(func(squad: SquadState) -> void: battlefield.fx.squad_down(_views[squad]))
+	simulation.squad_destroyed.connect(_on_squad_destroyed)
 	simulation.squad_revived.connect(func(squad: SquadState) -> void: battlefield.fx.revive(_views[squad]))
 
 	if RunState.active:
@@ -216,12 +223,19 @@ func _set_speed(value: int) -> void:
 ## Uzak birlik yakına yakalanmadıysa mermi fırlatır; yoksa yakın dövüş vuruşu.
 func _on_squad_attacked(attacker: SquadState, target: SquadState) -> void:
 	var attacker_view: SquadView = _views[attacker]
-	attacker_view.play_attack()
 	var gap := attacker.position.distance_to(target.position) - 2.0 * BattleSimulation.SQUAD_RADIUS
 	if attacker.unit.is_ranged() and gap > BattleSimulation.MELEE_GAP:
+		attacker_view.play_attack(false)
 		battlefield.fx.launch(attacker_view, _views[target])
 	else:
+		attacker_view.play_attack(true)
 		battlefield.fx.melee_hit(attacker_view, _views[target])
+
+
+func _on_squad_destroyed(squad: SquadState) -> void:
+	battlefield.fx.squad_down(_views[squad])
+	if squad.unit.is_boss:
+		_hitstop = 0.25
 
 
 func _on_squad_spawned(squad: SquadState) -> void:

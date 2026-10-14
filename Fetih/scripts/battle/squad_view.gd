@@ -22,6 +22,11 @@ const ATTACK_ANIM_TIME := 0.2  ## Saldırı karesinin ekranda kalma süresi.
 const WALK_FPS := 7.0  ## Yürüme animasyonunda saniyede kare değişimi.
 ## Askerler aynı anda saldırmasın: üç gruba ayrılır, her grup bir öncekinden bu kadar geç vurur.
 const ATTACK_STAGGER := 0.04
+## Yakın dövüşte asker saldırı karesinde baktığı yöne bu kadar piksel atılır (sonra geri döner).
+## Uzak saldırıda (ok, büyü) geri tepme: ters yöne RECOIL_PX. Hep tam piksel: piksel sanat kaymaz.
+const LUNGE_PX := 2.0
+const HEAVY_LUNGE_PX := 3.0  ## Atlılar ve boss daha uzun atılır.
+const RECOIL_PX := 1.0
 const TEAM_COLORS := {
 	SquadState.Team.PLAYER: Color("3d6fd1"),
 	SquadState.Team.ENEMY: Color("c8443a"),
@@ -42,12 +47,18 @@ var _flash := 0.0
 var _attack_time := 0.0  ## Son saldırıdan beri geçen süre.
 var _anim_time := 0.0
 var _moving := false
+var _facing_dir := Vector2.RIGHT  ## Ekranda baktığı yön (birim vektör): atılma ve geri tepme yönü.
+var _melee_attack := true  ## Son saldırı yakın dövüş müydü (atılma) yoksa atış mı (geri tepme).
 ## Sadece görsel rastgelelik (hangi askerin düşeceği). Simülasyonun sonucunu etkilemez.
 var _visual_rng := RandomNumberGenerator.new()
 var _material := ShaderMaterial.new()
 var _under := Node2D.new()  ## Gölgeler: show_behind_parent ile askerlerin arkasında çizilir.
 var _over := Node2D.new()  ## Sancak, sayı, boss can çubuğu: askerlerin üstünde, flaşsız.
 var _settings: Node
+## Gölge ve sancak katmanları sadece içerikleri değişince yeniden çizilir (performans):
+## konum değişimi için yeniden çizim gerekmez, düğümün dönüşümü kaydırır.
+var _under_key := Vector3.ZERO  ## (yön x, yön y, asker sayısı)
+var _over_key := -1
 
 
 func setup(p_squad: SquadState) -> void:
@@ -55,7 +66,6 @@ func setup(p_squad: SquadState) -> void:
 	sheet = UnitSprites.sheet_for(squad.unit)
 	_attack_time = ATTACK_ANIM_TIME * 2.0
 	_material.shader = HIT_FLASH_SHADER
-	material = _material
 	_under.show_behind_parent = true
 	_under.draw.connect(_draw_under)
 	_over.draw.connect(_draw_over)
@@ -80,6 +90,8 @@ func update_visual(alpha: float, delta: float) -> void:
 	var world_facing := Battlefield.field_offset_to_world(squad.facing)
 	if absf(world_facing.x) > 0.01:
 		flip = world_facing.x < 0.0
+	if world_facing.length_squared() > 0.0001:
+		_facing_dir = world_facing.normalized()
 	_update_offsets()
 	var alive := mini(squad.alive_count(), _slots.size())
 	while _alive_slots.size() > alive:
@@ -95,9 +107,15 @@ func update_visual(alpha: float, delta: float) -> void:
 	_anim_time += delta
 	visible = squad.is_alive()
 	_update_flash()
-	queue_redraw()
-	_under.queue_redraw()
-	_over.queue_redraw()
+	queue_redraw()  # askerler: animasyon kareleri her karede değişir
+	var under_key := Vector3(squad.facing.x, squad.facing.y, _alive_slots.size())
+	if under_key != _under_key:
+		_under_key = under_key
+		_under.queue_redraw()
+	var over_key := roundi(squad.hp_pool / squad.max_hp * 100.0) if squad.unit.is_boss 			else squad.alive_count()
+	if over_key != _over_key:
+		_over_key = over_key
+		_over.queue_redraw()
 
 
 func flash() -> void:
@@ -106,8 +124,13 @@ func flash() -> void:
 
 ## Shader'a flaş gücünü ver: vuruş anında tam beyaz, sonra hızla söner (ease-out).
 ## Shader parametresi her karede değişebilir; bölük başına ayrı material olduğu için
-## bir bölüğün flaşı diğerlerini etkilemez.
+## bir bölüğün flaşı diğerlerini etkilemez. Flaş yokken material kaldırılır: özel shader'lı
+## CanvasItem'lar toplu çizimi (batching) böler, bu yüzden sadece vuruş anında takılır.
 func _update_flash() -> void:
+	if _flash <= 0.0:
+		material = null
+		return
+	material = _material
 	var t := _flash / HIT_FLASH_TIME  # 1 -> 0
 	var amount := t * t * (3.0 - 2.0 * t)  # smoothstep: başta ve sonda yumuşak
 	if _settings == null and is_inside_tree():  # setup() ağaca eklenmeden de çağırır
@@ -120,9 +143,11 @@ func _update_flash() -> void:
 	_material.set_shader_parameter(&"flash", amount)
 
 
-## Bölük saldırdı: askerler saldırı karesine geçer.
-func play_attack() -> void:
+## Bölük saldırdı: askerler saldırı karesine geçer. melee: yakın dövüşte ileri atılır,
+## atışta (ok, büyü, gülle) hafifçe geri teper.
+func play_attack(melee := true) -> void:
 	_attack_time = 0.0
+	_melee_attack = melee
 
 
 ## Hayattaki bir askerin konumu (ebeveyn koordinatında). Mermiler buradan çıkar / buraya iner.
@@ -208,9 +233,17 @@ func _draw_soldier(at: Vector2, slot: int) -> void:
 	# Her asker farklı evrede: hepsi aynı anda adım atmasın.
 	var frame := int(_anim_time * 2.0 + slot * 0.37) % sheet.count(anim)
 	var since_attack := _attack_time - (slot % 3) * ATTACK_STAGGER
+	var push := 0.0  # baktığı yöne kayma (piksel); eksi = geri
 	if since_attack >= 0.0 and since_attack < ATTACK_ANIM_TIME:
 		anim = UnitSprites.Anim.ATTACK
 		frame = int(since_attack / ATTACK_ANIM_TIME * sheet.count(anim))
+		# sin(0..PI): hızla öne çık, aynı yoldan geri dön. Squash-stretch yerine konum
+		# kullanılır: ölçek değişse pikseller eşitsiz büyür (piksel sanat bozulur).
+		var k := sin(since_attack / ATTACK_ANIM_TIME * PI)
+		if _melee_attack:
+			push = k * (HEAVY_LUNGE_PX if _is_heavy() else LUNGE_PX)
+		else:
+			push = -k * RECOIL_PX
 	elif _moving:
 		anim = UnitSprites.Anim.WALK
 		frame = int(_anim_time * WALK_FPS + slot * 0.5) % sheet.count(anim)
@@ -218,6 +251,9 @@ func _draw_soldier(at: Vector2, slot: int) -> void:
 	var dest := Rect2(Vector2(-size.x / 2.0, 1.0 - size.y), size)
 	# Yatay çevirme: çizim dönüşümü x'te -1 ölçeklenir, ayak ortası yerinde kalır (Sprite2D'nin
 	# flip_h'si gibi). Negatif genişlikli Rect2 kareyi bir genişlik sağa kaydırıyordu.
+	# Vurulunca bir piksel geri sarsılır (flaşla aynı anda).
+	push -= _flash / HIT_FLASH_TIME * RECOIL_PX
+	at += (_facing_dir * push).round()
 	draw_set_transform(at, 0.0, Vector2(-1.0 if flip else 1.0, 1.0))
 	var source := sheet.region(anim, frame)
 	draw_texture_rect_region(sheet.texture, dest, source)  # flaşı hit_flash shader'ı boyar
@@ -229,6 +265,10 @@ func _draw_soldier(at: Vector2, slot: int) -> void:
 		draw_rect(Rect2(top + Vector2(spark + 1, -3), Vector2(1, 1)), Color("ffe080"))
 	elif squad.slow_time > 0.0:  # yavaşlatılmış bölük: ayakta çamur
 		draw_rect(Rect2(at + Vector2(-3, -1), Vector2(6, 2)), Color("6a5a2a"))
+
+
+func _is_heavy() -> bool:
+	return squad.unit.is_boss or squad.unit.role == RoleRules.CAVALRY
 
 
 ## Boss tek asker olduğu için sayı yerine can çubuğu ve adı.

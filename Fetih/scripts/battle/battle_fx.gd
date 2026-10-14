@@ -54,6 +54,16 @@ class Corpse:
 	var time := 0.0
 
 
+## Vuruş yıldızı: isabet noktasında bir an parlayan artı biçimli piksel kıvılcımı.
+## Parçacıklardan büyük ve parlak: tek tek 1 piksellik kıvılcımlar uzaktan seçilmiyordu.
+class Impact:
+	var pos: Vector2
+	var time := 0.0
+	var duration := 0.1
+	var size := 2  ## Kolların uzunluğu (piksel).
+	var color: Color
+
+
 class Ring:
 	var pos: Vector2
 	var radius := 10.0
@@ -68,6 +78,9 @@ var _projectiles: Array[Projectile] = []
 var _particles: Array[Particle] = []
 var _corpses: Array[Corpse] = []
 var _rings: Array[Ring] = []
+var _impacts: Array[Impact] = []
+var _air_drawn := false  ## Son çizimde havada efekt var mıydı.
+var _ground_drawn := false
 var _rng := RandomNumberGenerator.new()
 @onready var _ground: Node2D = get_parent().get_node("GroundFx")
 ## Autoload'lara düğüm yolundan ulaşılır: bu script Battlefield üzerinden simülasyon araçlarına
@@ -103,8 +116,19 @@ func advance(delta: float) -> void:
 		r.time += delta
 		if r.time >= r.duration:
 			_rings.erase(r)
-	queue_redraw()
-	_ground.queue_redraw()
+	for i in _impacts.duplicate():
+		i.time += delta
+		if i.time >= i.duration:
+			_impacts.erase(i)
+	# Boşken yeniden çizme (performans): son efekt bittiği karede bir kez daha çizilir ki silinsin.
+	var air := not (_projectiles.is_empty() and _particles.is_empty() and _impacts.is_empty())
+	if air or _air_drawn:
+		queue_redraw()
+	_air_drawn = air
+	var ground := not (_corpses.is_empty() and _rings.is_empty())
+	if ground or _ground_drawn:
+		_ground.queue_redraw()
+	_ground_drawn = ground
 
 
 func clear() -> void:
@@ -112,6 +136,7 @@ func clear() -> void:
 	_particles.clear()
 	_corpses.clear()
 	_rings.clear()
+	_impacts.clear()
 
 
 # --- Olaylar (battle_controller çağırır) ---
@@ -120,8 +145,10 @@ func clear() -> void:
 func melee_hit(attacker: SquadView, target: SquadView) -> void:
 	target.flash()
 	var at := target.random_soldier_position(_rng)
-	_burst(at, 3, SPARK, 50.0, 0.18)
 	var unit := attacker.squad.unit
+	var heavy := unit.is_boss or unit.role == RoleRules.TANK or unit.role == RoleRules.CAVALRY
+	_impact(at, 3 if heavy else 2, SPARK)
+	_burst(at, 6 if heavy else 4, SPARK, 70.0, 0.22, 1.0, 2.0)
 	if unit.is_boss:
 		_audio.play("hit_heavy", 0.0)
 		_shake(2.5)
@@ -210,6 +237,7 @@ func squad_down(view: SquadView) -> void:
 		_shake(7.0)
 	else:
 		_audio.play("squad_down", -3.0)
+		_shake(1.5)
 
 
 ## Ölüler dirildi: yükselen ışık parçacıkları.
@@ -236,13 +264,16 @@ func _land(p: Projectile) -> void:
 		p.target.flash()
 	match p.kind:
 		Kind.ARROW:
+			_impact(p.to, 1, Color("f0e6c8"))
 			_burst(p.to, 2, Color("c8b890"), 30.0, 0.2)
 			_audio.play("arrow_hit", -9.0)
 		Kind.BOLT:
-			_burst(p.to, 8, p.color, 60.0, 0.35)
+			_impact(p.to, 3, p.color.lightened(0.4))
+			_burst(p.to, 8, p.color, 60.0, 0.35, 1.0, 2.0)
 			_audio.play("magic_hit", -5.0)
 		Kind.BALL:
-			_burst(p.to, 14, FIRE, 90.0, 0.45)
+			_impact(p.to, 4, Color("fff2b0"))
+			_burst(p.to, 14, FIRE, 90.0, 0.45, 1.0, 2.0)
 			_burst(p.to, 8, Color("6a6058"), 50.0, 0.7, 0.1)
 			_audio.play("explosion", -4.0)
 			_shake(1.5)
@@ -250,13 +281,24 @@ func _land(p: Projectile) -> void:
 		_ring(p.to + Vector2(0, 6), p.splash, 0.35, p.color)
 
 
-func _burst(at: Vector2, count: int, color: Color, speed: float, life: float, gravity := 1.0) -> void:
+## big_size: iri parçacığın boyu (piksel). Parçacıkların %30'u iri, kalanı 1 piksel.
+func _burst(at: Vector2, count: int, color: Color, speed: float, life: float, gravity := 1.0,
+		big_size := 2.0) -> void:
 	for i in count:
 		var angle := _rng.randf_range(-PI, 0.0)  # yukarı yarım daire
 		var p := _particle(at, Vector2.from_angle(angle) * _rng.randf_range(speed * 0.4, speed),
 				color, life * _rng.randf_range(0.6, 1.0))
 		p.gravity = gravity
-		p.size = 2.0 if _rng.randf() < 0.3 else 1.0
+		p.size = big_size if _rng.randf() < 0.3 else 1.0
+
+
+func _impact(at: Vector2, size: int, color: Color) -> void:
+	var i := Impact.new()
+	i.pos = at.round()
+	i.size = size
+	i.color = color
+	i.duration = 0.06 + size * 0.02
+	_impacts.append(i)
 
 
 func _particle(at: Vector2, vel: Vector2, color: Color, life: float) -> Particle:
@@ -312,6 +354,16 @@ func _draw() -> void:
 		var c := p.color
 		c.a = 1.0 - pow(p.life / p.max_life, 2.0)
 		draw_rect(Rect2(p.pos.round(), Vector2(p.size, p.size)), c)
+	for i in _impacts:
+		# İlk yarıda beyaz çekirdek + renkli kollar; ikinci yarıda kollar kısalır ve söner.
+		var t := i.time / i.duration
+		var arm := maxi(roundi(i.size * (1.0 - t * 0.5)), 1)
+		var c := i.color
+		c.a = 1.0 - t * t
+		draw_rect(Rect2(i.pos + Vector2(-arm, 0), Vector2(arm * 2 + 1, 1)), c)
+		draw_rect(Rect2(i.pos + Vector2(0, -arm), Vector2(1, arm * 2 + 1)), c)
+		if t < 0.5:
+			draw_rect(Rect2(i.pos, Vector2.ONE), Color.WHITE)
 
 
 func _draw_ground() -> void:
