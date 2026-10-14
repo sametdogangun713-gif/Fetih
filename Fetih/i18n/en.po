@@ -464,6 +464,18 @@ msgid "Ekran sarsıntısı"
 msgstr "Screen shake"
 
 #: scripts/ui/settings_panel.gd
+msgid "Vuruş flaşı"
+msgstr "Hit flash"
+
+#: scripts/ui/settings_panel.gd
+msgid "Hasar sayıları"
+msgstr "Damage numbers"
+
+#: scripts/ui/settings_panel.gd
+msgid "Vuruş duraklaması"
+msgstr "Hit stop"
+
+#: scripts/ui/settings_panel.gd
 msgid "Dil / Language"
 msgstr "Language / Dil"
 
