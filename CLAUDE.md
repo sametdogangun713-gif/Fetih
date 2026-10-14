@@ -46,3 +46,11 @@
 ## Çalışma şekli
 - Kullanıcı Godot'u öğreniyor: her adımda hangi Godot kavramının kullanıldığını kısaca açıkla.
 - Türkçe yanıt ver; kod, komut ve hata mesajları orijinal kalsın.
+
+## Ajan kullanımı (kullanım limiti)
+- Ajan modelleri: `gameplay-programci`, `gorsel-efekt-ajani`, `denge-ajani`, `oyun-tasarimci` → sonnet; `playtester`, `ceviri-ajani` → haiku. Opus sadece ana oturumda.
+- Aynı anda en fazla 2 ajan. Aynı dosyaya dokunacak ajanlar paralel çalışmaz: sıralı çalıştır veya `isolation: worktree` kullan.
+- Ajan prompt'u kendi kendine yetsin: dosya yolları, kabul kriteri, çalıştırılacak test komutu. Ajan keşifle token harcamasın.
+- Küçük iş (1-2 dosya, bariz değişiklik) ajana verilmez; ana oturum yapar.
+- Ajan bitirince doğrulama için yeni ajan açma; ana oturum tek test komutu çalıştırır.
+- Biten ajan worktree'leri (`.claude/worktrees/`) birleştirildikten sonra temizlenir.
