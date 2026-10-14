@@ -91,6 +91,8 @@ func _fill_detail(kingdom: KingdomData) -> void:
 	title.add_child(UiKit.label(tr(kingdom.display_name), 16, kingdom.color if unlocked else UiKit.COLOR_MUTED))
 	title.add_child(UiKit.label(tr("Uzmanlık: %s") % UiKit.kingdom_specialty(kingdom), 10, UiKit.COLOR_GOLD))
 	_detail.add_child(title)
+	if unlocked:
+		_detail.add_child(UiKit.kingdom_strip(kingdom))  # ana renk + vurgu rengi şeridi
 	_detail.add_child(UiKit.wrapped(tr(kingdom.description), 10))
 	for passive in kingdom.starting_passives:
 		_detail.add_child(UiKit.wrapped(tr("Özellik: %s - %s") % [tr(passive.display_name), tr(passive.description)],

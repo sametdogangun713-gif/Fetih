@@ -38,6 +38,10 @@ var _hitstop := 0.0
 var _hitstop_gap := 0.0
 var _slowmo := 0.0  ## Kalan yavaş çekim süresi (gerçek sn).
 var _slowmo_scale := 1.0
+## Sonuç paneli (başlık + "Devam"): ekran ortasında, birliklerin üstünde serbest durmaz.
+var _result_panel: PanelContainer
+## Alt bilgi yazılarının arkasındaki yarı saydam koyu şerit.
+const INFO_STRIP_TOP := 314.0
 
 
 func _ready() -> void:
@@ -45,6 +49,8 @@ func _ready() -> void:
 		var button: Button = speed_buttons.get_child(i)
 		button.pressed.connect(_set_speed.bind(SPEEDS[i]))
 		button.pressed.connect(UiKit.click_sound)
+	_build_info_strip()
+	_build_result_panel()
 	continue_button.pressed.connect(UiKit.click_sound)
 	continue_button.pressed.connect(_on_continue)
 	battlefield.set_debug_tools(not RunState.active)
@@ -294,16 +300,66 @@ func _on_battle_finished(winner: SquadState.Team) -> void:
 		continue_button.visible = true
 
 
+## Alt bilgi şeridi: MatchupLabel ve InfoLabel'ın arkasında yarı saydam koyu zemin + üstte 1 px altın çizgi.
+## Godot: CanvasLayer'a eklenen Control'ler sırayla çizilir; şerit en başa (move_child 0) konur, yazılar üstünde kalır.
+func _build_info_strip() -> void:
+	var hud: CanvasLayer = $HUD
+	var strip := ColorRect.new()
+	strip.color = Color(UiKit.COLOR_BG, 0.72)
+	strip.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+	strip.offset_top = INFO_STRIP_TOP - 360.0
+	strip.offset_bottom = 0.0
+	strip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var edge := ColorRect.new()
+	edge.color = Color(UiKit.COLOR_GOLD, 0.35)
+	edge.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	edge.offset_bottom = 1.0
+	edge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	strip.add_child(edge)
+	hud.add_child(strip)
+	hud.move_child(strip, 0)
+
+
+## Sonuç paneli: başlık ve "Devam" düğmesi tek çerçevede, ekranın ortasında (CenterContainer).
+## Etiket ve düğme sahnedeki düğümlerdir; reparent ile panelin VBox'ına taşınır (başvurular geçerli kalır).
+func _build_result_panel() -> void:
+	var hud: CanvasLayer = $HUD
+	var center := CenterContainer.new()
+	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	center.mouse_filter = Control.MOUSE_FILTER_IGNORE  # panelin dışı tıklamayı engellemesin
+	center.theme = UiKit.theme()
+	hud.add_child(center)
+	_result_panel = UiKit.panel(Color(UiKit.COLOR_PANEL, 0.94))
+	var style: StyleBoxFlat = _result_panel.get_theme_stylebox("panel")
+	style.set_border_width_all(1)
+	style.border_color = UiKit.COLOR_GOLD.darkened(0.4)
+	style.set_content_margin_all(12)
+	_result_panel.visible = false
+	center.add_child(_result_panel)
+	var box := UiKit.vbox(10)
+	_result_panel.add_child(box)
+	result_label.reparent(box, false)
+	continue_button.reparent(box, false)
+	result_label.custom_minimum_size = Vector2(240, 0)
+	result_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	result_label.add_theme_font_size_override("font_size", 16)
+	continue_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	continue_button.custom_minimum_size = Vector2(100, 26)
+
+
 ## Sonuç yazısı büyükten yerine oturur (TRANS_BACK: hafif taşıp geri gelir), "Devam" sonra belirir.
+## Panel görününce Container yerleşimi bir kare sonra biter; pivot doğru olsun diye o kare beklenir.
 func _pop_result() -> void:
+	_result_panel.visible = true
+	result_label.modulate.a = 0.0
+	continue_button.modulate.a = 0.0
+	await get_tree().process_frame
 	result_label.pivot_offset = result_label.size / 2.0
 	result_label.scale = Vector2.ONE * 2.0
-	result_label.modulate.a = 0.0
 	var tween := create_tween().set_parallel()
 	tween.tween_property(result_label, "scale", Vector2.ONE, 0.35) \
 			.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	tween.tween_property(result_label, "modulate:a", 1.0, 0.15)
-	continue_button.modulate.a = 0.0
 	tween.tween_property(continue_button, "modulate:a", 1.0, 0.25).set_delay(0.35)
 
 

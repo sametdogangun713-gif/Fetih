@@ -4,7 +4,8 @@
 /Fetih/android/
 
 # Denge testi raporları (her çalıştırmada yeniden üretilir)
-/Fetih/tools/reports/
+/Fetih/tools/reports/*
+!/Fetih/tools/reports/gorsel_A/
 
 # Export çıktıları (build'ler repoya girmez)
 /Fetih/build/

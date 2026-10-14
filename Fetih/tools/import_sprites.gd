@@ -92,18 +92,43 @@ func _init() -> void:
 	var only := Array(OS.get_cmdline_user_args())
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(OUT_DIR))
 	var made := 0
+	var off_before := 0
+	var off_after := 0
+	_check_palette_file()
 	for id: StringName in SPECS:
 		if not only.is_empty() and not only.has(String(id)):
 			continue
 		var sheet := _build(SPECS[id])
+		# Palet adımı (görev 2.1): bütün sayfa Resurrect 64'e indirilir, kontur #1c1612 istisna.
+		var before := SpritePalette.off_palette_count(sheet)
+		SpritePalette.quantize(sheet, SpritePainter.OUTLINE, true)
+		var after := SpritePalette.off_palette_count(sheet)
+		off_before += before
+		off_after += after
 		var err := sheet.save_png(OUT_DIR + String(id) + ".png")
 		if err != OK:
 			push_error("kaydedilemedi: %s (%s)" % [id, error_string(err)])
 			continue
-		print("%s  %dx%d" % [id, sheet.get_width(), sheet.get_height()])
+		print("%s  %dx%d  palet dışı: %d -> %d" % [id, sheet.get_width(), sheet.get_height(), before, after])
 		made += 1
+	print("Palet dışı piksel toplamı: %d -> %d (hedef 0)" % [off_before, off_after])
 	print("%d sayfa üretildi. Şimdi: godot --headless --path Fetih --import" % made)
 	quit()
+
+
+## assets/palette/resurrect-64.hex, SpritePalette.HEX ile aynı mı? (dosya paletin kayıt hâli)
+func _check_palette_file() -> void:
+	var f := FileAccess.open("res://assets/palette/resurrect-64.hex", FileAccess.READ)
+	if f == null:
+		push_error("palet dosyası yok: assets/palette/resurrect-64.hex")
+		return
+	var same := true
+	var i := 0
+	for line in f.get_as_text().strip_edges().split("\n"):
+		same = same and i < SpritePalette.HEX.size() and line.strip_edges() == SpritePalette.HEX[i]
+		i += 1
+	if not same or i != SpritePalette.HEX.size():
+		push_error("resurrect-64.hex ile SpritePalette.HEX farklı (%d satır, same=%s)" % [i, same])
 
 
 func _build(spec: Dictionary) -> Image:

@@ -1,9 +1,9 @@
 # Hazır görsel kaynakları
 
 Bu klasör Godot projesinin (`Fetih/`) dışındadır: Godot içe aktarmaz, export'a girmez.
-Savaş alanı zemini (`rubberduck_*`) doğrudan kopyalanır: `Fetih/assets/terrain/ground_128x64.png`
-(= `sheet_ground_128x64_shaded.png`) ve `Fetih/assets/terrain/plants/` (seçilen ağaç/çalılar);
-`Fetih/scripts/battle/ground_art.gd` çizer. Birlik sprite'ları için `Fetih/tools/import_sprites.gd` buradaki dosyalardan `Fetih/assets/sprites/units/<birlik id>.png`
+Savaş alanı zemini (`rubberduck_*`) `Fetih/tools/build_ground.gd` ile 0.5x küçültülüp Resurrect 64 paletine indirilir:
+`Fetih/assets/terrain/px/ground_<biyom>.png` ve `Fetih/assets/terrain/px/plants/` (seçilen ağaç/çalılar);
+`Fetih/scripts/battle/ground_art.gd` Nearest süzmeyle çizer. Birlik sprite'ları için `Fetih/tools/import_sprites.gd` buradaki dosyalardan `Fetih/assets/sprites/units/<birlik id>.png`
 sayfalarını üretir. Hangi birliğin hangi figürü kullandığı o aracın `SPECS` tablosundadır.
 
 Hepsi **CC0 1.0** (kamu malı): ticari kullanım, değiştirme serbest; isim vermek zorunlu değil.

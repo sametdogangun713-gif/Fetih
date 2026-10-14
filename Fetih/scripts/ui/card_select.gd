@@ -72,6 +72,7 @@ func _card(offer: CardOffer) -> Control:
 	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var box := UiKit.vbox(3)
 	card.add_child(box)
+	box.add_child(UiKit.kingdom_strip(_card_kingdom(offer)))  # krallık renk şeridi (ana + vurgu)
 	match offer.kind:
 		CardOffer.Kind.UNIT:
 			_fill_unit_card(box, offer)
@@ -88,6 +89,18 @@ func _card(offer: CardOffer) -> Control:
 	take.disabled = not RunState.can_take(offer)
 	box.add_child(take)
 	return card
+
+
+## Kartın krallığı: birlik/ferman kartında kendi krallığı, yükseltmede bölüğün birliğinin krallığı.
+func _card_kingdom(offer: CardOffer) -> KingdomData:
+	match offer.kind:
+		CardOffer.Kind.UNIT:
+			return KingdomCatalog.get_kingdom(offer.unit.kingdom)
+		CardOffer.Kind.UPGRADE:
+			return KingdomCatalog.get_kingdom(offer.target.unit.kingdom)
+		CardOffer.Kind.PASSIVE:
+			return KingdomCatalog.get_kingdom(offer.passive.kingdom)
+	return null
 
 
 func _fill_unit_card(box: VBoxContainer, offer: CardOffer) -> void:
