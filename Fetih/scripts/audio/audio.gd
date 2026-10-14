@@ -22,10 +22,14 @@ var _voices: Array[AudioStreamPlayer] = []
 var _next_voice := 0
 var _music: AudioStreamPlayer
 var _music_name := ""
+## Dummy ses sürücüsü (--headless) hiç ses çalmaz ve durdurulan çalma nesnelerini (playback)
+## silmez: ekransız testlerde kapanışta "resources still in use" uyarısı bırakır. Bu durumda çalınmaz.
+var _silent := false
 
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS  # oyun duraklasa da müzik sürsün
+	_silent = AudioServer.get_driver_name() == "Dummy"
 	_setup_buses()
 	for i in VOICES:
 		var player := AudioStreamPlayer.new()
@@ -34,8 +38,35 @@ func _ready() -> void:
 		_voices.append(player)
 
 
+## Kapanışta (pencere kapatma isteği ya da get_tree().quit() sonrası ağaçtan çıkış) tüm sesleri
+## durdurup akışları bırakır: çalan AudioStreamPlayback ve WAV kaynakları açık kalmasın
+## ("resources still in use at exit" uyarısı çıkmasın).
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_CLOSE_REQUEST:
+		_release_all()
+
+
+func _exit_tree() -> void:
+	_release_all()
+
+
+func _release_all() -> void:
+	for player: AudioStreamPlayer in _voices:
+		player.stop()
+		player.stream = null
+	for child in get_children():  # sönmekte olan eski müzik oynatıcıları da
+		if child is AudioStreamPlayer:
+			child.stop()
+			child.stream = null
+	_music = null
+	_music_name = ""
+	_streams.clear()
+
+
 ## Efekt çalar. pitch_jitter: her çalışta perdeyi biraz değiştirir, tekrar eden ses yorucu olmasın.
 func play(sound: String, volume_db := 0.0, pitch_jitter := 0.08, min_interval := MIN_INTERVAL) -> void:
+	if _silent:
+		return
 	var now := Time.get_ticks_msec()
 	if now - _last_played.get(sound, -100000) < min_interval * 1000.0:
 		return
@@ -55,6 +86,8 @@ func play_music(track: String) -> void:
 	if track == _music_name:
 		return
 	_music_name = track
+	if _silent:
+		return
 	if _music:
 		var old := _music
 		var fade := create_tween()
