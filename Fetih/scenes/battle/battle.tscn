@@ -17,7 +17,7 @@ anchor_right = 1.0
 offset_left = -104.0
 offset_top = 4.0
 offset_right = -4.0
-offset_bottom = 28.0
+offset_bottom = 24.0
 grow_horizontal = 0
 
 [node name="X1" type="Button" parent="HUD/SpeedButtons"]
@@ -40,17 +40,18 @@ text = "x4"
 
 [node name="InfoLabel" type="Label" parent="HUD"]
 offset_left = 8.0
-offset_top = 336.0
-offset_right = 300.0
-offset_bottom = 356.0
-theme_override_font_sizes/font_size = 12
+offset_top = 338.0
+offset_right = 400.0
+offset_bottom = 360.0
+theme_override_font_sizes/font_size = 10
+vertical_alignment = 1
 
 [node name="MatchupLabel" type="Label" parent="HUD"]
 offset_left = 8.0
-offset_top = 318.0
-offset_right = 632.0
-offset_bottom = 336.0
-theme_override_font_sizes/font_size = 12
+offset_top = 4.0
+offset_right = 400.0
+offset_bottom = 20.0
+theme_override_font_sizes/font_size = 10
 
 [node name="ResultLabel" type="Label" parent="HUD"]
 anchors_preset = 5

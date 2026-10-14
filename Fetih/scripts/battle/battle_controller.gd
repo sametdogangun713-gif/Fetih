@@ -12,7 +12,7 @@ const SPEEDS: Array[int] = [1, 2, 4]
 const PLAYBACK := 0.7
 ## Kamera kutusunda bir bölüğün kapladığı alan: yarı genişlik ve ayaktan yukarı yükseklik (piksel).
 ## Formasyon ~1 karo yayılır; sancak ve sayı askerlerin üstünde.
-const SQUAD_FRAME_PAD := Vector2(40, 48)
+const SQUAD_FRAME_PAD := Vector2(24, 24)
 const TEST_SQUAD_BUDGET := 100.0
 const TEST_PLAYER_SLOTS: Array[Vector2] = [Vector2(3, 13), Vector2(6, 13)]
 const TEST_ENEMY_SLOTS: Array[Vector2] = [Vector2(3, 2), Vector2(6, 2)]
@@ -41,10 +41,17 @@ var _slowmo_scale := 1.0
 ## Sonuç paneli (başlık + "Devam"): ekran ortasında, birliklerin üstünde serbest durmaz.
 var _result_panel: PanelContainer
 ## Alt bilgi yazılarının arkasındaki yarı saydam koyu şerit.
-const INFO_STRIP_TOP := 314.0
+const INFO_STRIP_TOP := 338.0  ## 22 px'lik ince şerit: sadece süre / seed.
+## Sol üstteki küçük "Savaş n / 20 · Rakip" kutusunun en geniş hali (sağdaki hız düğmelerine çarpmasın).
+const MATCHUP_MAX_WIDTH := 470.0
 
 
 func _ready() -> void:
+	# CanvasLayer bir Control değil: tema ebeveynden devralınmaz, HUD'daki her Control'e ayrı verilir.
+	for child in $HUD.get_children():
+		if child is Control:
+			child.theme = UiKit.theme()
+	_build_matchup_panel()
 	for i in SPEEDS.size():
 		var button: Button = speed_buttons.get_child(i)
 		button.pressed.connect(_set_speed.bind(SPEEDS[i]))
@@ -140,28 +147,46 @@ func _start_battle() -> void:
 		_setup_run_battle()
 	else:
 		_setup_test_battle()
-	battlefield.camera.follow(_squads_rect(), 0.0, true)
+	# İlk çerçeve: iki ordu ve iki kampın yapıları; alt bilgi şeridi oyuncu kampını örtmesin diye
+	# kutunun altına şerit yüksekliği kadar pay. Savaş içi takip (_process) sadece bölükleri izler.
+	var first_frame := _squads_rect()
+	var camps := battlefield.camps_rect()
+	if camps.has_area():
+		first_frame = first_frame.merge(camps)
+	# Şerit ekran pikselidir; en uzak yakınlıkta (kutu en küçük görünür) dünya birimine çevrilir.
+	first_frame.size.y += (360.0 - INFO_STRIP_TOP) / BattleCamera.ZOOM_LEVELS[0]
+	battlefield.camera.follow(first_frame, 0.0, true)
 	_start_music()
 
 
 func _setup_run_battle() -> void:
 	# Seviyeler ve fermanlar SquadBuilder'da uygulanır.
-	for squad in RunState.build_player_squads():
-		_add_state(squad)
-	for squad in RunState.build_enemy_squads():
-		_add_state(squad)
+	# Ferman aurası (sadece görüntü): build_*_squads sırası ordu sırasıyla aynıdır.
+	var player_squads := RunState.build_player_squads()
+	for i in player_squads.size():
+		_add_state(player_squads[i])
+		_views[player_squads[i]].aura_color = SquadView.aura_color_for(RunState.army[i], RunState.passives)
+	var enemy_squads := RunState.build_enemy_squads()
+	var enemy_army := RunState.current_enemy_army()
+	var enemy_fermans := RunState.enemy_passives()
+	for i in enemy_squads.size():
+		_add_state(enemy_squads[i])
+		_views[enemy_squads[i]].aura_color = SquadView.aura_color_for(enemy_army[i], enemy_fermans)
 	var opponent := RunState.current_opponent()
 	battlefield.set_biome(opponent.id)
-	matchup_label.text = tr("Savaş %d / %d  -  Rakip: %s") % [RunState.battle_index + 1,
+	battlefield.set_camps(RunState.kingdom, opponent)
+	matchup_label.text = tr("Savaş %d / %d  ·  Rakip: %s") % [RunState.battle_index + 1,
 			Balance.RUN_LENGTH, tr(opponent.display_name)]
 	if RunState.is_final_battle():
-		matchup_label.text += tr("  -  BÜYÜK FETİH")
+		matchup_label.text += tr("  ·  BÜYÜK FETİH")
 	elif RunState.is_boss_battle():
-		matchup_label.text += tr("  -  BOSS: %s") % tr(opponent.boss.display_name)
+		matchup_label.text += tr("  ·  BOSS: %s") % tr(opponent.boss.display_name)
+	_fit_matchup_label()
 
 
 func _setup_test_battle() -> void:
 	var matchup := _choose_test_matchup()
+	battlefield.set_camps(KingdomCatalog.get_kingdom(&"humans"), KingdomCatalog.get_kingdom(&"orcs"))
 	for slot in TEST_PLAYER_SLOTS:
 		_add_squad(matchup[0], UnitCatalog.count_for_budget(matchup[0], TEST_SQUAD_BUDGET),
 				SquadState.Team.PLAYER, slot)
@@ -169,6 +194,7 @@ func _setup_test_battle() -> void:
 		_add_squad(matchup[1], UnitCatalog.count_for_budget(matchup[1], TEST_SQUAD_BUDGET),
 				SquadState.Team.ENEMY, slot)
 	matchup_label.text = "%s  vs  %s" % [_describe(matchup[0]), _describe(matchup[1])]
+	_fit_matchup_label()
 
 
 ## Seed'e göre iki farklı birlik seçer; aynı seed hep aynı eşleşmeyi verir.
@@ -300,18 +326,38 @@ func _on_battle_finished(winner: SquadState.Team) -> void:
 		continue_button.visible = true
 
 
-## Alt bilgi şeridi: MatchupLabel ve InfoLabel'ın arkasında yarı saydam koyu zemin + üstte 1 px altın çizgi.
+## Sol üst köşede küçük etiket kutusu: "Savaş n / 20 · Rakip: X" (test modunda eşleşme metni).
+## Godot: MatchupLabel sahnede HUD'un çocuğu; reparent ile ince panelin içine taşınır, başvuru geçerli kalır.
+func _build_matchup_panel() -> void:
+	var panel := UiKit.strip_panel(0.82)
+	panel.theme = UiKit.theme()
+	panel.position = Vector2(4, 4)
+	$HUD.add_child(panel)
+	matchup_label.reparent(panel, false)
+	matchup_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+
+
+## Etiket genişliği metne göre (en çok MATCHUP_MAX_WIDTH): kutu metin kadar olur, uzun test metni alt satıra geçer.
+func _fit_matchup_label() -> void:
+	var font := matchup_label.get_theme_font("font")
+	var size := matchup_label.get_theme_font_size("font_size")
+	matchup_label.custom_minimum_size.x = minf(
+			font.get_string_size(matchup_label.text, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x + 2.0,
+			MATCHUP_MAX_WIDTH)
+
+
+## Alt bilgi şeridi (22 px): sadece süre / seed. Yarı saydam koyu zemin + üstte 1 px tema kenar çizgisi.
 ## Godot: CanvasLayer'a eklenen Control'ler sırayla çizilir; şerit en başa (move_child 0) konur, yazılar üstünde kalır.
 func _build_info_strip() -> void:
 	var hud: CanvasLayer = $HUD
 	var strip := ColorRect.new()
-	strip.color = Color(UiKit.COLOR_BG, 0.72)
+	strip.color = Color(UiKit.COLOR_BG, 0.8)
 	strip.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
 	strip.offset_top = INFO_STRIP_TOP - 360.0
 	strip.offset_bottom = 0.0
 	strip.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var edge := ColorRect.new()
-	edge.color = Color(UiKit.COLOR_GOLD, 0.35)
+	edge.color = UiKit.COLOR_EDGE
 	edge.set_anchors_preset(Control.PRESET_TOP_WIDE)
 	edge.offset_bottom = 1.0
 	edge.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -329,11 +375,11 @@ func _build_result_panel() -> void:
 	center.mouse_filter = Control.MOUSE_FILTER_IGNORE  # panelin dışı tıklamayı engellemesin
 	center.theme = UiKit.theme()
 	hud.add_child(center)
-	_result_panel = UiKit.panel(Color(UiKit.COLOR_PANEL, 0.94))
-	var style: StyleBoxFlat = _result_panel.get_theme_stylebox("panel")
-	style.set_border_width_all(1)
-	style.border_color = UiKit.COLOR_GOLD.darkened(0.4)
-	style.set_content_margin_all(12)
+	_result_panel = UiKit.panel(Color(UiKit.COLOR_PANEL, 0.96))
+	var style: StyleBoxFlat = _result_panel.get_theme_stylebox("panel")  # UiKit.panel_style: keskin köşe, gölge
+	style.set_border_width_all(2)  # kartlarla aynı 2 px çerçeve, altın
+	style.border_color = UiKit.COLOR_GOLD
+	style.set_content_margin_all(14)
 	_result_panel.visible = false
 	center.add_child(_result_panel)
 	var box := UiKit.vbox(10)

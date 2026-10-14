@@ -15,7 +15,8 @@ func _ready() -> void:
 		RunState.start_run(KingdomCatalog.all()[0], 1)
 		RunState.finish_battle(true)
 	Profile.store_run(RunState.to_dict("cards"))
-	_root = UiKit.screen_root(self, 12)
+	_root = UiKit.screen_root(self, 8)
+	_root.add_theme_constant_override("separation", 4)
 	_show_offers()
 	add_child(PauseMenu.new(tr("Koşun kayıtlı: ana menüden \"Devam et\" ile buraya dönersin.")))
 	Tips.show_once(self, Tips.CARDS)
@@ -34,14 +35,14 @@ func _show_offers() -> void:
 		var text := tr("%s yenildi!") % tr(opponent.boss.display_name)
 		if RunState.last_life_restored:
 			text += tr("  +1 can (%d/%d)") % [RunState.lives, RunState.max_lives]
-		_root.add_child(UiKit.centered(text, 18, UiKit.COLOR_GOLD))
+		_root.add_child(UiKit.centered(text, 16, UiKit.COLOR_GOLD))
 	elif RunState.last_battle_won:
-		_root.add_child(UiKit.centered(tr("Zafer!"), 20, UiKit.COLOR_GOOD))
+		_root.add_child(UiKit.centered(tr("Zafer!"), 18, UiKit.COLOR_GOOD))
 	else:
 		_root.add_child(UiKit.centered(tr("Yenilgi... Bir can kaybettin (kalan: %d).") % RunState.lives,
-				16, UiKit.COLOR_BAD))
+				15, UiKit.COLOR_BAD))
 	_root.add_child(UiKit.centered(tr("%s ganimeti: bir kart seç  ·  Ordun %d/%d bölük") % [
-			tr(opponent.display_name), RunState.army.size(), Balance.MAX_SQUADS], UiKit.FONT_SIZE, UiKit.COLOR_MUTED))
+			tr(opponent.display_name), RunState.army.size(), Balance.MAX_SQUADS], 10, UiKit.COLOR_MUTED))
 
 	var row := UiKit.hbox(8)
 	row.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -68,11 +69,10 @@ func _on_reroll() -> void:
 
 
 func _card(offer: CardOffer) -> Control:
-	var card := UiKit.panel()
+	# Tür çerçeveli kabuk (resim üstte); metin satırları gövde kutusuna eklenir.
+	var card := UiKit.card_frame(offer.kind, _card_kingdom(offer), offer.unit, offer.upgrade)
 	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var box := UiKit.vbox(3)
-	card.add_child(box)
-	box.add_child(UiKit.kingdom_strip(_card_kingdom(offer)))  # krallık renk şeridi (ana + vurgu)
+	var box := UiKit.card_body(card)
 	match offer.kind:
 		CardOffer.Kind.UNIT:
 			_fill_unit_card(box, offer)
@@ -106,21 +106,16 @@ func _card_kingdom(offer: CardOffer) -> KingdomData:
 func _fill_unit_card(box: VBoxContainer, offer: CardOffer) -> void:
 	var unit := offer.unit
 	var existing := RunState.find_squad(unit)
-	box.add_child(UiKit.label(tr("TAKVİYE") if existing else tr("YENİ BİRLİK"), 9, UiKit.COLOR_MUTED))
-	var title := UiKit.hbox(4)
-	title.add_child(UiKit.unit_icon(unit, 2 if _compact else 3))
-	var name_box := UiKit.vbox(0)
-	name_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	name_box.add_child(UiKit.wrapped(tr(unit.display_name), 12 if _compact else 14, unit.placeholder_color))
-	name_box.add_child(UiKit.label(UiKit.role_name(unit.role), 10, UiKit.COLOR_MUTED))
-	title.add_child(name_box)
-	box.add_child(title)
+	# Resim kartın üstünde (card_frame); burada ad, rol/tür satırı, sayı ve değerler.
+	box.add_child(UiKit.wrapped(tr(unit.display_name), 12 if _compact else 13, unit.placeholder_color))
+	box.add_child(UiKit.label("%s  ·  %s" % [UiKit.role_name(unit.role),
+			tr("TAKVİYE") if existing else tr("YENİ BİRLİK")], 8 if _compact else 9, UiKit.COLOR_MUTED))
 	if existing:
 		box.add_child(UiKit.label(UiKit.upgrade_effect(existing, ArmySquad.Upgrade.REINFORCE),
-				14 if _compact else 16, UiKit.COLOR_GOLD))
+				13 if _compact else 15, UiKit.COLOR_GOLD))
 	else:
 		box.add_child(UiKit.label(tr("%d asker") % UnitCatalog.count_for_budget(unit, Balance.SQUAD_BUDGET),
-				14 if _compact else 18, UiKit.COLOR_GOLD))
+				13 if _compact else 16, UiKit.COLOR_GOLD))
 	if _compact:
 		box.add_child(UiKit.wrapped(tr("Değerler için üstüne gel."), 8, UiKit.COLOR_MUTED))
 	else:

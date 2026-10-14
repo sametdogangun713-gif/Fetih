@@ -2,10 +2,12 @@ class_name BattleFx
 extends Node2D
 ## Savaşın görsel efektleri: oklar, büyü mermileri, gülleler, kıvılcım parçacıkları,
 ## düşen askerler, patlama halkaları; efektle aynı anda çalan sesler.
+## Ölçek 16 px'lik minik figüre göre: kıvılcım 3-5 px, toz 1-2 px parçacık, mermi 1 px çizgi + 2x2 uç.
 ## Sadece görüntüdür: simülasyonu etkilemez, kendi rastgeleliğini kullanır.
 ##
-## İki katmanda çizer: yerdekiler (cesetler, halkalar) bölüklerin altında kalsın diye
-## GroundFx düğümüne, havadakiler (mermiler, parçacıklar) bölüklerin üstüne (bu düğüm).
+## Üç katmanda çizer: yerdekiler (cesetler, halkalar) bölüklerin altında kalsın diye
+## GroundFx düğümüne, havadakiler (mermiler, parçacıklar) bölüklerin üstüne (bu düğüm),
+## parıltılar (büyü topu, boss halkası) ise additive karışımlı _glow düğümüne.
 
 enum Kind { ARROW, BOLT, BALL }
 
@@ -13,12 +15,13 @@ const GRAVITY := 260.0  ## Parçacıklar için (piksel/sn²).
 const ARROW_SPEED := 260.0  ## piksel/sn
 const BOLT_SPEED := 170.0
 const CORPSE_FALL := 0.36  ## Ölüm animasyonunun süresi (ölüm satırının bütün kareleri).
-const CORPSE_STAY := 1.4  ## Yerde kalma süresi (sonra solar).
-const CORPSE_FADE := 0.8  ## Piksel piksel çözülme süresi (corpse_dissolve shader'ı).
+const CORPSE_STAY := 2.0  ## Yerde kalma süresi (sonra solar; 9 Kings gibi alan temiz kalır).
+const CORPSE_FADE := 0.6  ## Piksel piksel çözülme süresi (corpse_dissolve shader'ı).
 const CORPSE_FLASH := 0.1  ## Düştüğü an beyaz parlama süresi.
 const CORPSE_SHADER := preload("res://assets/shaders/corpse_dissolve.gdshader")
-const MAX_CORPSES := 160
+const MAX_CORPSES := 120
 const MAX_PARTICLES := 600
+const MAX_GLOWS := 24
 const FIRE := Color("ff8a30")
 const MUD := Color("8a7040")
 const SPARK := Color("fff2b0")
@@ -35,11 +38,15 @@ const NUMBER_INTERVAL := 0.25  ## Bir bölüğün sayıları en sık bu aralıkl
 const NUMBER_LIFE := 0.5
 const NUMBER_FADE := 0.15  ## Son bu kadar sürede söner.
 const NUMBER_POP := 0.12  ## Büyükten normale "pop" süresi.
-const NUMBER_RISE := 10.0  ## Ömrü boyunca yükseldiği mesafe (piksel).
+const NUMBER_RISE := 8.0  ## Ömrü boyunca yükseldiği mesafe (piksel).
 const MAX_NUMBERS := 16
+const NUMBER_SIZE := 8  ## ThemeDB.fallback_font ile yazı boyu (piksel).
 const DAMAGE_TO_ENEMY := R64_LEMON
 const DAMAGE_TO_PLAYER := R64_SALMON
 const HEAL := R64_LEAF
+## Additive parıltı renkleri (boss: kırmızı / mor, Resurrect 64).
+const GLOW_RED := Color("e83b3b")
+const GLOW_PURPLE := Color("a884f3")
 
 
 class Projectile:
@@ -90,6 +97,7 @@ class FloatText:
 	var text: String
 	var color: Color
 	var size := 8  ## Yazı boyu (görüntü pikseli).
+	var big := false  ## İki askerden fazlasını götüren darbe: pop animasyonu daha büyük.
 	var time := 0.0
 
 
@@ -108,6 +116,16 @@ class Ring:
 	var color: Color
 
 
+## Additive parıltı: dolu yumuşak top (puff) ya da yassı elips halka. _glow katmanında çizilir.
+class Glow:
+	var pos: Vector2
+	var radius := 6.0
+	var time := 0.0
+	var duration := 0.3
+	var color: Color
+	var ring := false  ## false: dolu piksel diski; true: yassı elips halka.
+
+
 ## Vuruş duraksaması isteği (sn): boss vuruşu, gülle inişi. battle_controller dinler ve
 ## ayara, bekleme süresine göre uygular. Efekt sadece istek yapar, gösterim saatine dokunmaz.
 signal hitstop_requested(duration: float)
@@ -119,9 +137,12 @@ var _particles: Array[Particle] = []
 var _corpses: Array[Corpse] = []
 var _rings: Array[Ring] = []
 var _impacts: Array[Impact] = []
+var _glows: Array[Glow] = []
 var _texts: Array[FloatText] = []
 var _tracks := {}  ## SquadView -> HpTrack
 var _corpse_layer := Node2D.new()  ## Cesetler: çözülme shader'ı sadece bu katmanda.
+var _glow := Node2D.new()  ## Parıltılar: CanvasItemMaterial BLEND_MODE_ADD (renkler üst üste toplanır).
+var _glow_drawn := false
 var _corpses_drawn := false
 var _air_drawn := false  ## Son çizimde havada efekt var mıydı.
 var _ground_drawn := false
@@ -141,6 +162,11 @@ func _ready() -> void:
 	_corpse_layer.material = mat
 	_corpse_layer.draw.connect(_draw_corpses)
 	_ground.add_child(_corpse_layer)  # GroundFx'in çocuğu: halkaların üstünde, bölüklerin altında
+	var add := CanvasItemMaterial.new()
+	add.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+	_glow.material = add
+	_glow.draw.connect(_draw_glow)
+	add_child(_glow)
 
 
 ## Her karede çağrılır; delta savaş hızıyla çarpılmıştır.
@@ -169,6 +195,10 @@ func advance(delta: float) -> void:
 		i.time += delta
 		if i.time >= i.duration:
 			_impacts.erase(i)
+	for g in _glows.duplicate():
+		g.time += delta
+		if g.time >= g.duration:
+			_glows.erase(g)
 	for t in _texts.duplicate():
 		t.time += delta
 		if t.time >= NUMBER_LIFE:
@@ -180,6 +210,10 @@ func advance(delta: float) -> void:
 	if air or _air_drawn:
 		queue_redraw()
 	_air_drawn = air
+	var glow := not (_glows.is_empty() and _projectiles.is_empty())
+	if glow or _glow_drawn:
+		_glow.queue_redraw()
+	_glow_drawn = glow
 	var ground := not _rings.is_empty()
 	if ground or _ground_drawn:
 		_ground.queue_redraw()
@@ -196,6 +230,7 @@ func clear() -> void:
 	_corpses.clear()
 	_rings.clear()
 	_impacts.clear()
+	_glows.clear()
 	_texts.clear()
 	_tracks.clear()
 
@@ -215,9 +250,10 @@ func melee_hit(attacker: SquadView, target: SquadView) -> void:
 	var at := target.random_soldier_position(_rng)
 	var unit := attacker.squad.unit
 	var heavy := unit.is_boss or unit.role == RoleRules.TANK or unit.role == RoleRules.CAVALRY
-	_impact(at, 3 if heavy else 2, R64_LEMON)
-	_burst(at, 6 if heavy else 4, SPARK, 70.0, 0.22, 1.0, 2.0)
+	_impact(at, 2 if heavy else 1, R64_LEMON)  # kollar 1-2 px: 3 ya da 5 px'lik artı
+	_burst(at, 5 if heavy else 3, SPARK, 45.0, 0.2, 1.0, 2.0)
 	if unit.is_boss:
+		_glow_ring(target.position, 12.0, 0.3, GLOW_RED)
 		_audio.play("hit_heavy", 0.0)
 		_shake(2.5)
 		hitstop_requested.emit(0.06)
@@ -265,7 +301,7 @@ func launch(attacker: SquadView, target: SquadView) -> void:
 				p.arc = distance * 0.06
 			Kind.BALL:
 				p.duration = 0.55 + distance / 450.0
-				p.arc = distance * 0.35 + 10.0
+				p.arc = distance * 0.35 + 6.0
 		p.duration = maxf(p.duration, 0.08)
 		if unit.splash_radius > 0.0:
 			p.splash = unit.splash_radius * Battlefield.TILE_HALF.x
@@ -277,8 +313,8 @@ func launch(attacker: SquadView, target: SquadView) -> void:
 			_audio.play("magic", -5.0)
 		Kind.BALL:
 			_audio.play("cannon", -2.0)
-			_burst(attacker.center() + Vector2(6 if not attacker.flip else -6, 0), 5,
-					Color("b0aaa0"), 30.0, 0.5, -0.2)
+			_burst(attacker.center() + Vector2(4 if not attacker.flip else -4, 0), 3,
+					Color("b0aaa0"), 20.0, 0.5, -0.2)
 
 
 ## Bir asker düştü: yere yığılan beden ve birkaç damla.
@@ -290,23 +326,27 @@ func soldier_died(view: SquadView, at: Vector2) -> void:
 	_corpses.append(c)
 	if _corpses.size() > MAX_CORPSES:
 		_corpses.pop_front()
-	_burst(at + Vector2(0, -5), 5, view.squad.unit.placeholder_color.darkened(0.45), 45.0, 0.4)
-	# İki soluk ışık zerresi yükselir: düşüş uzaktan da fark edilsin.
-	for i in 2:
-		var p := _particle(at + Vector2(_rng.randf_range(-3, 3), -4),
-				Vector2(_rng.randf_range(-6, 6), -_rng.randf_range(18, 30)), R64_PALE, 0.5)
-		p.gravity = -0.05
+	# Ölüm tozu: 4-6 parçacık, 1-2 px (minik figürün yüksekliğinin yarısında).
+	_burst(at + Vector2(0, -3), _rng.randi_range(4, 6),
+			view.squad.unit.placeholder_color.darkened(0.45), 30.0, 0.35)
+	# Soluk ışık zerresi yükselir: düşüş uzaktan da fark edilsin.
+	var mote := _particle(at + Vector2(_rng.randf_range(-2, 2), -3),
+			Vector2(_rng.randf_range(-4, 4), -_rng.randf_range(14, 22)), R64_PALE, 0.5)
+	mote.gravity = -0.05
 	_audio.play("death", -9.0, 0.15, 0.09)
 
 
 ## Bölük tamamen yok oldu: toz bulutu ve halka. Boss düşünce büyük sarsıntı.
 func squad_down(view: SquadView) -> void:
 	var at := view.position
-	_ring(at, 26.0, 0.5, Color("d8c8a0"))
-	_burst(at + Vector2(0, -4), 14, Color("a89878"), 60.0, 0.6, 0.2)
+	_ring(at, 16.0, 0.5, Color("d8c8a0"))
+	_burst(at + Vector2(0, -3), 8, Color("a89878"), 40.0, 0.5, 0.2)
 	if view.squad.unit.is_boss:
 		_burst(view.center(), 24, FIRE, 110.0, 0.8)
 		_ring(at, 50.0, 0.7, UiKit.COLOR_GOLD)
+		_glow_ring(at, 44.0, 0.8, GLOW_PURPLE)
+		_glow_ring(at, 26.0, 0.6, GLOW_RED)
+		_glow_puff(view.center(), 10.0, 0.5, GLOW_RED)
 		_audio.play("explosion")
 		_shake(7.0)
 	else:
@@ -317,17 +357,17 @@ func squad_down(view: SquadView) -> void:
 ## Ölüler dirildi: yükselen ışık parçacıkları.
 func revive(view: SquadView) -> void:
 	var glow := view.squad.unit.placeholder_color.lightened(0.6)
-	_ring(view.position, 22.0, 0.6, glow)
-	for i in 18:
-		var p := _particle(view.position + Vector2(_rng.randf_range(-12, 12), _rng.randf_range(-4, 4)),
-				Vector2(0, -_rng.randf_range(15, 40)), glow, _rng.randf_range(0.6, 1.0))
+	_ring(view.position, 14.0, 0.6, glow)
+	for i in 10:
+		var p := _particle(view.position + Vector2(_rng.randf_range(-8, 8), _rng.randf_range(-3, 3)),
+				Vector2(0, -_rng.randf_range(12, 30)), glow, _rng.randf_range(0.6, 1.0))
 		p.gravity = -0.05
 	_audio.play("revive", -2.0)
 
 
 ## Slime bölündü: etrafa jöle sıçrar.
 func split(view: SquadView) -> void:
-	_burst(view.center(), 10, view.squad.unit.placeholder_color, 70.0, 0.45)
+	_burst(view.center(), 6, view.squad.unit.placeholder_color, 45.0, 0.4)
 	_audio.play("split", -3.0)
 
 
@@ -339,21 +379,23 @@ func _land(p: Projectile) -> void:
 	match p.kind:
 		Kind.ARROW:
 			_impact(p.to, 1, R64_PALE)
-			_burst(p.to, 2, Color("c8b890"), 30.0, 0.2)
+			_burst(p.to, 2, Color("c8b890"), 20.0, 0.2)
 			_audio.play("arrow_hit", -9.0)
 		Kind.BOLT:
-			_impact(p.to, 3, p.color.lightened(0.4))
-			_burst(p.to, 8, p.color, 60.0, 0.35, 1.0, 2.0)
+			_impact(p.to, 2, p.color.lightened(0.4))
+			_burst(p.to, 5, p.color, 40.0, 0.3, 1.0, 2.0)
+			_glow_puff(p.to, 4.0, 0.2, p.color)
 			_audio.play("magic_hit", -5.0)
 		Kind.BALL:
-			_impact(p.to, 4, R64_GOLD)
-			_burst(p.to, 14, FIRE, 90.0, 0.45, 1.0, 2.0)
-			_burst(p.to, 8, Color("6a6058"), 50.0, 0.7, 0.1)
+			_impact(p.to, 2, R64_GOLD)
+			_burst(p.to, 9, FIRE, 60.0, 0.4, 1.0, 2.0)
+			_burst(p.to, 5, Color("6a6058"), 35.0, 0.6, 0.1)
+			_glow_puff(p.to, 6.0, 0.25, FIRE)
 			_audio.play("explosion", -4.0)
 			_shake(1.5)
 			hitstop_requested.emit(0.03)
 	if p.splash > 0.0:
-		_ring(p.to + Vector2(0, 6), p.splash, 0.35, p.color)
+		_ring(p.to + Vector2(0, 3), p.splash, 0.35, p.color)
 
 
 ## big_size: iri parçacığın boyu (piksel). Parçacıkların %30'u iri, kalanı 1 piksel.
@@ -392,15 +434,15 @@ func _spawn_number(view: SquadView, amount: float) -> void:
 	var value := roundi(absf(amount))
 	# Sancağın sağına ya da soluna: ortadaki asker sayısının üstüne binmesin.
 	var side := 1.0 if _rng.randf() < 0.5 else -1.0
-	f.pos = (view.center() + Vector2(side * _rng.randf_range(14.0, 22.0), -6.0)).round()
+	f.pos = (view.center() + Vector2(side * _rng.randf_range(10.0, 16.0), -5.0)).round()
 	if amount < 0.0:
 		f.text = "+%d" % value
 		f.color = HEAL
 	else:
 		f.text = "-%d" % value
 		f.color = DAMAGE_TO_PLAYER if view.squad.team == SquadState.Team.PLAYER else DAMAGE_TO_ENEMY
-	# İki askerden fazlasını bir anda götüren darbe iri yazılır.
-	f.size = 10 if absf(amount) >= view.squad.unit.hp * 2.0 else 8
+	f.size = NUMBER_SIZE  # minik ölçek: hep 8 (ağır darbe pop animasyonuyla öne çıkar)
+	f.big = absf(amount) >= view.squad.unit.hp * 2.0
 	_texts.append(f)
 	if _texts.size() > MAX_NUMBERS:
 		_texts.pop_front()
@@ -413,6 +455,37 @@ func _impact(at: Vector2, size: int, color: Color) -> void:
 	i.color = color
 	i.duration = 0.06 + size * 0.02
 	_impacts.append(i)
+
+
+## Additive parıltı halkası (boss vuruşu / ölümü). "Vuruş flaşı" kapalıysa hiç çıkmaz,
+## ekran sarsıntısı kapalıysa yarı güçte çıkar (bkz. _glow_strength).
+func _glow_ring(at: Vector2, radius: float, duration: float, color: Color) -> void:
+	_add_glow(at, radius, duration, color, true)
+
+
+func _glow_puff(at: Vector2, radius: float, duration: float, color: Color) -> void:
+	_add_glow(at, radius, duration, color, false)
+
+
+func _add_glow(at: Vector2, radius: float, duration: float, color: Color, ring: bool) -> void:
+	if _glow_strength() <= 0.0:
+		return
+	var g := Glow.new()
+	g.pos = at.round()
+	g.radius = radius
+	g.duration = duration
+	g.color = color
+	g.ring = ring
+	_glows.append(g)
+	if _glows.size() > MAX_GLOWS:
+		_glows.pop_front()
+
+
+## Parıltı gücü 0-1: vuruş flaşı kapalıysa 0 (parıltı yok), ekran sarsıntısı kapalıysa yarı.
+func _glow_strength() -> float:
+	if not _settings.flash_effects:
+		return 0.0
+	return 1.0 if _settings.screen_shake else 0.5
 
 
 func _particle(at: Vector2, vel: Vector2, color: Color, life: float) -> Particle:
@@ -451,15 +524,15 @@ func _draw() -> void:
 			Kind.ARROW:
 				var back := p.point(maxf(t - 0.06, 0.0))
 				var dir := (at - back).normalized()
-				draw_line(at - dir * 5.0, at, Color("8a6a46"), 1.0)
-				draw_rect(Rect2(at, Vector2.ONE), Color("e0e0e0"))
+				draw_line(at - dir * 4.0, at, Color("8a6a46"), 1.0)  # 1 px gövde
+				draw_rect(Rect2(at - Vector2.ONE, Vector2(2, 2)), Color("e0e0e0"))  # 2x2 parlak uç
 			Kind.BOLT:
 				for k in 3:  # iz
 					var trail := p.point(maxf(t - 0.05 * (k + 1), 0.0)).round()
 					var c := p.color
 					c.a = 0.5 - k * 0.15
-					draw_rect(Rect2(trail - Vector2.ONE, Vector2(2, 2)), c)
-				draw_rect(Rect2(at - Vector2(1, 1), Vector2(3, 3)), p.color)
+					draw_rect(Rect2(trail, Vector2.ONE), c)
+				draw_rect(Rect2(at - Vector2(1, 1), Vector2(3, 3)), p.color)  # 3 px top
 				draw_rect(Rect2(at, Vector2.ONE), Color.WHITE)
 			Kind.BALL:
 				draw_rect(Rect2(at - Vector2(1, 1), Vector2(3, 3)), Color("242020"))
@@ -486,7 +559,8 @@ func _draw() -> void:
 func _draw_numbers() -> void:
 	var font := ThemeDB.fallback_font
 	for f in _texts:
-		var scale: float = Tween.interpolate_value(1.8, -0.8, minf(f.time, NUMBER_POP), NUMBER_POP,
+		var pop := 1.0 if f.big else 0.5
+		var scale: float = Tween.interpolate_value(1.0 + pop, -pop, minf(f.time, NUMBER_POP), NUMBER_POP,
 				Tween.TRANS_BACK, Tween.EASE_OUT)
 		var rise: float = Tween.interpolate_value(0.0, -NUMBER_RISE, f.time, NUMBER_LIFE,
 				Tween.TRANS_QUAD, Tween.EASE_OUT)
@@ -494,12 +568,40 @@ func _draw_numbers() -> void:
 		var width := font.get_string_size(f.text, HORIZONTAL_ALIGNMENT_LEFT, -1, f.size).x
 		draw_set_transform(f.pos + Vector2(0, roundf(rise)), 0.0, Vector2(scale, scale))
 		var at := Vector2(-width / 2.0, 0.0)
-		draw_string_outline(font, at, f.text, HORIZONTAL_ALIGNMENT_LEFT, -1, f.size, 3,
+		draw_string_outline(font, at, f.text, HORIZONTAL_ALIGNMENT_LEFT, -1, f.size, 2,
 				Color(R64_INK, 0.9 * fade))
 		var c := f.color
 		c.a = fade
 		draw_string(font, at, f.text, HORIZONTAL_ALIGNMENT_LEFT, -1, f.size, c)
 	draw_set_transform(Vector2.ZERO)
+
+
+## Additive parıltılar (_glow düğümünün draw sinyali). Renkler arkadaki piksellere eklenir;
+## alfa gücü ayarlara göre kısılır. Piksel sanat: halka dışında hepsi tam piksel dikdörtgen.
+func _draw_glow() -> void:
+	var strength := _glow_strength()
+	if strength <= 0.0:
+		return
+	for p in _projectiles:  # büyü topunun 5x5 + 3x3 hâlesi
+		if p.kind != Kind.BOLT or p.time < 0.0:
+			continue
+		var at := p.point(p.time / p.duration).round()
+		_glow.draw_rect(Rect2(at - Vector2(2, 2), Vector2(5, 5)), Color(p.color, 0.18 * strength))
+		_glow.draw_rect(Rect2(at - Vector2(1, 1), Vector2(3, 3)), Color(p.color, 0.3 * strength))
+	for g in _glows:
+		var t := g.time / g.duration
+		var c := g.color
+		if g.ring:
+			c.a = 0.8 * strength * (1.0 - t)
+			_glow.draw_set_transform(g.pos, 0.0, Vector2(1.0, 0.5))
+			_glow.draw_arc(Vector2.ZERO, g.radius * (0.3 + 0.7 * t), 0.0, TAU, 32, c, 2.0)
+			_glow.draw_set_transform(Vector2.ZERO)
+		else:
+			c.a = 0.45 * strength * (1.0 - t)
+			var r := roundi(g.radius * (0.6 + 0.4 * t))
+			for dy in range(-r, r + 1):  # dolu piksel diski: satır satır
+				var half := roundi(sqrt(maxf(r * r - dy * dy, 0.0)))
+				_glow.draw_rect(Rect2(g.pos + Vector2(-half, dy), Vector2(half * 2 + 1, 1)), c)
 
 
 ## Cesetler (çözülme shader'lı katman). Çizim rengi veri taşır: r = beyazlık, a = kalan

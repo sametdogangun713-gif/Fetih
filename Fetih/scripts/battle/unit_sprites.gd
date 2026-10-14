@@ -10,7 +10,7 @@ class_name UnitSprites
 ##   en alt satırın bir üstünde durur.
 ## - Ölüm satırının son karesi yerde kalan bedendir.
 ##
-## DOSYA: assets/sprites/units/<birlik id>.png varsa o kullanılır (ör. elf_archer.png,
+## DOSYA (sadece boss): assets/sprites/units/<birlik id>.png varsa o kullanılır (ör. elf_archer.png,
 ## boss için human_boss.png). Yoksa sprite koddan üretilir (bkz. generate): beden türü krallık ve
 ## role göre seçilir (atlı, top, mancınık, insansı), renkler birliğin rengi ve krallığın
 ## görünümünden gelir. Çizim parçaları scripts/battle/unit_art/ altında.
@@ -76,13 +76,20 @@ class Sheet:
 		return Rect2(Vector2(f * frame_size.x, rows[anim] * frame_size.y), frame_size)
 
 
-static var _cache := {}  ## birlik id -> Sheet
+## Minik birliklerin gövde renkleri (9 Kings gibi: oyuncu altın, rakip kırmızı).
+const TEAM_PLAYER := Color("f9c22b")
+const TEAM_ENEMY := Color("e83b3b")
+
+static var _cache := {}  ## "birlik id_takım" -> Sheet
 
 
-static func sheet_for(unit: UnitData) -> Sheet:
-	if not _cache.has(unit.id):
-		_cache[unit.id] = _build(unit)
-	return _cache[unit.id]
+## Birliğin sprite sayfası. Boss dışındakiler MiniUnitArt ile takım renginde çizilir
+## (önbellek anahtarı birlik + takım); boss büyük çizimle (dosya ya da generate) kalır.
+static func sheet_for(unit: UnitData, team := SquadState.Team.PLAYER) -> Sheet:
+	var key := "%s_%d" % [unit.id, team]
+	if not _cache.has(key):
+		_cache[key] = _build(unit, team)
+	return _cache[key]
 
 
 ## Arayüzde (kartlar, ordu kutuları) kullanılacak tek kare: birliğin durma hali, figürün dolu
@@ -106,10 +113,16 @@ static func user_path(unit: UnitData) -> String:
 	return USER_DIR + String(unit.id) + ".png"
 
 
-static func _build(unit: UnitData) -> Sheet:
+static func team_color(team: int) -> Color:
+	return TEAM_ENEMY if team == SquadState.Team.ENEMY else TEAM_PLAYER
+
+
+static func _build(unit: UnitData, team: int) -> Sheet:
 	var image: Image
 	var path := user_path(unit)
-	if ResourceLoader.exists(path):
+	if not unit.is_boss:
+		image = MiniUnitArt.sheet(unit, team_color(team))
+	elif ResourceLoader.exists(path):
 		image = (load(path) as Texture2D).get_image()
 		if image.is_compressed():
 			image.decompress()

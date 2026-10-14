@@ -2,7 +2,10 @@ class_name BattleCamera
 extends Camera2D
 ## Savaş alanı kamerası.
 ## Otomatik takip (varsayılan): follow() her karede yaşayan bölükleri kapsayan kutuyu alır;
-## kamera kutunun ortasına kayar ve hepsi sığdığı sürece en yakın seviyeye geçer.
+## kamera kutunun ortasına kayar ve hepsi sığdığı sürece en yakın seviyeye geçer. Savaş başında
+## (instant) çağıran iki ordu + kamp yapılarını kapsayan kutu verir: hepsi tek bakışta görünür.
+## Savaşta takip sadece kutu ekranın yarısından küçükse yakınlaşır ve en çok AUTO_MAX_ZOOM'a çıkar
+## (2x sadece elle).
 ## WASD / ok tuşları: kaydır. Sağ veya orta tuşla sürükle: kaydır. Fare tekerleği: yakınlaştır.
 ## Elle kaydırma/yakınlaştırma takibi kapatır; F tuşu tekrar açar.
 ## shake(): ekran sarsıntısı (boss vuruşu, patlama).
@@ -10,7 +13,9 @@ extends Camera2D
 const PAN_SPEED := 320.0  ## Saniyede kaç ekran pikseli kayar.
 ## Yakınlık seviyeleri. Oyun pencere çözünürlüğünde çizildiği için (canvas_items, 3x pencerede
 ## 1920x1080) ara değerler de temiz görünür; piksel sanat birlikler ekranda 3 x yakınlık katı büyür.
-const ZOOM_LEVELS: Array[float] = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0]
+## 2/3: savaş başı çerçevesi (iki kamp + iki ordu) 640x360'a sığsın; 3x pencerede tam 2x piksel.
+const ZOOM_LEVELS: Array[float] = [0.6667, 0.75, 1.0, 1.5, 2.0]
+const AUTO_MAX_ZOOM := 1.5  ## Otomatik takibin çıkabileceği en yakın seviye.
 const SHAKE_DECAY := 18.0  ## Sarsıntı gücü saniyede bu kadar piksel azalır.
 const MAX_SHAKE := 8.0
 ## Sarsıntı ofseti saniyede bu kadar kez yenilenir. Her karede rastgele zıplamak (60+ Hz)
@@ -20,15 +25,15 @@ const FOLLOW_SPEED := 2.5  ## Takipte kameranın hedefe yaklaşma hızı (1/sn, 
 const ZOOM_SPEED := 3.0
 ## Daha yakına geçmek için kutunun etrafında kalması gereken boşluk (ekran pikseli). Geri çıkmak için
 ## daha az boşluk yeter: iki eşik arasında yakınlık sabit kalır, kamera gidip gelmez.
-const FIT_MARGIN := 40.0
-const KEEP_MARGIN := 12.0
+const FIT_MARGIN := 80.0
+const KEEP_MARGIN := 30.0
 
 ## Kamera merkezinin dışına çıkamayacağı alan. battlefield.gd ayarlar.
 var bounds := Rect2()
 
 var auto_follow := true
 
-var _zoom_index := 1
+var _zoom_index := ZOOM_LEVELS.find(1.0)
 var _dragging := false
 var _shake := 0.0
 var _shake_tick := 0.0
@@ -66,6 +71,11 @@ func follow(rect: Rect2, delta: float, instant := false) -> void:
 	var current := ZOOM_LEVELS[_zoom_index]
 	var best := ZOOM_LEVELS[0]
 	for level in ZOOM_LEVELS:
+		if level > AUTO_MAX_ZOOM:
+			break
+		# 1x'ten yakın seviyeler sadece kutu ekranın yarısından küçükse (bölükler bir köşeye toplandı).
+		if level > 1.0 and rect.size.x * level > screen.x * 0.5:
+			continue
 		var margin := KEEP_MARGIN if level <= current else FIT_MARGIN
 		if rect.size.x * level <= screen.x - margin * 2.0 and rect.size.y * level <= screen.y - margin * 2.0:
 			best = level
