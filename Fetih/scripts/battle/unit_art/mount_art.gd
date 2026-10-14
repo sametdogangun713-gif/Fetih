@@ -95,11 +95,13 @@ static func draw(p: SpritePainter, look: Dictionary, kind: StringName, m: Dictio
 	var head: Vector2 = s.head + Vector2(off.x, off.y + m.head_dy)
 	if k > 0.0:  # çökerken baş yere iner
 		head = head.lerp(Vector2(s.head.x + 2.5 + off.x, GROUND - 2.0), k)
-	_head(p, look, kind, neck, head)
+	if not m.get("headless", false):  # kentaurda boyun yerine insan gövdesi gelir
+		_head(p, look, kind, neck, head)
 	# Yakın bacaklar.
 	_leg(p, r, Vector2(s.front[0] + off.x, joint_y), feet[0], true, k, s.leg, false)
 	_leg(p, r, Vector2(s.hind[0] + off.x, joint_y), feet[2], false, k, s.leg, false)
-	return {saddle = s.saddle + off, mouth = head + Vector2(2.0, 1.0)}
+	return {saddle = s.saddle + off, mouth = head + Vector2(2.0, 1.0),
+			waist = Vector2(b[0] + b[2] - 3.0, b[1] - b[3] + 2.0) + off}
 
 
 ## Dört toynağın yeri: [yakın ön, uzak ön, yakın arka, uzak arka]; z = kalkış.
