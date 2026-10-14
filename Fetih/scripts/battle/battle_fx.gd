@@ -14,21 +14,32 @@ const ARROW_SPEED := 260.0  ## piksel/sn
 const BOLT_SPEED := 170.0
 const CORPSE_FALL := 0.36  ## Ölüm animasyonunun süresi (ölüm satırının bütün kareleri).
 const CORPSE_STAY := 1.4  ## Yerde kalma süresi (sonra solar).
-const CORPSE_FADE := 0.8
+const CORPSE_FADE := 0.8  ## Piksel piksel çözülme süresi (corpse_dissolve shader'ı).
+const CORPSE_FLASH := 0.1  ## Düştüğü an beyaz parlama süresi.
+const CORPSE_SHADER := preload("res://assets/shaders/corpse_dissolve.gdshader")
 const MAX_CORPSES := 160
 const MAX_PARTICLES := 600
 const FIRE := Color("ff8a30")
 const MUD := Color("8a7040")
 const SPARK := Color("fff2b0")
-## Hasar / iyileşme sayıları.
-const NUMBER_INTERVAL := 0.3  ## Bir bölüğün sayıları en sık bu aralıkla çıkar (toplanır).
-const NUMBER_LIFE := 0.8
-const NUMBER_POP := 0.16  ## Büyükten normale "pop" süresi.
-const NUMBER_RISE := 12.0  ## Ömrü boyunca yükseldiği mesafe (piksel).
-const MAX_NUMBERS := 40
-const DAMAGE_TO_ENEMY := Color("fff0c0")
-const DAMAGE_TO_PLAYER := Color("ff8070")
-const HEAL := Color("8fe07f")
+## Yeni efekt renkleri Resurrect 64 paletinden (gorsel_yon_dokumani.md, karar 3).
+const R64_WHITE := Color("ffffff")
+const R64_PALE := Color("c7dcd0")  ## soluk gri-yeşil: ok ucu, ruh zerresi
+const R64_LEMON := Color("fbff86")  ## açık limon: kıvılcım yıldızı, düşmana hasar
+const R64_GOLD := Color("f9c22b")  ## gülle patlaması
+const R64_SALMON := Color("f68181")  ## oyuncuya hasar
+const R64_LEAF := Color("91db69")  ## iyileşme
+const R64_INK := Color("2e222f")  ## en koyu ton: yazı konturu
+## Hasar / iyileşme sayıları (değerler gorsel_yon_dokumani.md 5.2).
+const NUMBER_INTERVAL := 0.25  ## Bir bölüğün sayıları en sık bu aralıkla çıkar (toplanır).
+const NUMBER_LIFE := 0.5
+const NUMBER_FADE := 0.15  ## Son bu kadar sürede söner.
+const NUMBER_POP := 0.12  ## Büyükten normale "pop" süresi.
+const NUMBER_RISE := 10.0  ## Ömrü boyunca yükseldiği mesafe (piksel).
+const MAX_NUMBERS := 16
+const DAMAGE_TO_ENEMY := R64_LEMON
+const DAMAGE_TO_PLAYER := R64_SALMON
+const HEAL := R64_LEAF
 
 
 class Projectile:
@@ -106,6 +117,8 @@ var _rings: Array[Ring] = []
 var _impacts: Array[Impact] = []
 var _texts: Array[FloatText] = []
 var _tracks := {}  ## SquadView -> HpTrack
+var _corpse_layer := Node2D.new()  ## Cesetler: çözülme shader'ı sadece bu katmanda.
+var _corpses_drawn := false
 var _air_drawn := false  ## Son çizimde havada efekt var mıydı.
 var _ground_drawn := false
 var _rng := RandomNumberGenerator.new()
@@ -119,6 +132,11 @@ var _rng := RandomNumberGenerator.new()
 func _ready() -> void:
 	_rng.randomize()
 	_ground.draw.connect(_draw_ground)
+	var mat := ShaderMaterial.new()
+	mat.shader = CORPSE_SHADER
+	_corpse_layer.material = mat
+	_corpse_layer.draw.connect(_draw_corpses)
+	_ground.add_child(_corpse_layer)  # GroundFx'in çocuğu: halkaların üstünde, bölüklerin altında
 
 
 ## Her karede çağrılır; delta savaş hızıyla çarpılmıştır.
@@ -158,10 +176,14 @@ func advance(delta: float) -> void:
 	if air or _air_drawn:
 		queue_redraw()
 	_air_drawn = air
-	var ground := not (_corpses.is_empty() and _rings.is_empty())
+	var ground := not _rings.is_empty()
 	if ground or _ground_drawn:
 		_ground.queue_redraw()
 	_ground_drawn = ground
+	var corpses := not _corpses.is_empty()
+	if corpses or _corpses_drawn:
+		_corpse_layer.queue_redraw()
+	_corpses_drawn = corpses
 
 
 func clear() -> void:
@@ -189,7 +211,7 @@ func melee_hit(attacker: SquadView, target: SquadView) -> void:
 	var at := target.random_soldier_position(_rng)
 	var unit := attacker.squad.unit
 	var heavy := unit.is_boss or unit.role == RoleRules.TANK or unit.role == RoleRules.CAVALRY
-	_impact(at, 3 if heavy else 2, SPARK)
+	_impact(at, 3 if heavy else 2, R64_LEMON)
 	_burst(at, 6 if heavy else 4, SPARK, 70.0, 0.22, 1.0, 2.0)
 	if unit.is_boss:
 		_audio.play("hit_heavy", 0.0)
@@ -263,7 +285,12 @@ func soldier_died(view: SquadView, at: Vector2) -> void:
 	_corpses.append(c)
 	if _corpses.size() > MAX_CORPSES:
 		_corpses.pop_front()
-	_burst(at + Vector2(0, -5), 4, view.squad.unit.placeholder_color.darkened(0.45), 40.0, 0.35)
+	_burst(at + Vector2(0, -5), 5, view.squad.unit.placeholder_color.darkened(0.45), 45.0, 0.4)
+	# İki soluk ışık zerresi yükselir: düşüş uzaktan da fark edilsin.
+	for i in 2:
+		var p := _particle(at + Vector2(_rng.randf_range(-3, 3), -4),
+				Vector2(_rng.randf_range(-6, 6), -_rng.randf_range(18, 30)), R64_PALE, 0.5)
+		p.gravity = -0.05
 	_audio.play("death", -9.0, 0.15, 0.09)
 
 
@@ -306,7 +333,7 @@ func _land(p: Projectile) -> void:
 		p.target.flash()
 	match p.kind:
 		Kind.ARROW:
-			_impact(p.to, 1, Color("f0e6c8"))
+			_impact(p.to, 1, R64_PALE)
 			_burst(p.to, 2, Color("c8b890"), 30.0, 0.2)
 			_audio.play("arrow_hit", -9.0)
 		Kind.BOLT:
@@ -314,7 +341,7 @@ func _land(p: Projectile) -> void:
 			_burst(p.to, 8, p.color, 60.0, 0.35, 1.0, 2.0)
 			_audio.play("magic_hit", -5.0)
 		Kind.BALL:
-			_impact(p.to, 4, Color("fff2b0"))
+			_impact(p.to, 4, R64_GOLD)
 			_burst(p.to, 14, FIRE, 90.0, 0.45, 1.0, 2.0)
 			_burst(p.to, 8, Color("6a6058"), 50.0, 0.7, 0.1)
 			_audio.play("explosion", -4.0)
@@ -364,7 +391,7 @@ func _spawn_number(view: SquadView, amount: float) -> void:
 		f.text = "+%d" % value
 		f.color = HEAL
 	else:
-		f.text = str(value)
+		f.text = "-%d" % value
 		f.color = DAMAGE_TO_PLAYER if view.squad.team == SquadState.Team.PLAYER else DAMAGE_TO_ENEMY
 	# İki askerden fazlasını bir anda götüren darbe iri yazılır.
 	f.size = 10 if absf(amount) >= view.squad.unit.hp * 2.0 else 8
@@ -444,7 +471,7 @@ func _draw() -> void:
 		draw_rect(Rect2(i.pos + Vector2(-arm, 0), Vector2(arm * 2 + 1, 1)), c)
 		draw_rect(Rect2(i.pos + Vector2(0, -arm), Vector2(1, arm * 2 + 1)), c)
 		if t < 0.5:
-			draw_rect(Rect2(i.pos, Vector2.ONE), Color.WHITE)
+			draw_rect(Rect2(i.pos, Vector2.ONE), R64_WHITE)
 	_draw_numbers()
 
 
@@ -457,30 +484,37 @@ func _draw_numbers() -> void:
 				Tween.TRANS_BACK, Tween.EASE_OUT)
 		var rise: float = Tween.interpolate_value(0.0, -NUMBER_RISE, f.time, NUMBER_LIFE,
 				Tween.TRANS_QUAD, Tween.EASE_OUT)
-		var fade := clampf((NUMBER_LIFE - f.time) / (NUMBER_LIFE * 0.35), 0.0, 1.0)
+		var fade := clampf((NUMBER_LIFE - f.time) / NUMBER_FADE, 0.0, 1.0)
 		var width := font.get_string_size(f.text, HORIZONTAL_ALIGNMENT_LEFT, -1, f.size).x
 		draw_set_transform(f.pos + Vector2(0, roundf(rise)), 0.0, Vector2(scale, scale))
 		var at := Vector2(-width / 2.0, 0.0)
 		draw_string_outline(font, at, f.text, HORIZONTAL_ALIGNMENT_LEFT, -1, f.size, 3,
-				Color(0.08, 0.05, 0.04, 0.9 * fade))
+				Color(R64_INK, 0.9 * fade))
 		var c := f.color
 		c.a = fade
 		draw_string(font, at, f.text, HORIZONTAL_ALIGNMENT_LEFT, -1, f.size, c)
 	draw_set_transform(Vector2.ZERO)
 
 
-func _draw_ground() -> void:
+## Cesetler (çözülme shader'lı katman). Çizim rengi veri taşır: r = beyazlık, a = kalan
+## miktar (bkz. corpse_dissolve.gdshader). Soluk ton shader'ın tint parametresinde.
+func _draw_corpses() -> void:
 	for c in _corpses:
-		var alpha := 1.0 - clampf((c.time - CORPSE_STAY) / CORPSE_FADE, 0.0, 1.0)
+		var keep := 1.0 - clampf((c.time - CORPSE_STAY) / CORPSE_FADE, 0.0, 1.0)
+		var white := clampf(1.0 - c.time / CORPSE_FLASH, 0.0, 1.0)
 		var size := Vector2(c.sheet.frame_size)
 		var dest := Rect2(Vector2(-size.x / 2.0, 1.0 - size.y), size)
 		# Sola bakan asker x'te -1 ölçekle çevrilir (bkz. SquadView._draw_soldier).
 		# Devrilme ölüm satırının karelerinde.
-		_ground.draw_set_transform(c.pos, 0.0, Vector2(-1.0 if c.flip else 1.0, 1.0))
-		_ground.draw_texture_rect_region(c.sheet.texture, dest, c.sheet.region(UnitSprites.Anim.DEATH,
+		_corpse_layer.draw_set_transform(c.pos, 0.0, Vector2(-1.0 if c.flip else 1.0, 1.0))
+		_corpse_layer.draw_texture_rect_region(c.sheet.texture, dest,
+				c.sheet.region(UnitSprites.Anim.DEATH,
 				int(c.time / CORPSE_FALL * c.sheet.count(UnitSprites.Anim.DEATH))),
-				Color(0.55, 0.5, 0.5, alpha))
-	_ground.draw_set_transform(Vector2.ZERO)
+				Color(white, 0.0, 0.0, keep))
+	_corpse_layer.draw_set_transform(Vector2.ZERO)
+
+
+func _draw_ground() -> void:
 	for r in _rings:
 		var t := r.time / r.duration
 		var c := r.color
