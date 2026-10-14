@@ -8,6 +8,7 @@ id = &"human_swordsman"
 kingdom = &"humans"
 role = &"warrior"
 display_name = "Kılıçlı Piyade"
+cost = 4.95
 move_speed = 1.1
 armor = 2.0
 placeholder_color = Color(0.5411765, 0.5882353, 0.65882355, 1)
