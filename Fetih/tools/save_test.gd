@@ -201,6 +201,23 @@ Range"))
 	TranslationServer.set_locale(locale_before)
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(TEST_SETTINGS_PATH))
 
+	# 10) Serbest konum kaydı ve eski ("cell") biçim.
+	var r1: Node = RunStateScript.new()
+	r1.start_run(KingdomCatalog.all()[0], 777)
+	r1.army[0].pos = Vector2(7.25, 2.5)
+	var r2: Node = RunStateScript.new()
+	check("pos kaydı yüklendi", r2.from_dict(JSON.parse_string(JSON.stringify(r1.to_dict("prep")))))
+	check("pos korundu", r2.army[0].pos.is_equal_approx(Vector2(7.25, 2.5)))
+	var old: Dictionary = r1.to_dict("prep")
+	for sq in old.army:
+		sq.erase("pos")
+		sq["cell"] = [2, 1]
+	var r3: Node = RunStateScript.new()
+	check("eski biçim yüklendi", r3.from_dict(JSON.parse_string(JSON.stringify(old))))
+	check("eski cell dönüştü", r3.army[0].pos.is_equal_approx(Formation.cell_to_deploy(Vector2i(2, 1), Vector2i(3, 3))))
+	for node in [r1, r2, r3]:
+		node.free()
+
 	for node in [a, b, c, d, e, tips_reload, s1, s2, run1, run2, run3, run4]:
 		node.free()
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(TEST_PATH))
