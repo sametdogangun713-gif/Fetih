@@ -285,12 +285,26 @@ func _on_battle_finished(winner: SquadState.Team) -> void:
 	else:
 		result_label.text = tr("YENİLGİ (rakipte %d asker kaldı)") % survivors
 		result_label.add_theme_color_override("font_color", UiKit.COLOR_BAD)
+	_pop_result()
 	if RunState.active:
 		RunState.finish_battle(won)
 		# Sonuç hemen kaydedilir: kart ekranına geçmeden çıkılırsa da savaş sonucu kalıcıdır.
 		var over := RunState.is_defeated() or RunState.is_last_battle()
 		Profile.store_run(RunState.to_dict("end" if over else "cards"))
 		continue_button.visible = true
+
+
+## Sonuç yazısı büyükten yerine oturur (TRANS_BACK: hafif taşıp geri gelir), "Devam" sonra belirir.
+func _pop_result() -> void:
+	result_label.pivot_offset = result_label.size / 2.0
+	result_label.scale = Vector2.ONE * 2.0
+	result_label.modulate.a = 0.0
+	var tween := create_tween().set_parallel()
+	tween.tween_property(result_label, "scale", Vector2.ONE, 0.35) \
+			.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_property(result_label, "modulate:a", 1.0, 0.15)
+	continue_button.modulate.a = 0.0
+	tween.tween_property(continue_button, "modulate:a", 1.0, 0.25).set_delay(0.35)
 
 
 func _on_continue() -> void:
