@@ -1,6 +1,6 @@
 extends Node
 ## Oyuncu ayarları (autoload: Settings): ses düzeyleri, tam ekran, pencere boyutu,
-## varsayılan savaş hızı, ekran sarsıntısı, dil.
+## varsayılan savaş hızı, ekran sarsıntısı, vuruş flaşı, hasar sayıları, dil.
 ## İlerlemeden (Profile, save.json) ayrı tutulur: ayarlar cihaza ait, ilerleme oyuncuya.
 ## Godot'nun ConfigFile biçimi (INI benzeri, bölüm + anahtar) kullanılır: user://settings.cfg.
 
@@ -20,6 +20,8 @@ var fullscreen := false
 var window_scale := 3  ## Pencere = BASE_SIZE x bu sayı (3 = 1920x1080; ekrana sığmazsa en büyük kat).
 var battle_speed := 1
 var screen_shake := true
+var flash_effects := true  ## Kapalıysa vuruş flaşı hafif ve yumuşak renkte (erişilebilirlik).
+var damage_numbers := true  ## Savaşta uçuşan hasar / iyileşme sayıları.
 var language := ""  ## "tr" / "en"; boşsa sistem diline göre seçilir.
 
 
@@ -44,6 +46,8 @@ func load_settings() -> void:
 	var speed := int(file.get_value("game", "battle_speed", battle_speed))
 	battle_speed = speed if SPEEDS.has(speed) else 1
 	screen_shake = bool(file.get_value("game", "screen_shake", screen_shake))
+	flash_effects = bool(file.get_value("game", "flash_effects", flash_effects))
+	damage_numbers = bool(file.get_value("game", "damage_numbers", damage_numbers))
 	var lang := String(file.get_value("game", "language", ""))
 	language = lang if LANGUAGES.has(lang) else ""
 
@@ -56,6 +60,8 @@ func save_settings() -> void:
 	file.set_value("video", "window_scale", window_scale)
 	file.set_value("game", "battle_speed", battle_speed)
 	file.set_value("game", "screen_shake", screen_shake)
+	file.set_value("game", "flash_effects", flash_effects)
+	file.set_value("game", "damage_numbers", damage_numbers)
 	file.set_value("game", "language", language)
 	var err := file.save(settings_path)
 	if err != OK:
@@ -99,6 +105,16 @@ func set_screen_shake(value: bool) -> void:
 	save_settings()
 
 
+func set_flash_effects(value: bool) -> void:
+	flash_effects = value
+	save_settings()
+
+
+func set_damage_numbers(value: bool) -> void:
+	damage_numbers = value
+	save_settings()
+
+
 ## Dil değişince ekrandaki yazılar kendiliğinden yenilenmez (çoğu koddan kurulur);
 ## çağıran ekranı yeniden yüklemelidir.
 func set_language(code: String) -> void:
@@ -131,6 +147,8 @@ func _reset() -> void:
 	window_scale = 3
 	battle_speed = 1
 	screen_shake = true
+	flash_effects = true
+	damage_numbers = true
 	language = ""
 
 
