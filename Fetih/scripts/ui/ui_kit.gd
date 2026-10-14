@@ -115,6 +115,22 @@ static func panel(color := COLOR_PANEL) -> PanelContainer:
 	return p
 
 
+## Krallık şeridi (kart/panel üstü): 3 px ana renk, altında 1 px vurgu rengi. Krallık yoksa boş (görünmez).
+static func kingdom_strip(kingdom: KingdomData) -> Control:
+	var strip := VBoxContainer.new()
+	strip.add_theme_constant_override("separation", 0)
+	strip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if kingdom == null:
+		return strip
+	for part: Array in [[kingdom.color, 3], [kingdom.accent_color, 1]]:
+		var bar := ColorRect.new()
+		bar.color = part[0]
+		bar.custom_minimum_size = Vector2(0, part[1])
+		bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		strip.add_child(bar)
+	return strip
+
+
 static func vbox(separation := 4) -> VBoxContainer:
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", separation)

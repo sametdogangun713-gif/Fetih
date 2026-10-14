@@ -12,7 +12,7 @@ class_name UnitSprites
 ##
 ## DOSYA: assets/sprites/units/<birlik id>.png varsa o kullanılır (ör. elf_archer.png,
 ## boss için human_boss.png). Yoksa sprite koddan üretilir (bkz. generate): beden türü krallık ve
-## role göre seçilir (atlı, kentaur, golem, top, insansı), renkler birliğin rengi ve krallığın
+## role göre seçilir (atlı, top, mancınık, insansı), renkler birliğin rengi ve krallığın
 ## görünümünden gelir. Çizim parçaları scripts/battle/unit_art/ altında.
 
 enum Anim { IDLE, WALK, ATTACK, DEATH }
@@ -163,6 +163,8 @@ static func generate(unit: UnitData) -> Image:
 static func body_kind(unit: UnitData) -> StringName:
 	if unit.role == RoleRules.CAVALRY:
 		return &"rider"
+	if unit.role == RoleRules.SIEGE and not unit.is_boss:  # boss (Thrain) taçlı insansı kalır
+		return &"catapult" if unit.kingdom == &"golems" else &"cannon"
 	return &"humanoid"
 
 
@@ -170,6 +172,8 @@ static func _frame(kind: StringName, role: StringName, anim: int, f: int, look: 
 	match kind:
 		&"rider":
 			return RiderArt.frame(look, anim, f)
+		&"cannon", &"catapult":
+			return SiegeArt.frame(kind, anim, f, look)
 	return HumanoidArt.frame(role, anim, f, look)
 
 
