@@ -2,8 +2,7 @@ extends Node
 ## Kalıcı oyuncu profili: açık krallıklar, Şan, kalıcı geliştirmeler, istatistikler, yarım kalan koşu.
 ## Autoload: oyun açılınca user://save.json'dan yüklenir; her değişiklikte kaydedilir.
 ## Kayıt güvenliği: önce .tmp dosyasına yazılır, sonra asıl dosyanın yerine taşınır
-## (yazma sırasında oyun kapanırsa eski kayıt bozulmaz). Okunamayan kayıt silinmez,
-## save.corrupt-<zaman>.json adıyla kenara taşınır; oyun temiz profille açılır.
+## (yazma sırasında oyun kapanırsa eski kayıt bozulmaz). Okunamayan kayıt silinmez, yedeklenir.
 
 const SAVE_PATH := "user://save.json"
 const SAVE_VERSION := 1
@@ -16,7 +15,6 @@ var upgrades := {}  ## geliştirme id -> seviye
 var stats := {}
 var saved_run := {}  ## Yarım kalan koşu (RunState.to_dict). Boşsa yok.
 var tips_seen: Array[String] = []  ## Gösterilmiş başlangıç ipuçları (Tips).
-var last_corrupt_backup := ""  ## Son yüklemede bozuk kayıt taşındıysa yedeğin yolu (yoksa boş).
 
 
 func _ready() -> void:
@@ -32,16 +30,9 @@ func load_profile() -> void:
 		return
 	var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(save_path))
 	if typeof(data) != TYPE_DICTIONARY:
-		# Bozuk kayıt kenara taşınır: bir sonraki açılışta aynı hata tekrar çıkmaz,
-		# her bozulma kendi zaman damgalı dosyasına gider (eski yedeğin üstüne yazılmaz).
-		var backup := corrupt_backup_path()
-		var err := DirAccess.rename_absolute(ProjectSettings.globalize_path(save_path),
-				ProjectSettings.globalize_path(backup))
-		if err == OK:
-			last_corrupt_backup = backup
-			push_warning("Kayıt okunamadı, kenara taşındı: " + backup)
-		else:
-			push_warning("Kayıt okunamadı, taşınamadı (hata %d): %s" % [err, save_path])
+		var backup := save_path + ".bozuk"
+		DirAccess.copy_absolute(ProjectSettings.globalize_path(save_path), ProjectSettings.globalize_path(backup))
+		push_warning("Kayıt okunamadı, yedeklendi: " + backup)
 		_ensure_default_unlocks()
 		return
 	data = _migrate(data)
@@ -100,22 +91,6 @@ func _reset() -> void:
 	stats = {"runs": 0, "victories": 0, "battles_won": 0, "best_battle": 0, "kingdom_victories": {}}
 	saved_run = {}
 	tips_seen.clear()
-	last_corrupt_backup = ""
-
-
-## Bozuk kaydın taşınacağı yol: save.json -> save.corrupt-20261014-113800.json (aynı klasör).
-## Aynı saniyede ikinci bozulma olursa sonuna sayı eklenir, eski yedeğin üstüne yazılmaz.
-func corrupt_backup_path() -> String:
-	var t := Time.get_datetime_dict_from_system()
-	var stamp := "%04d%02d%02d-%02d%02d%02d" % [t.year, t.month, t.day, t.hour, t.minute, t.second]
-	var base := save_path.get_basename() + ".corrupt-" + stamp
-	var ext := "." + save_path.get_extension() if save_path.get_extension() != "" else ""
-	var path := base + ext
-	var n := 2
-	while FileAccess.file_exists(path):
-		path = "%s-%d%s" % [base, n, ext]
-		n += 1
-	return path
 
 
 func _ensure_default_unlocks() -> void:
