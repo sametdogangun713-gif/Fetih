@@ -42,7 +42,11 @@ func setup(p_cell: Vector2i, p_squad: ArmySquad, highlighted := false) -> void:
 	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(box)
 	if squad:
-		box.add_child(UiKit.label(tr(squad.unit.display_name), 10))
+		# Uzun ad kareyi genişletmesin (ızgara sütunları eşit kalsın): sığmayan kısım "…" ile kırpılır.
+		var name_label := UiKit.label(tr(squad.unit.display_name), 10)
+		name_label.clip_text = true
+		name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		box.add_child(name_label)
 		var line := UiKit.hbox(4)
 		line.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		line.add_child(UiKit.label("%d · %s" % [squad.count, UiKit.role_name(squad.unit.role)],

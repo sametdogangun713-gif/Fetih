@@ -84,7 +84,10 @@ func _collect(re: RegEx, text: String, path: String) -> void:
 
 
 ## Çeviri gerektirmeyen metinler: sadece sayı/biçim kodu ("x2", "%d%%", "II").
+## İstisna: Türkçe yüzde "%%%d" ("%80") İngilizcede "%d%%" ("80%") olur, çevrilmeli.
 func _is_symbolic(text: String) -> bool:
+	if text.begins_with("%%"):
+		return false
 	var letters := 0
 	for c in text.replace("%d", "").replace("%s", ""):
 		if c.to_lower() != c.to_upper():  # harf: büyük ve küçük hali farklı olan karakter

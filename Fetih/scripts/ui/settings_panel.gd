@@ -106,11 +106,11 @@ static func _volume_slider(bus: StringName) -> Control:
 	slider.custom_minimum_size.x = 140
 	slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	slider.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	var percent := UiKit.label("%d%%" % slider.value, 10, UiKit.COLOR_MUTED)
+	var percent := UiKit.label(UiKit.t("%%%d") % slider.value, 10, UiKit.COLOR_MUTED)
 	percent.custom_minimum_size.x = 30
 	slider.value_changed.connect(func(value: float) -> void:
 		Settings.set_volume(bus, value / 100.0)
-		percent.text = "%d%%" % value)
+		percent.text = UiKit.t("%%%d") % value)
 	slider.drag_ended.connect(func(_changed: bool) -> void:
 		Audio.play("hit" if bus != &"Music" else "card"))
 	row.add_child(slider)
