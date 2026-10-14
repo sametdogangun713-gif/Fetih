@@ -21,3 +21,6 @@ desktop.ini
 # Editör ve araçlar
 .vscode/
 .serena/
+
+# Claude ajan worktree'leri
+.claude/worktrees/
