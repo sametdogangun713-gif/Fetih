@@ -11,16 +11,16 @@ func fight(boss: UnitData, other: UnitData, squads: int, seed_value: int, boss_i
 	var sim := BattleSimulation.new(seed_value, Rect2(0, 0, 9, 15))
 	var boss_team := SquadState.Team.PLAYER if boss_is_player else SquadState.Team.ENEMY
 	var other_team := SquadState.Team.ENEMY if boss_is_player else SquadState.Team.PLAYER
-	var boss_army: Array[ArmySquad] = [ArmySquad.new(boss, boss.cost, ArmyGenerator.NO_CELL)]
+	var boss_army: Array[ArmySquad] = [ArmySquad.new(boss, boss.cost)]
 	ArmyGenerator.auto_arrange(boss_army, Balance.GRID_SIZE)
 	var other_army: Array[ArmySquad] = []
 	for i in squads:
-		other_army.append(ArmySquad.new(other, boss.cost / squads, ArmyGenerator.NO_CELL))
+		other_army.append(ArmySquad.new(other, boss.cost / squads))
 	ArmyGenerator.auto_arrange(other_army, Balance.GRID_SIZE)
 	for s in boss_army:
-		sim.add_squad(SquadBuilder.build(s, boss_team, NO_PASSIVES, Balance.GRID_SIZE))
+		sim.add_squad(SquadBuilder.build(s, boss_team, NO_PASSIVES))
 	for s in other_army:
-		sim.add_squad(SquadBuilder.build(s, other_team, NO_PASSIVES, Balance.GRID_SIZE))
+		sim.add_squad(SquadBuilder.build(s, other_team, NO_PASSIVES))
 	while not sim.finished:
 		sim.step()
 	var won := sim.winner == boss_team

@@ -3,7 +3,6 @@ class_name ArmyGenerator
 ## Hepsi dışarıdan verilen RandomNumberGenerator ile çalışır: aynı seed = aynı sonuç.
 
 const SPECIALTY_CHANCE := 0.4  ## Rakip bölüğünün krallık uzmanı olma olasılığı.
-const NO_CELL := Vector2i(-1, -1)
 
 ## Yerleştirme sırası: önce cephe birlikleri öne, en son menzilliler arkaya.
 ## (Boss da rolüne göre yerleşir: tank/savaşçı boss önde, büyücü boss arkada.)
@@ -22,13 +21,13 @@ static func enemy_army(kingdom: KingdomData, power: float, squad_count: int, gri
 	var army: Array[ArmySquad] = []
 	var total := 0.0
 	if with_boss and kingdom.boss:
-		army.append(ArmySquad.new(kingdom.boss, kingdom.boss.cost, NO_CELL))
+		army.append(ArmySquad.new(kingdom.boss, kingdom.boss.cost))
 		total += kingdom.boss.cost
 	# Güç azsa bölükler küçük olur; yeterliyse her biri tam (100) bölük.
 	var base := minf(Balance.SQUAD_BUDGET, maxf(power - total, 0.0) / squads)
 	base = maxf(base, Balance.SQUAD_BUDGET * 0.3)
 	for i in squads:
-		army.append(ArmySquad.new(_pick_unit(units, kingdom, rng), base, NO_CELL))
+		army.append(ArmySquad.new(_pick_unit(units, kingdom, rng), base))
 
 	total += base * squads
 	var half_step := Balance.SQUAD_BUDGET * Balance.UPGRADE_STEP * 0.5
@@ -93,11 +92,12 @@ static func auto_arrange(army: Array[ArmySquad], grid_size: Vector2i) -> void:
 			return PLACEMENT_ORDER.find(a.unit.role) < PLACEMENT_ORDER.find(b.unit.role))
 	var occupied := {}
 	for squad in sorted:
-		squad.cell = best_free_cell(occupied, grid_size, squad.unit.role)
-		occupied[squad.cell] = true
+		var cell := best_free_cell(occupied, grid_size, squad.unit.role)
+		occupied[cell] = true
+		squad.pos = Formation.cell_to_deploy(cell, grid_size)
 
 
-## Bu rol için en uygun boş kare. occupied: Vector2i -> true. Yer yoksa NO_CELL.
+## Bu rol için en uygun boş kare. occupied: Vector2i -> true. Yer yoksa (-1, -1).
 static func best_free_cell(occupied: Dictionary, grid_size: Vector2i, role: StringName) -> Vector2i:
 	var rows := range(grid_size.y)
 	if RoleRules.is_ranged_role(role):
@@ -110,7 +110,24 @@ static func best_free_cell(occupied: Dictionary, grid_size: Vector2i, role: Stri
 			var cell := Vector2i(col, row)
 			if not occupied.has(cell):
 				return cell
-	return NO_CELL
+	return Vector2i(-1, -1)
+
+
+## Yeni bölük için en uygun boş nokta: ızgara sırasını izler, dolu (MIN_GAP içinde) noktaları atlar.
+static func best_free_pos(others: Array[Vector2], grid_size: Vector2i, role: StringName) -> Vector2:
+	var rows := range(grid_size.y)
+	if RoleRules.is_ranged_role(role):
+		rows.reverse()
+	var cols := _center_out(grid_size.x)
+	if role == RoleRules.CAVALRY:
+		cols.reverse()
+	for row in rows:
+		for col in cols:
+			var p := Formation.cell_to_deploy(Vector2i(col, row), grid_size)
+			if Formation._is_free(p, others):
+				return p
+	return Formation.nearest_free(
+			Formation.cell_to_deploy(Vector2i(grid_size.x / 2, grid_size.y - 1), grid_size), others)
 
 
 ## Rastgele bir bölüğe rastgele bir yükseltme; aynı bölük + aynı tür iki kez sunulmaz.

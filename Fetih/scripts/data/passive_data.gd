@@ -1,7 +1,7 @@
 class_name PassiveData
 extends Resource
 ## Ferman: krallığa ait, koşu boyunca kalıcı bir ordu bonusu. data/passives/ altında .tres dosyaları.
-## Bir ferman tek bir değeri değiştirir; hangi bölüklere uygulanacağı rol ve ızgara satırıyla seçilir.
+## Bir ferman tek bir değeri değiştirir; hangi bölüklere uygulanacağı rol ve derinlik bandıyla seçilir.
 
 enum Row { ANY = -1, FRONT = 0, BACK = 1 }
 
@@ -20,12 +20,12 @@ const TOUGHNESS := &"toughness"  ## Özel değer: alınan hasarı bu çarpana b�
 @export var row: Row = Row.ANY  ## Sadece ön cephe / arka saf bölüklerine (konumlandırma).
 
 
-func applies_to(squad: ArmySquad, grid_size: Vector2i) -> bool:
+func applies_to(squad: ArmySquad) -> bool:
 	if not roles.is_empty() and not roles.has(squad.unit.role):
 		return false
 	match row:
 		Row.FRONT:
-			return squad.cell.y == 0
+			return squad.band() == ArmySquad.Band.FRONT
 		Row.BACK:
-			return squad.cell.y == grid_size.y - 1
+			return squad.band() == ArmySquad.Band.BACK
 	return true

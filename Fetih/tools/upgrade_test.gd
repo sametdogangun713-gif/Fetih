@@ -15,9 +15,9 @@ func fight(a: Array[ArmySquad], b: Array[ArmySquad], seed_value: int, a_is_playe
 	var team_a := SquadState.Team.PLAYER if a_is_player else SquadState.Team.ENEMY
 	var team_b := SquadState.Team.ENEMY if a_is_player else SquadState.Team.PLAYER
 	for s in a:
-		sim.add_squad(SquadBuilder.build(s, team_a, NO_PASSIVES, Balance.GRID_SIZE))
+		sim.add_squad(SquadBuilder.build(s, team_a, NO_PASSIVES))
 	for s in b:
-		sim.add_squad(SquadBuilder.build(s, team_b, NO_PASSIVES, Balance.GRID_SIZE))
+		sim.add_squad(SquadBuilder.build(s, team_b, NO_PASSIVES))
 	while not sim.finished:
 		sim.step()
 	var won := sim.winner == team_a
@@ -28,7 +28,7 @@ func fight(a: Array[ArmySquad], b: Array[ArmySquad], seed_value: int, a_is_playe
 func make(unit: UnitData, base: float, levels: Array) -> Array[ArmySquad]:
 	var army: Array[ArmySquad] = []
 	for i in 2:
-		var s := ArmySquad.new(unit, base, ArmyGenerator.NO_CELL)
+		var s := ArmySquad.new(unit, base)
 		for kind in levels:
 			s.upgrade(kind)
 		army.append(s)

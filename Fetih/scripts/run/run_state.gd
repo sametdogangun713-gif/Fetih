@@ -58,7 +58,7 @@ func start_run(p_kingdom: KingdomData, p_seed: int = 0, p_perks: Dictionary = {}
 	passives.append_array(kingdom.starting_passives)
 	army.clear()
 	for unit in kingdom.starting_units:
-		var squad := ArmySquad.new(unit, Balance.SQUAD_BUDGET, ArmyGenerator.NO_CELL)
+		var squad := ArmySquad.new(unit, Balance.SQUAD_BUDGET)
 		for i in int(perks.get("veterans", 0)):
 			squad.upgrade(ArmySquad.Upgrade.REINFORCE)
 		army.append(squad)
@@ -103,7 +103,7 @@ func enemy_passives() -> Array[PassiveData]:
 func build_player_squads() -> Array[SquadState]:
 	var result: Array[SquadState] = []
 	for squad in army:
-		result.append(SquadBuilder.build(squad, SquadState.Team.PLAYER, passives, GRID_SIZE))
+		result.append(SquadBuilder.build(squad, SquadState.Team.PLAYER, passives))
 	return result
 
 
@@ -111,7 +111,7 @@ func build_enemy_squads() -> Array[SquadState]:
 	var result: Array[SquadState] = []
 	var enemy_fermans := enemy_passives()
 	for squad in current_enemy_army():
-		result.append(SquadBuilder.build(squad, SquadState.Team.ENEMY, enemy_fermans, GRID_SIZE))
+		result.append(SquadBuilder.build(squad, SquadState.Team.ENEMY, enemy_fermans))
 	return result
 
 
@@ -221,11 +221,11 @@ func take_card(offer: CardOffer, replaced: ArmySquad = null) -> void:
 				existing.upgrade(ArmySquad.Upgrade.REINFORCE)
 				last_changed = existing
 				return
-			var cell := free_cell_for(offer.unit)
+			var pos := free_pos_for(offer.unit)
 			if replaced:
-				cell = replaced.cell
+				pos = replaced.pos
 				army.erase(replaced)
-			last_changed = ArmySquad.new(offer.unit, Balance.SQUAD_BUDGET, cell)
+			last_changed = ArmySquad.new(offer.unit, Balance.SQUAD_BUDGET, pos)
 			army.append(last_changed)
 		CardOffer.Kind.UPGRADE:
 			offer.target.upgrade(offer.upgrade)
@@ -234,11 +234,13 @@ func take_card(offer: CardOffer, replaced: ArmySquad = null) -> void:
 			passives.append(offer.passive)
 
 
-# --- Ordu ızgarası ---
+# --- Ordu yerleşimi ---
 
+## GEÇİCİ (eski hazırlık ekranı için, Task 12'de silinir): ızgara karesindeki bölük.
 func squad_at(cell: Vector2i) -> ArmySquad:
+	var pos := Formation.cell_to_deploy(cell, GRID_SIZE)
 	for squad in army:
-		if squad.cell == cell:
+		if squad.pos.is_equal_approx(pos):
 			return squad
 	return null
 
@@ -250,23 +252,34 @@ func find_squad(unit: UnitData) -> ArmySquad:
 	return null
 
 
-func free_cell_for(unit: UnitData) -> Vector2i:
-	if army.size() >= Balance.MAX_SQUADS:
-		return ArmyGenerator.NO_CELL
-	var occupied := {}
+## except dışındaki bölüklerin konumları (taşınan bölük kendi yerini "dolu" saymasın diye).
+func other_positions(except: ArmySquad = null) -> Array[Vector2]:
+	var out: Array[Vector2] = []
 	for squad in army:
-		occupied[squad.cell] = true
-	return ArmyGenerator.best_free_cell(occupied, GRID_SIZE, unit.role)
+		if squad != except:
+			out.append(squad.pos)
+	return out
 
 
-## İki karenin içeriğini değiştirir (biri boş olabilir).
+## Yeni birlik için en uygun boş nokta (ızgara sırasını izler).
+func free_pos_for(unit: UnitData) -> Vector2:
+	return ArmyGenerator.best_free_pos(other_positions(), GRID_SIZE, unit.role)
+
+
+## Bölüğü bölgede pos'a taşır; dolu ya da bölge dışıysa en yakın boş noktaya oturur.
+func move_squad_to(squad: ArmySquad, pos: Vector2) -> Vector2:
+	squad.pos = Formation.nearest_free(pos, other_positions(squad))
+	return squad.pos
+
+
+## GEÇİCİ (eski hazırlık ekranı için, Task 12'de silinir): iki karenin içeriğini değiştirir.
 func move_squad(from: Vector2i, to: Vector2i) -> void:
 	var a := squad_at(from)
 	var b := squad_at(to)
 	if a:
-		a.cell = to
+		a.pos = Formation.cell_to_deploy(to, GRID_SIZE)
 	if b:
-		b.cell = from
+		b.pos = Formation.cell_to_deploy(from, GRID_SIZE)
 
 
 # --- Kaydet / yükle ---
@@ -278,7 +291,7 @@ func to_dict(phase: String) -> Dictionary:
 	for squad in army:
 		squads.append({
 			"unit": String(squad.unit.id), "base_power": squad.base_power,
-			"cell": [squad.cell.x, squad.cell.y],
+			"pos": [squad.pos.x, squad.pos.y],
 			"attack": squad.attack_level, "defense": squad.defense_level, "reinforce": squad.reinforce_level,
 		})
 	return {
@@ -331,9 +344,14 @@ func from_dict(data: Dictionary) -> bool:
 		var unit := UnitCatalog.get_unit(StringName(s.get("unit", "")))
 		if unit == null:
 			return false
-		var cell: Array = s.get("cell", [0, 0])
-		var squad := ArmySquad.new(unit, float(s.get("base_power", Balance.SQUAD_BUDGET)),
-				Vector2i(int(cell[0]), int(cell[1])))
+		var pos := Vector2.ZERO
+		if s.has("pos"):
+			var p: Array = s["pos"]
+			pos = Formation.clamp_deploy(Vector2(float(p[0]), float(p[1])))
+		else:  # eski kayıt: ızgara karesi
+			var cell: Array = s.get("cell", [1, 0])
+			pos = Formation.cell_to_deploy(Vector2i(int(cell[0]), int(cell[1])), GRID_SIZE)
+		var squad := ArmySquad.new(unit, float(s.get("base_power", Balance.SQUAD_BUDGET)), pos)
 		squad.attack_level = int(s.get("attack", 0))
 		squad.defense_level = int(s.get("defense", 0))
 		squad.reinforce_level = int(s.get("reinforce", 0))
