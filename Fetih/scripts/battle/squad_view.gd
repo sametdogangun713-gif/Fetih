@@ -13,12 +13,14 @@ signal soldier_died(view: SquadView, at: Vector2)
 
 const COLUMNS := 5  ## Formasyonun genişliği (asker).
 const SOLDIER_SPACING := 0.24  ## Askerler arası mesafe (karo).
-const HIT_FLASH_TIME := 0.14
+## Vuruş flaşı: 70 ms tam beyaz, sonra 40 ms yarı güç (gorsel_yon_dokumani.md 5.2). Kademeli
+## (yumuşak geçişsiz) flaş piksel sanatta daha net okunur.
+const HIT_FLASH_TIME := 0.11
+const HIT_FLASH_FULL := 0.07
 const HIT_FLASH_SHADER := preload("res://assets/shaders/hit_flash.gdshader")
-const FLASH_PEAK := 0.85  ## Flaşın en güçlü anı (1 = bembeyaz siluet; biraz doku seçilsin).
 ## Ayarlarda "Vuruş flaşı" kapalıysa flaş bu güçte ve yumuşak renkte kalır (göz yormasın).
 const SOFT_FLASH := 0.35
-const SOFT_FLASH_COLOR := Color("ffd8b0")
+const SOFT_FLASH_COLOR := Color("fdcbb0")  ## Resurrect 64 şeftali
 const ATTACK_ANIM_TIME := 0.2  ## Saldırı karesinin ekranda kalma süresi.
 const WALK_FPS := 7.0  ## Yürüme animasyonunda saniyede kare değişimi.
 ## Askerler aynı anda saldırmasın: üç gruba ayrılır, her grup bir öncekinden bu kadar geç vurur.
@@ -28,12 +30,25 @@ const ATTACK_STAGGER := 0.04
 const LUNGE_PX := 2.0
 const HEAVY_LUNGE_PX := 3.0  ## Atlılar ve boss daha uzun atılır.
 const RECOIL_PX := 1.0
+## Takım renkleri (Resurrect 64): krallıktan bağımsız, iki ordu aynı birlikten olsa da ayırt edilsin.
 const TEAM_COLORS := {
-	SquadState.Team.PLAYER: Color("3d6fd1"),
-	SquadState.Team.ENEMY: Color("c8443a"),
+	SquadState.Team.PLAYER: Color("4d9be6"),
+	SquadState.Team.ENEMY: Color("e83b3b"),
 }
-## Asker ayağındaki takım gölgesinin saydamlığı: iki ordu aynı birlikten olsa da ayırt edilsin.
-const SHADOW_ALPHA := 0.7
+## Takım diskinin koyu kenarı (Resurrect 64 lacivert / bordo).
+const TEAM_EDGES := {
+	SquadState.Team.PLAYER: Color("323353"),
+	SquadState.Team.ENEMY: Color("6e2727"),
+}
+## Asker ayağındaki takım diskinin dolgu saydamlığı.
+const SHADOW_ALPHA := 0.75
+## Disk satırları: [dikey konum, yarı genişlik]. Piyade 9x3, atlı/kuşatma 13x4 piksel.
+## Son satır ve satır uçları koyu kenar: disk çimin üstünde kopmadan seçilir.
+const DISC_ROWS := [[-1, 3], [0, 4], [1, 3]]
+const WIDE_DISC_ROWS := [[-2, 4], [-1, 6], [0, 6], [1, 4]]
+const NOTCH: Array[int] = [0, 1, 3, 1, 0]  ## Rakip sancağının satır başına çentik derinliği.
+const COUNT_PULSE_TIME := 0.15  ## Asker kaybında sancak sayısı bu sürede büyüyüp kızarır.
+const COUNT_PULSE_COLOR := Color("f68181")
 ## Atlı ve kuşatma figürleri geniş: gölgeleri de geniş.
 const WIDE_ROLES: Array[StringName] = [&"cavalry", &"siege"]
 
@@ -60,6 +75,8 @@ var _settings: Node
 ## konum değişimi için yeniden çizim gerekmez, düğümün dönüşümü kaydırır.
 var _under_key := Vector3.ZERO  ## (yön x, yön y, asker sayısı)
 var _over_key := -1
+var _count_pulse := 0.0
+var _last_count := -1
 
 
 func setup(p_squad: SquadState) -> void:
@@ -113,8 +130,14 @@ func update_visual(alpha: float, delta: float) -> void:
 	if under_key != _under_key:
 		_under_key = under_key
 		_under.queue_redraw()
-	var over_key := roundi(squad.hp_pool / squad.max_hp * 100.0) if squad.unit.is_boss 			else squad.alive_count()
-	if over_key != _over_key:
+	var count := squad.alive_count()
+	if count < _last_count:
+		_count_pulse = COUNT_PULSE_TIME
+	_last_count = count
+	var pulsing := _count_pulse > 0.0
+	_count_pulse = maxf(_count_pulse - delta, 0.0)
+	var over_key := roundi(squad.hp_pool / squad.max_hp * 100.0) if squad.unit.is_boss else count
+	if over_key != _over_key or pulsing:
 		_over_key = over_key
 		_over.queue_redraw()
 
@@ -132,8 +155,7 @@ func _update_flash() -> void:
 		material = null
 		return
 	material = _material
-	var t := _flash / HIT_FLASH_TIME  # 1 -> 0
-	var amount := t * t * (3.0 - 2.0 * t) * FLASH_PEAK  # smoothstep: başta ve sonda yumuşak
+	var amount := 1.0 if HIT_FLASH_TIME - _flash < HIT_FLASH_FULL else 0.5
 	if _settings == null and is_inside_tree():  # setup() ağaca eklenmeden de çağırır
 		_settings = get_node_or_null(^"/root/Settings")
 	if _settings and not _settings.flash_effects:
@@ -218,14 +240,22 @@ func _draw_over() -> void:
 ## Ayağın altında takım renginde yassı oval (üç satır piksel). Boss'unki BOSS_SCALE kat büyük.
 ## _under düğümüne çizilir (bkz. _draw_under).
 func _draw_shadow(at: Vector2) -> void:
-	var half := 5 if WIDE_ROLES.has(squad.unit.role) else 3
-	var px := UnitSprites.BOSS_SCALE if squad.unit.is_boss else 1
-	half *= px
-	var color: Color = TEAM_COLORS[squad.team].darkened(0.15)
-	color.a = SHADOW_ALPHA
-	_under.draw_rect(Rect2(at + Vector2(-half, -px), Vector2(half * 2, px)), color)
-	_under.draw_rect(Rect2(at + Vector2(-half - px, 0), Vector2((half + px) * 2, px)), color)
-	_under.draw_rect(Rect2(at + Vector2(-half, px), Vector2(half * 2, px)), color)
+	var rows: Array = WIDE_DISC_ROWS if WIDE_ROLES.has(squad.unit.role) else DISC_ROWS
+	var px := UnitSprites.BOSS_SCALE if squad.unit.is_boss else 1  # boss diski 3 kat iri piksel
+	var fill: Color = TEAM_COLORS[squad.team]
+	fill.a = SHADOW_ALPHA
+	var edge: Color = TEAM_EDGES[squad.team]
+	edge.a = 0.9
+	for i in rows.size():
+		var y: int = rows[i][0] * px
+		var half: int = rows[i][1] * px
+		var width := half * 2 + px
+		if i == rows.size() - 1:  # alt satır tamamen kenar
+			_under.draw_rect(Rect2(at + Vector2(-half, y), Vector2(width, px)), edge)
+			continue
+		_under.draw_rect(Rect2(at + Vector2(-half + px, y), Vector2(width - px * 2, px)), fill)
+		_under.draw_rect(Rect2(at + Vector2(-half, y), Vector2(px, px)), edge)
+		_under.draw_rect(Rect2(at + Vector2(half, y), Vector2(px, px)), edge)
 
 
 ## Askerin karesi: saldırı > yürüme > durma. Ayak ortası `at` noktasına oturur.
@@ -286,17 +316,29 @@ func _draw_boss_bar() -> void:
 			HORIZONTAL_ALIGNMENT_CENTER, 100, 8, UiKit.COLOR_GOLD)
 
 
-## Bölüğün üstünde takım renginde sancak ve asker sayısı.
+## Bölüğün üstünde takım renginde sancak ve asker sayısı. Renk körlüğü için şekil de farklı:
+## oyuncu sancağı dikdörtgen, rakibinki çatallı (kırlangıç kuyruğu) uçlu.
 func _draw_banner() -> void:
 	var pole_top := Vector2(0, -28)
 	_over.draw_line(Vector2(0, -14), pole_top, Color("3a2a1a"), 1.0)
-	_over.draw_rect(Rect2(pole_top, Vector2(7, 5)), TEAM_COLORS[squad.team])
+	var cloth: Color = TEAM_COLORS[squad.team]
+	if squad.team == SquadState.Team.PLAYER:
+		_over.draw_rect(Rect2(pole_top, Vector2(7, 5)), cloth)
+	else:
+		for row in 5:  # orta satırlarda uçtan içeri V çentiği
+			var width: int = 7 - NOTCH[row]
+			_over.draw_rect(Rect2(pole_top + Vector2(0, row), Vector2(width, 1)), cloth)
 	var font := ThemeDB.fallback_font
-	var at := pole_top + Vector2(-12, -2)
 	var count := str(squad.alive_count())
+	# Asker kaybında sayı bir an 1.3 kat büyür ve kızarır (ölçek sayının ortasından).
+	var pulse := _count_pulse / COUNT_PULSE_TIME
+	var color := Color.WHITE.lerp(COUNT_PULSE_COLOR, pulse)
+	_over.draw_set_transform(pole_top + Vector2(0, -6), 0.0, Vector2.ONE * (1.0 + 0.3 * pulse))
+	var at := Vector2(-12, 4)
 	# Koyu kontur: sayı kalabalık askerlerin ve çimin üstünde de okunsun.
 	_over.draw_string_outline(font, at, count, HORIZONTAL_ALIGNMENT_CENTER, 24, 10, 3, Color(0, 0, 0, 0.85))
-	_over.draw_string(font, at, count, HORIZONTAL_ALIGNMENT_CENTER, 24, 10)
+	_over.draw_string(font, at, count, HORIZONTAL_ALIGNMENT_CENTER, 24, 10, color)
+	_over.draw_set_transform(Vector2.ZERO)
 	# Seviye: sancak direğinin yanında küçük altın noktalar (Sv 2 = 1 nokta ... Sv 5 = 4 nokta).
 	for i in squad.level - 1:
 		_over.draw_rect(Rect2(Vector2(-4, -26 + i * 3), Vector2(2, 2)), UiKit.COLOR_GOLD)
