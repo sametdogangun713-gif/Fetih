@@ -127,6 +127,9 @@ func _init() -> void:
 	check("ork boss'u yenilince mühür (%d ork boss savaşı)" % orc_boss_fights,
 			(orc_boss_fights > 0) == run3.seals.has(&"orcs"))
 	check("hepsi kazanılınca fetih", run3.is_victory())
+	# 3. adımdaki bozuk kayıt yerinde duruyor (profil onu kopyalar, silmez); temiz profil için kaldır.
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(TEST_PATH))
+	check("bozuk test kaydı temizlendi", not FileAccess.file_exists(TEST_PATH))
 	var d := new_profile()
 	d.load_profile()
 	d.unlocked.erase(&"orcs")
