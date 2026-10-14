@@ -34,13 +34,21 @@ func _ready() -> void:
 
 
 func _top_bar() -> Control:
+	# Savaş HUD'uyla aynı dil: koyu ince panel; solda savaş ve can, sağda krallık (renk karesiyle).
+	var panel := UiKit.strip_panel(1.0)
 	var bar := UiKit.hbox(16)
-	bar.add_child(UiKit.label(tr("Savaş %d / %d") % [RunState.battle_index + 1, Balance.RUN_LENGTH], 13))
+	panel.add_child(bar)
+	bar.add_child(UiKit.label(tr("Savaş %d / %d") % [RunState.battle_index + 1, Balance.RUN_LENGTH], 12))
 	var lives_color := UiKit.COLOR_TEXT if RunState.lives == RunState.max_lives else UiKit.COLOR_BAD
-	bar.add_child(UiKit.label(tr("Can: %d / %d") % [RunState.lives, RunState.max_lives], 13, lives_color))
+	bar.add_child(UiKit.label(tr("Can: %d / %d") % [RunState.lives, RunState.max_lives], 12, lives_color))
 	bar.add_child(UiKit.spacer())
-	bar.add_child(UiKit.label(tr(RunState.kingdom.display_name), 13, RunState.kingdom.color))
-	return bar
+	var swatch := ColorRect.new()
+	swatch.color = RunState.kingdom.color
+	swatch.custom_minimum_size = Vector2(8, 8)
+	swatch.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	bar.add_child(swatch)
+	bar.add_child(UiKit.label(tr(RunState.kingdom.display_name), 12, RunState.kingdom.color))
+	return panel
 
 
 func _army_column() -> Control:
