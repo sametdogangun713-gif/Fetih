@@ -1,28 +1,32 @@
 class_name GroundArt
 extends Node2D
 ## Savaş alanının piksel zemini (sadece görüntü; simülasyona ve koordinatlara dokunmaz).
-## Çimen karoları, ot/kaya süsleri, yerleşim bölgesi renkleri ve alanın etrafında arazi çizer;
-## ağaçları bölüklerle derinlik sıralansın diye Units düğümüne Sprite2D olarak ekler.
-## Görseller CC0 (rubberduck, OpenGameArt): kaynak_assetler/LISANSLAR.md.
+## 9 Kings gibi sakin zemin: biyom başına tek düz renk (ramp[1]), üstünde çok seyrek, düşük kontrastlı
+## motif (ot tutamı, kum dalgası, taşçık: 2-5 px, karo başına ~0.3). Karo deseni ve alan sınırı yok;
+## alan dışında aynı renk sürer. Büyük süsler (ot, bitki, kaya) alan kenarında seyrekten sıka geçer;
+## ağaçlar bölüklerle derinlik sıralansın diye Units düğümüne Sprite2D olarak eklenir.
+## Süs ve ağaç görselleri CC0 (rubberduck, OpenGameArt): kaynak_assetler/LISANSLAR.md.
 ##
-## Dokular tools/build_ground.gd ile 0.5x küçültülüp Resurrect 64'e indirilir: karo 64x32 (dünyada
-## 1:1), süsler 64x64 hücre, ağaçlar 0.34x. Biyom başına bir sayfa (assets/terrain/px/ground_<biyom>.png).
-## Her piksel dünyada 1 piksel: birliklerle aynı ölçek, Nearest süzme, alt-piksel kayma yok.
+## Süs/ağaç dokuları tools/build_ground.gd ile 0.5x küçültülüp Resurrect 64'e indirilir (süsler 64x64
+## hücre, ağaçlar 0.34x). Her piksel dünyada 1 piksel: Nearest süzme, alt-piksel kayma yok.
 
 const TEX_DIR := "res://assets/terrain/px/"
 const PLANT_DIR := "res://assets/terrain/px/plants/"
-const CELL := 64  ## Sayfadaki hücre: karo hücrenin alt yarısında (64x32), süsler hücrenin tamamında (64x64).
-const GRASS_VARIANTS := 8
-const OUTSIDE_ROW := 7  ## Sayfanın son satırı: alanın dışındaki koyu çimen karoları (alt yarıda).
+const CELL := 64  ## Sayfadaki süs hücresi (64x64).
 ## Süs satırları ve satırdaki adet: 1-2 ot öbeği, 3 yapraklı bitki, 4 kuru ot, 5-6 kaya.
 const TUFTS: Array[Vector2i] = [Vector2i(1, 8), Vector2i(2, 8)]
 const PLANTS: Array[Vector2i] = [Vector2i(3, 8), Vector2i(4, 8)]
 const ROCKS: Array[Vector2i] = [Vector2i(5, 8), Vector2i(6, 4)]
 const MARGIN := 9  ## Savaş alanının etrafında kaç karo arazi çizilir.
 const BACKDROP := Vector2(4000, 2400)  ## Arazinin altındaki düz zemin (dünya pikseli).
-const ZONE_TINT := {
-	Battlefield.Zone.PLAYER: Color(0.25, 0.45, 1.0, 0.16),
-	Battlefield.Zone.ENEMY: Color(1.0, 0.3, 0.2, 0.16),
+const ZONE_COLOR := Color(1, 0.85, 0.3, 0.06)  ## Hazırlıkta oyuncu bölgesi (çok hafif altın).
+const MOTIF_CHANCE := 0.3  ## Karo başına motif olasılığı.
+enum Motif { TUFT, WAVE, PEBBLE }  ## Ot tutamı, kum dalgası, taşçık.
+## Biyomun motif türü: çimen biyomları ot, çöl/kuru kum, karanlık taş.
+const MOTIF_OF := {
+	&"default": Motif.TUFT, &"humans": Motif.TUFT, &"elves": Motif.TUFT, &"slimes": Motif.TUFT,
+	&"dwarves": Motif.TUFT, &"orcs": Motif.WAVE, &"centaurs": Motif.WAVE, &"undead": Motif.PEBBLE,
+	&"demons": Motif.PEBBLE, &"mud": Motif.PEBBLE, &"golems": Motif.PEBBLE,
 }
 
 ## Rakip krallığa göre arazi. tint: yalnızca build_ground.gd süsleri boyarken kullanır (çalışma anında
@@ -57,7 +61,9 @@ static var _sheets := {}  ## biyom id -> Texture2D (ground_<biyom>.png)
 static var _base_cache := {}  ## doku yolu -> gövde dibi (dokunun piksel koordinatı)
 
 var _biome: Dictionary = BIOMES[&"default"]
-var _sheet: Texture2D
+var _biome_id: StringName = &"default"
+var _sheet: Texture2D  ## Süs sayfası (ot/bitki/kaya).
+var _show_zone := false
 var _trees: Array[Sprite2D] = []
 
 
@@ -69,11 +75,18 @@ func _ready() -> void:
 func setup(biome: StringName, tree_parent: Node2D) -> void:
 	var id := biome if BIOMES.has(biome) else &"default"
 	_biome = BIOMES[id]
+	_biome_id = id
 	_sheet = _load_sheet(id)
 	for tree in _trees:
 		tree.queue_free()
 	_trees.clear()
 	_plant_trees(tree_parent)
+	queue_redraw()
+
+
+## Hazırlıkta oyuncu bölgesini çok hafif altın gösterir.
+func show_player_zone(on: bool) -> void:
+	_show_zone = on
 	queue_redraw()
 
 
@@ -90,34 +103,57 @@ func _draw() -> void:
 		return
 	var w := Battlefield.FIELD_WIDTH
 	var d := Battlefield.FIELD_DEPTH
-	# Altta düz zemin rengi: karoların kenarlarındaki ince boşluklar ve çizilen arazinin dışı (kamera
-	# en uzakta, köşeler) boş kalmasın. Rampanın en koyusu (alan dışı karolarla aynı aileden).
+	# (1) Düz zemin: alanın içi ve dışı aynı renk.
 	var mid := Battlefield.field_to_world(Vector2(w, d) / 2.0)
-	var dark := SpritePalette.nearest_step(Color(_biome.ramp[0]), Color(_biome.ramp[0]), false)
-	draw_rect(Rect2(mid - BACKDROP / 2.0, BACKDROP), dark)
-	for y in range(-MARGIN, d + MARGIN):
-		for x in range(-MARGIN, w + MARGIN):
-			var cell := Vector2i(x, y)
-			var rng := _cell_rng(cell, 1)
-			var variant := rng.randi_range(0, GRASS_VARIANTS - 1)
-			var inside := x >= 0 and x < w and y >= 0 and y < d
-			var row := 0 if inside else OUTSIDE_ROW
-			var center := Battlefield.field_to_world(Vector2(cell))
-			# 64x32 karo 1:1, tam sayı konumda (Nearest, alt-piksel yok).
-			draw_texture_rect_region(_sheet, Rect2(center - Vector2(32, 16), Vector2(64, 32)),
-					Rect2(variant * CELL, row * CELL + CELL / 2, CELL, CELL / 2))
-	# Yerleşim bölgeleri: hafif takım rengi.
-	var rows := Battlefield.DEPLOY_ROWS
-	draw_colored_polygon(_diamond(Vector2(0, d - rows), Vector2(w, d)), ZONE_TINT[Battlefield.Zone.PLAYER])
-	draw_colored_polygon(_diamond(Vector2(0, 0), Vector2(w, rows)), ZONE_TINT[Battlefield.Zone.ENEMY])
-	# Savaş alanının sınırı.
-	var edge := _diamond(Vector2.ZERO, Vector2(w, d))
-	edge.append(edge[0])
-	draw_polyline(edge, Color(0.1, 0.12, 0.05, 0.35), 1.0)
+	draw_rect(Rect2(mid - BACKDROP / 2.0, BACKDROP), Color(_biome.ramp[1]))
+	# (2) Seyrek motifler: noktalar motif_points'ten (test ile görüntü aynı kaynak), hepsi tam piksel.
+	var rect := Rect2i(-MARGIN, -MARGIN, w + MARGIN * 2, d + MARGIN * 2)
+	var dark := Color(_biome.ramp[0])
+	var light := Color(_biome.ramp[2])
+	for p in motif_points(_biome_id, rect):
+		_draw_motif(p, dark, light)
+	# (3) Hazırlıkta oyuncu bölgesi.
+	if _show_zone:
+		var rows := Battlefield.DEPLOY_ROWS
+		draw_colored_polygon(_diamond(Vector2(0, d - rows), Vector2(w, d)), ZONE_COLOR)
+	# (4) Seyrek kenar süsleri.
 	_draw_decals(w, d)
 
 
-## Ot, bitki ve kayalar: alan içinde seyrek, dışarıda sık. Konumlar tam piksele yuvarlanır.
+## Motif noktaları: (dünya x, dünya y, Motif türü). Karo başına _cell_rng(cell, 4); deterministik.
+## rect karo koordinatındadır; her karoda MOTIF_CHANCE olasılıkla karo içinde rastgele bir nokta.
+static func motif_points(biome_id: StringName, rect: Rect2i) -> Array[Vector3i]:
+	var kind: int = MOTIF_OF.get(biome_id, Motif.TUFT)
+	var out: Array[Vector3i] = []
+	for y in range(rect.position.y, rect.end.y):
+		for x in range(rect.position.x, rect.end.x):
+			var cell := Vector2i(x, y)
+			var rng := _cell_rng(cell, 4)
+			if rng.randf() >= MOTIF_CHANCE:
+				continue
+			var pos := (Battlefield.field_to_world(Vector2(cell)) 					+ Vector2(rng.randf_range(-24, 24), rng.randf_range(-10, 10))).round()
+			out.append(Vector3i(int(pos.x), int(pos.y), kind))
+	return out
+
+
+## Tek motif: sol üst köşesi p; sadece draw_rect (1 piksel birimleri), alt-piksel yok.
+func _draw_motif(p: Vector3i, dark: Color, light: Color) -> void:
+	var x := p.x
+	var y := p.y
+	match p.z:
+		Motif.TUFT:  # "ı ı" biçimi: 1x2 + 1x3 + 1x2 dikey çubuklar, tabanları hizalı
+			draw_rect(Rect2(x, y + 1, 1, 2), light)
+			draw_rect(Rect2(x + 2, y, 1, 3), light)
+			draw_rect(Rect2(x + 4, y + 1, 1, 2), light)
+		Motif.WAVE:  # yatay 2 px, 1 px yukarı, yatay 2 px
+			draw_rect(Rect2(x, y + 1, 2, 1), dark)
+			draw_rect(Rect2(x + 2, y, 1, 1), dark)
+			draw_rect(Rect2(x + 3, y + 1, 2, 1), dark)
+		_:  # taşçık 2x1
+			draw_rect(Rect2(x, y, 2, 1), light)
+
+
+## Ot, bitki ve kayalar: alan içinde çok seyrek (eşik 0.04), dışarıda biraz sık (0.12/0.18/0.22). Konumlar tam piksele yuvarlanır.
 func _draw_decals(w: int, d: int) -> void:
 	for y in range(-MARGIN, d + MARGIN):
 		for x in range(-MARGIN, w + MARGIN):
@@ -127,14 +163,14 @@ func _draw_decals(w: int, d: int) -> void:
 			var roll := rng.randf()
 			var group: Array[Vector2i]
 			if inside:
-				if roll > 0.18:
+				if roll > 0.04:
 					continue
 				group = TUFTS
-			elif roll < 0.35:
+			elif roll < 0.12:
 				group = TUFTS
-			elif roll < 0.5:
+			elif roll < 0.18:
 				group = PLANTS
-			elif roll < 0.6:
+			elif roll < 0.22:
 				group = ROCKS
 			else:
 				continue
