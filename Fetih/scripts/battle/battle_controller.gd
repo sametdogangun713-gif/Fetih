@@ -152,6 +152,7 @@ func _setup_run_battle() -> void:
 		_add_state(squad)
 	var opponent := RunState.current_opponent()
 	battlefield.set_biome(opponent.id)
+	battlefield.set_camps(RunState.kingdom, opponent)
 	matchup_label.text = tr("Savaş %d / %d  -  Rakip: %s") % [RunState.battle_index + 1,
 			Balance.RUN_LENGTH, tr(opponent.display_name)]
 	if RunState.is_final_battle():
@@ -162,6 +163,7 @@ func _setup_run_battle() -> void:
 
 func _setup_test_battle() -> void:
 	var matchup := _choose_test_matchup()
+	battlefield.set_camps(KingdomCatalog.get_kingdom(&"humans"), KingdomCatalog.get_kingdom(&"orcs"))
 	for slot in TEST_PLAYER_SLOTS:
 		_add_squad(matchup[0], UnitCatalog.count_for_budget(matchup[0], TEST_SQUAD_BUDGET),
 				SquadState.Team.PLAYER, slot)

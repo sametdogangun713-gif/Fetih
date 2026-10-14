@@ -93,6 +93,7 @@ func _init() -> void:
 		var h := maxi(1, roundi(img.get_height() * TREE_SCALE))
 		var px := _downscale(img, w, h)
 		_lift(px)
+		_soften_shadow(px, file)
 		total_off += SpritePalette.off_palette_count(px, Color(-1, -1, -1))
 		px.save_png(OUT_DIR + "plants/" + file)
 		made += 1
@@ -209,6 +210,45 @@ static func _lift(img: Image) -> void:
 				hue = lerpf(hue, TREE_GREEN_HUE, TREE_HUE_PULL)  # sarı-yeşil -> palet yeşili (zeytin olmasın)
 			var lifted := Color.from_hsv(hue, clampf(c.s * TREE_SAT, 0.0, 1.0), clampf(c.v * gain, 0.0, 1.0))
 			img.set_pixel(x, y, SpritePalette.nearest(lifted))
+
+
+## Kaynak ağaçlardaki iri koyu mor/siyah gölge lekesini siler (görüntünün alt kısmındaki koyu pikseller),
+## yerine ağacın altına küçük, koyu yeşil bir gölge elipsi koyar. Ağaç/çalı tacındaki en koyu tonlar
+## (2e222f, 3e3546) koyu yeşile çekilir: taç zeminden net ayrılır. Çamların gri-mavi tonlarına dokunulmaz.
+static func _soften_shadow(img: Image, file: String) -> void:
+	var used := img.get_used_rect()
+	if used.size.x == 0:
+		return
+	var is_pine := file.begins_with("pine")
+	var cut := used.position.y + roundi(used.size.y * (0.72 if is_pine else 0.6))
+	var dark_green := Color("165a4c")
+	var side := used.size.x * 0.35
+	var mid_x := used.position.x + used.size.x / 2
+	for y in img.get_height():
+		for x in img.get_width():
+			var c := img.get_pixel(x, y)
+			if c.a == 0.0:
+				continue
+			# Gövdeden yana uzanan ince gölge çizgisi (alt %40, orta bölgenin dışı, koyu): silinir.
+			if y >= used.position.y + used.size.y * 0.6 and absf(x - mid_x) > side and c.v < 0.5:
+				img.set_pixel(x, y, Color(0, 0, 0, 0))
+			elif y >= cut and c.v < 0.42:
+				img.set_pixel(x, y, Color(0, 0, 0, 0))
+			elif c.v <= 0.3 and not is_pine:
+				# Taç/çalı: en koyu tonlar koyu yeşile çekilir.
+				img.set_pixel(x, y, dark_green)
+	used = img.get_used_rect()
+	# Küçük gölge: ağacın altında ince koyu yeşil elips (genişlik tacın ~%35'i).
+	var rx := maxi(2, roundi(used.size.x * 0.17))
+	var bottom := used.end.y - roundi(used.size.y * 0.12)
+	var cx := used.position.x + used.size.x / 2
+	for dy in range(-1, 2):
+		var half := rx if dy == 0 else rx - 2
+		for dx in range(-half, half + 1):
+			var px_x := cx + dx
+			var px_y := bottom + dy
+			if px_x >= 0 and px_x < img.get_width() and px_y >= 0 and px_y < img.get_height() 					and img.get_pixel(px_x, px_y).a == 0.0:
+				img.set_pixel(px_x, px_y, dark_green)
 
 
 ## Rengi tonla çarpar ve palete indirir (saydam piksellere dokunmaz).

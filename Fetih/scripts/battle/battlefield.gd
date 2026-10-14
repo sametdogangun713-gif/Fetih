@@ -18,6 +18,8 @@ const TILE_HALF := Vector2(32, 16)
 @onready var fx: BattleFx = $Fx
 @onready var camera: BattleCamera = $BattleCamera
 
+var _camps: Array[Sprite2D] = []  ## Kamp/kale yapıları (KingdomCamp), set_camps yeniler.
+
 
 ## Geliştirici aracı: tıklanan savaş alanı noktasını yazar. Koşuda kapalı; sahne tek başına açılınca açık.
 func set_debug_tools(on: bool) -> void:
@@ -61,6 +63,17 @@ func _ready() -> void:
 ## Arazi görünümü (zemin tonu, ağaçlar) rakip krallığa göre. Bkz. GroundArt.BIOMES.
 func set_biome(kingdom_id: StringName) -> void:
 	ground_art.setup(kingdom_id, units)
+
+
+## Ordularının arkasındaki krallık kampları: eskileri silinir, yenileri kurulur (sadece görüntü).
+func set_camps(player_kingdom: KingdomData, enemy_kingdom: KingdomData) -> void:
+	for sprite in _camps:
+		sprite.queue_free()
+	_camps.clear()
+	if player_kingdom != null:
+		_camps.append_array(KingdomCamp.build(units, player_kingdom, SquadState.Team.PLAYER))
+	if enemy_kingdom != null:
+		_camps.append_array(KingdomCamp.build(units, enemy_kingdom, SquadState.Team.ENEMY))
 
 
 func _unhandled_input(event: InputEvent) -> void:

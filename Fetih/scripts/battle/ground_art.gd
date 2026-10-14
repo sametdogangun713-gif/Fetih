@@ -21,6 +21,8 @@ const MARGIN := 9  ## Savaş alanının etrafında kaç karo arazi çizilir.
 const BACKDROP := Vector2(4000, 2400)  ## Arazinin altındaki düz zemin (dünya pikseli).
 const ZONE_COLOR := Color(1, 0.85, 0.3, 0.06)  ## Hazırlıkta oyuncu bölgesi (çok hafif altın).
 const MOTIF_CHANCE := 0.3  ## Karo başına motif olasılığı.
+const CLUSTER_CELL := 3  ## Ağaç öbeği hücresi (karo).
+const CLUSTER_CHANCE := 0.4  ## Hücrede öbek olasılığı (biyom yoğunluğuyla çarpılır).
 enum Motif { TUFT, WAVE, PEBBLE }  ## Ot tutamı, kum dalgası, taşçık.
 ## Biyomun motif türü: çimen biyomları ot, çöl/kuru kum, karanlık taş.
 const MOTIF_OF := {
@@ -34,11 +36,11 @@ const MOTIF_OF := {
 ## trees: ağaç türleri (plants/ klasöründeki dosya adı başları), density: ağaç yoğunluğu çarpanı.
 const BIOMES := {
 	&"default": {tint = Color(1, 1, 1), ramp = ["165a4c", "239063", "1ebc73"],
-			trees = ["pine-none", "bigtree", "bush"], density = 1.0},
+			trees = ["pine-none", "bush"], density = 1.0},
 	&"humans": {tint = Color(1, 1, 1), ramp = ["165a4c", "239063", "1ebc73"],
-			trees = ["bigtree", "pine-none", "bush"], density = 1.0},
+			trees = ["pine-none", "bush", "shrub1"], density = 1.0},
 	&"elves": {tint = Color(0.9, 1.05, 0.9), ramp = ["239063", "1ebc73", "91db69"],
-			trees = ["bigtree", "pine-none"], density = 1.5},
+			trees = ["pine-none", "bush"], density = 1.5},
 	&"orcs": {tint = Color(1.08, 0.98, 0.78), ramp = ["4c3e24", "676633", "a2a947"],
 			trees = ["shrub1", "bush"], density = 0.7},
 	&"dwarves": {tint = Color(1.05, 1.08, 1.15), ramp = ["374e4a", "547e64", "92a984"],
@@ -48,7 +50,7 @@ const BIOMES := {
 	&"demons": {tint = Color(1.1, 0.8, 0.7), ramp = ["2e222f", "4c3e24", "6e2727"],
 			trees = ["shrub2", "shrub1"], density = 0.6},
 	&"slimes": {tint = Color(0.9, 1.1, 0.85), ramp = ["165a4c", "239063", "0eaf9b"],
-			trees = ["bush", "bigtree"], density = 1.0},
+			trees = ["bush", "pine-none"], density = 1.0},
 	&"mud": {tint = Color(0.8, 0.85, 0.7), ramp = ["313638", "4c3e24", "676633"],
 			trees = ["shrub2", "bush"], density = 1.2},
 	&"golems": {tint = Color(0.95, 0.95, 0.95), ramp = ["313638", "625565", "ab947a"],
@@ -182,40 +184,60 @@ func _draw_decals(w: int, d: int) -> void:
 					Rect2(col * CELL, row.x * CELL, CELL, CELL))
 
 
-## Ağaçlar alanın dışında, kenardan uzaklaştıkça sıklaşır. Ekranda alanın önünde (aşağıda) kalan
-## kenarlarda daha geniş boşluk: uzun ağaçlar kenardaki bölükleri örtmesin.
+## Ağaçlar alanın dışında öbek öbek (2-5 ağaçlık kümeler) durur: 3x3 karoluk kaba hücrelerin bir kısmında
+## küme var. Kenardan uzak tutulur (ekranda alanın önünde kalan kenarlarda daha geniş boşluk: uzun ağaçlar
+## kenardaki bölükleri örtmesin) ve ordu arkasındaki yapı şeridi (KingdomCamp, 1-4 karo dışı) boş kalır.
 func _plant_trees(parent: Node2D) -> void:
 	var textures := _tree_textures()
 	if textures.is_empty():
 		return
 	var w := Battlefield.FIELD_WIDTH
 	var d := Battlefield.FIELD_DEPTH
-	for y in range(-MARGIN, d + MARGIN):
-		for x in range(-MARGIN, w + MARGIN):
-			var back := maxi(-x, -y)  # arka kenarlardan (ekranda yukarı) uzaklık
-			var front := maxi(x - (w - 1), y - (d - 1))  # ön kenarlardan (ekranda aşağı) uzaklık
-			var dist := maxi(back, front)
-			var clear := 3 if front >= back else 2
-			if dist < clear:
+	var lo := floori(float(-MARGIN) / CLUSTER_CELL) - 1
+	var hi_x := ceili(float(w + MARGIN) / CLUSTER_CELL) + 1
+	var hi_y := ceili(float(d + MARGIN) / CLUSTER_CELL) + 1
+	for gy in range(lo, hi_y):
+		for gx in range(lo, hi_x):
+			var rng := _cell_rng(Vector2i(gx, gy), 3)
+			if rng.randf() > CLUSTER_CHANCE * float(_biome.density):
 				continue
-			var rng := _cell_rng(Vector2i(x, y), 3)
-			var chance := clampf((dist - clear + 1) * 0.1, 0.0, 0.5) * float(_biome.density)
-			if rng.randf() > chance:
-				continue
-			var texture: Texture2D = textures[rng.randi_range(0, textures.size() - 1)]
-			var tree := Sprite2D.new()
-			tree.texture = texture
-			tree.centered = false
-			tree.offset = -_tree_base(texture)
-			tree.flip_h = rng.randf() < 0.5
-			tree.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-			# Tam sayı konum: ağaç pikselleri ekran pikseliyle hizalı kalır.
-			tree.position = (Battlefield.field_to_world(Vector2(x, y)) \
-					+ Vector2(rng.randf_range(-12, 12), rng.randf_range(-6, 6))).round()
-			if tree.flip_h:
-				tree.offset.x = -texture.get_width() - tree.offset.x
-			parent.add_child(tree)
-			_trees.append(tree)
+			var center := Vector2(gx + 0.5, gy + 0.5) * CLUSTER_CELL
+			for i in rng.randi_range(2, 5):
+				var spot := center + Vector2(rng.randf_range(-1.6, 1.6), rng.randf_range(-1.6, 1.6))
+				var cell := Vector2i(roundi(spot.x), roundi(spot.y))
+				if not tree_allowed(cell):
+					continue
+				var texture: Texture2D = textures[rng.randi_range(0, textures.size() - 1)]
+				var tree := Sprite2D.new()
+				tree.texture = texture
+				tree.centered = false
+				tree.offset = -_tree_base(texture)
+				tree.flip_h = rng.randf() < 0.5
+				tree.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+				# Tam sayı konum: ağaç pikselleri ekran pikseliyle hizalı kalır.
+				tree.position = Battlefield.field_to_world(spot).round()
+				if tree.flip_h:
+					tree.offset.x = -texture.get_width() - tree.offset.x
+				parent.add_child(tree)
+				_trees.append(tree)
+
+
+## Bu karoda ağaç olabilir mi: alandan yeterince uzak, arazi sınırı içinde ve yapı şeridi dışında.
+static func tree_allowed(cell: Vector2i) -> bool:
+	var w := Battlefield.FIELD_WIDTH
+	var d := Battlefield.FIELD_DEPTH
+	if cell.x < -MARGIN or cell.x >= w + MARGIN or cell.y < -MARGIN or cell.y >= d + MARGIN:
+		return false
+	var back := maxi(-cell.x, -cell.y)  # arka kenarlardan (ekranda yukarı) uzaklık
+	var front := maxi(cell.x - (w - 1), cell.y - (d - 1))  # ön kenarlardan (ekranda aşağı) uzaklık
+	var clear := 4 if front >= back else 3
+	if maxi(back, front) < clear:
+		return false
+	# Yapı şeridi: iki ordunun arkası, ilk 4 karo ve yan taşmalar için 2 karo pay.
+	if cell.x >= -2 and cell.x <= w + 1:
+		if (cell.y >= d and cell.y <= d + 3) or (cell.y <= -1 and cell.y >= -4):
+			return false
+	return true
 
 
 func _tree_textures() -> Array[Texture2D]:
