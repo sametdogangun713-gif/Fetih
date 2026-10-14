@@ -2,6 +2,9 @@
 
 Tarih: 2026-10-14. Durum: kullanıcı onayladı (sohbette).
 
+> 2026-10-15 notu: A1 (zemin) ve A4 (top aralığı) `2026-10-15-grafik-devrimi-design.md` G1 ve G2
+> ile değişti; A2 ve A3 oraya taşındı. B ve C bölümleri grafik işinden sonra yapılır.
+
 ## Amaç
 
 Hazırlık (ordu düzeni), savaş ve kart seçimi ayrı ekranlarda değil, savaş alanının olduğu tek
