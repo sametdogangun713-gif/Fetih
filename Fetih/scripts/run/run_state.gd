@@ -266,6 +266,12 @@ func free_pos_for(unit: UnitData) -> Vector2:
 	return ArmyGenerator.best_free_pos(other_positions(), GRID_SIZE, unit.role)
 
 
+## Bölüğü bölgede pos'a taşır; dolu ya da bölge dışıysa en yakın boş noktaya oturur.
+func move_squad_to(squad: ArmySquad, pos: Vector2) -> Vector2:
+	squad.pos = Formation.nearest_free(pos, other_positions(squad))
+	return squad.pos
+
+
 ## GEÇİCİ (eski hazırlık ekranı için, Task 12'de silinir): iki karenin içeriğini değiştirir.
 func move_squad(from: Vector2i, to: Vector2i) -> void:
 	var a := squad_at(from)

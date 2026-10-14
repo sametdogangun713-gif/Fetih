@@ -19,6 +19,7 @@ func _initialize() -> void:
 	test_layout()
 	test_formation()
 	test_bands()
+	test_move()
 	print("Hata: %d" % failures)
 	quit(1 if failures > 0 else 0)
 
@@ -158,3 +159,15 @@ func test_bands() -> void:
 	check("ön ferman ön bölüğe", front.applies_to(s) and not back.applies_to(s))
 	s.pos.y = 2.0
 	check("arka ferman arka bölüğe", back.applies_to(s) and not front.applies_to(s))
+
+
+func test_move() -> void:
+	var run: Node = load("res://scripts/run/run_state.gd").new()
+	run.start_run(KingdomCatalog.all()[0], 99)
+	var a: ArmySquad = run.army[0]
+	var b: ArmySquad = run.army[1]
+	var final_pos: Vector2 = run.move_squad_to(a, b.pos)
+	check("dolu yere bırakınca kaydı", final_pos.distance_to(b.pos) >= Formation.MIN_GAP - 0.001)
+	check("pos güncellendi", a.pos == final_pos)
+	check("rakip bölgesine geçmez", run.move_squad_to(a, Vector2(4, -6)).y == 0.0)
+	run.free()
