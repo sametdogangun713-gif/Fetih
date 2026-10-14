@@ -12,7 +12,7 @@ static func build(squad: ArmySquad, team: SquadState.Team, passives: Array[Passi
 	var toughness := defense * defense
 
 	for passive in passives:
-		if not passive.applies_to(squad, Balance.GRID_SIZE):
+		if not passive.applies_to(squad):
 			continue
 		if passive.stat == PassiveData.TOUGHNESS:
 			toughness *= passive.amount

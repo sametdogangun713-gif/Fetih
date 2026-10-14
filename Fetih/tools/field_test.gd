@@ -18,6 +18,7 @@ func _initialize() -> void:
 	test_buildings()
 	test_layout()
 	test_formation()
+	test_bands()
 	print("Hata: %d" % failures)
 	quit(1 if failures > 0 else 0)
 
@@ -141,3 +142,19 @@ func test_formation() -> void:
 	check("kenet ön", Formation.clamp_deploy(Vector2(4, -3)).y == 0.0)
 	check("kenet arka", is_equal_approx(Formation.clamp_deploy(Vector2(4, 9)).y, Formation.DEPLOY_DEPTH))
 	check("kenet yan", Formation.clamp_deploy(Vector2(-5, 1)).x == 0.0)
+
+
+func test_bands() -> void:
+	check("0 ön", ArmySquad.band_of(0.0) == ArmySquad.Band.FRONT)
+	check("1 orta", ArmySquad.band_of(1.0) == ArmySquad.Band.MIDDLE)
+	check("2 arka", ArmySquad.band_of(2.0) == ArmySquad.Band.BACK)
+	check("0.49 ön", ArmySquad.band_of(0.49) == ArmySquad.Band.FRONT)
+	check("1.5 arka", ArmySquad.band_of(1.5) == ArmySquad.Band.BACK)
+	var front := PassiveData.new()
+	front.row = PassiveData.Row.FRONT
+	var back := PassiveData.new()
+	back.row = PassiveData.Row.BACK
+	var s := ArmySquad.new(UnitCatalog.all()[0], 100.0, Vector2(4.5, 0.0))
+	check("ön ferman ön bölüğe", front.applies_to(s) and not back.applies_to(s))
+	s.pos.y = 2.0
+	check("arka ferman arka bölüğe", back.applies_to(s) and not front.applies_to(s))

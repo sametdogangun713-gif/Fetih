@@ -5,6 +5,10 @@ extends RefCounted
 ## Ordular her savaşa tam güçle girer (9 Kings'teki gibi): savaş kayıpları buraya yansımaz.
 
 enum Upgrade { ATTACK, DEFENSE, REINFORCE }
+enum Band { FRONT, MIDDLE, BACK }  ## Derinlik bandı: fermanların "ön/arka" şartı bununla ölçülür.
+
+const FRONT_LIMIT := 0.5  ## Derinlik bundan azsa ön cephe.
+const BACK_LIMIT := 1.5  ## Derinlik en az buysa arka saf. Izgara sıraları 0/1/2 -> ön/orta/arka.
 
 var unit: UnitData
 var base_power: float  ## Taban bütçe (normalde 100). Asker sayısı buradan hesaplanır.
@@ -24,6 +28,18 @@ func _init(p_unit: UnitData, p_base_power: float, p_pos := Vector2.ZERO) -> void
 	unit = p_unit
 	base_power = p_base_power
 	pos = p_pos
+
+
+static func band_of(depth: float) -> Band:
+	if depth < FRONT_LIMIT:
+		return Band.FRONT
+	if depth >= BACK_LIMIT:
+		return Band.BACK
+	return Band.MIDDLE
+
+
+func band() -> Band:
+	return band_of(pos.y)
 
 
 ## 1 (taban) ile Balance.MAX_LEVEL arası.

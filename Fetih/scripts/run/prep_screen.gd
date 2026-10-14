@@ -180,7 +180,7 @@ func _show_info(cell: Vector2i) -> void:
 	lines.append(UiKit.unit_stats(unit))
 	lines.append(", ".join(UiKit.unit_traits(unit)))
 	for passive in RunState.passives:
-		if passive.applies_to(squad, Balance.GRID_SIZE):
+		if passive.applies_to(squad):
 			lines.append(tr("Ferman: %s") % tr(passive.display_name))
 	_info.text = "\n".join(lines)
 	_info.add_theme_color_override("font_color", UiKit.COLOR_TEXT)

@@ -310,7 +310,7 @@ func _draw_aura() -> void:
 ## Oyuncu bölükleri için RunState.passives, boss savaşında rakip için RunState.enemy_passives().
 static func aura_color_for(army_squad: ArmySquad, passives: Array[PassiveData]) -> Color:
 	for passive in passives:
-		if passive.applies_to(army_squad, Balance.GRID_SIZE):
+		if passive.applies_to(army_squad):
 			var kingdom := KingdomCatalog.get_kingdom(passive.kingdom)
 			if kingdom:
 				return Color(kingdom.color, 1.0)
