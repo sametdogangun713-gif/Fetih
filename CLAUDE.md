@@ -7,7 +7,8 @@
 - Godot projesi: `Fetih/` klasörü.
 
 ## Gizlilik
-- Proje tamamen gizli. **GitHub'a veya herhangi bir uzak depoya asla push yapılmaz**, remote eklenmez, repo oluşturulmaz. Git sadece yerel.
+- Proje gizli. Tek uzak depo: **özel (private)** GitHub reposu `origin` → https://github.com/sametdogangun713-gif/Fetih. Push sadece buraya.
+- Repo **asla public yapılmaz**, başka remote eklenmez, başkasıyla paylaşılmaz (collaborator eklemek kullanıcıya sorulur).
 
 ## Teknik
 - Motor: **Godot 4.7.2** (standart, .NET değil). Dil: **GDScript**. API için context7'de `/godotengine/godot-docs` (4.7 dalı) kullan, tahmin etme.
