@@ -1170,7 +1170,3 @@ msgstr "Necromancer"
 #: data/units/undead_skeleton.tres
 msgid "İskelet Savaşçı"
 msgstr "Skeleton Warrior"
-
-#: scenes/main.tscn
-msgid "Fetih - Aşama 0"
-msgstr "Fetih - Stage 0"
