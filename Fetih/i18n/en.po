@@ -835,13 +835,17 @@ msgstr "Like the Wind"
 msgid "Bütün bölükler %30 daha hızlı yürür."
 msgstr "All squads move 30% faster."
 
+#: data/passives/elf_forest_step.tres
+msgid "Bütün bölükler %5 daha hızlı yürür."
+msgstr "All squads move 5% faster."
+
 #: data/passives/demon_hellfire.tres
 msgid "Cehennem Ateşi"
 msgstr "Hellfire"
 
 #: data/passives/demon_hellfire.tres
-msgid "Bütün bölüklerin vuruşları +%30 ateş hasarı bırakır."
-msgstr "All squads' hits leave +30% fire damage."
+msgid "Bütün bölüklerin vuruşları +%36 ateş hasarı bırakır."
+msgstr "All squads' hits leave +36% fire damage."
 
 #: data/passives/demon_soul_harvest.tres
 msgid "Ruh Hasadı"
@@ -872,8 +876,8 @@ msgid "Barut"
 msgstr "Gunpowder"
 
 #: data/passives/dwarf_powder.tres
-msgid "Kuşatma bölüklerinin hasarı +%40."
-msgstr "Siege squads deal +40% damage."
+msgid "Kuşatma bölüklerinin hasarı +%10."
+msgstr "Siege squads deal +10% damage."
 
 #: data/passives/dwarf_tunnels.tres
 msgid "Tünel Ustaları"
@@ -924,8 +928,8 @@ msgid "Taş Deri"
 msgstr "Stone Skin"
 
 #: data/passives/golem_stone_skin.tres
-msgid "Bütün bölüklerin zırhı +2."
-msgstr "All squads get +2 armor."
+msgid "Bütün bölüklerin zırhı +3,5."
+msgstr "All squads get +3.5 armor."
 
 #: data/passives/human_banner.tres
 msgid "Kraliyet Sancağı"
@@ -952,8 +956,8 @@ msgid "Bataklık Kanı"
 msgstr "Marsh Blood"
 
 #: data/passives/mud_blood.tres
-msgid "Bütün bölükler saniyede canının %1'i kadar iyileşir."
-msgstr "All squads heal 1% of their HP per second."
+msgid "Bütün bölükler saniyede canının %1,2'si kadar iyileşir."
+msgstr "All squads heal 1.2% of their HP per second."
 
 #: data/passives/mud_fog.tres
 msgid "Bataklık Sisi"
@@ -984,8 +988,8 @@ msgid "Savaş Davulları"
 msgstr "War Drums"
 
 #: data/passives/orc_war_drums.tres
-msgid "Bütün bölüklerin saldırı hızı +%15."
-msgstr "All squads attack 15% faster."
+msgid "Bütün bölüklerin saldırı hızı +%25."
+msgstr "All squads attack 25% faster."
 
 #: data/passives/orc_wolf_pack.tres
 msgid "Kurt Sürüsü"
@@ -1024,8 +1028,8 @@ msgid "Mezar Soğuğu"
 msgstr "Grave Chill"
 
 #: data/passives/undead_grave_chill.tres
-msgid "Bütün bölüklerin vuruşları düşmanı %15 yavaşlatır."
-msgstr "All squads' hits slow the enemy by 15%."
+msgid "Bütün bölüklerin vuruşları düşmanı %4 yavaşlatır."
+msgstr "All squads' hits slow the enemy by 4%."
 
 #: data/units/centaur_archer.tres
 msgid "Atlı Okçu"

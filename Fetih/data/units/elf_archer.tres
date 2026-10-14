@@ -8,6 +8,7 @@ id = &"elf_archer"
 kingdom = &"elves"
 role = &"archer"
 display_name = "Elf Okçusu"
+cost = 4.95
 hp = 7.0
 damage = 2.3
 attack_speed = 0.8
