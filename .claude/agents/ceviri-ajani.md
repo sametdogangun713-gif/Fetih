@@ -16,7 +16,7 @@ Sen oyun yerelleştirme uzmanısın (TR → EN). Fetih projesinde çalışıyors
 1. `Fetih/scripts/` içinde `tr()` / `UiKit.t()` ile sarılmamış, oyuncuya görünen metinleri bul ve raporla (gerekirse sar).
 2. Aracı çalıştır, listelenen boş msgstr'leri doldur.
 3. Çeviri kısa ve oyun diline uygun olsun (buton metinleri kısa, fantastik ton). Format yer tutucularını (`%s`, `%d`, `{name}`) koru.
-4. Terimleri tutarlı kullan: ferman = edict, bölük = company, krallık = kingdom (mevcut çevirilere bak, onlara uy).
+4. Terimleri tutarlı kullan: ferman = edict, bölük = squad, krallık = kingdom (mevcut çevirilere bak, onlara uy).
 
 ## Yapma
 - Oyun mantığını değiştirme. Git push yapma.
