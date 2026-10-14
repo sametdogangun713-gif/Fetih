@@ -19,6 +19,12 @@ Steam ve itch.io sayfası için hazır metinler. Ana mağaza dili İngilizce; T�
 
 > Build an army, not a deck. Pick one of ten kingdoms and conquer twenty battles in a row. Your squads fight on their own: you choose the formation, the reinforcements and the royal edicts. Every victory hands you the spoils of the kingdom you just crushed.
 
+(255 karakter.)
+
+**Tagline** (itch.io, tek satır)
+
+> Build an army, not a deck. A fantasy auto-battler roguelite of conquest.
+
 **About this game**
 
 Fetih is a single-player, offline auto-battler roguelite about conquest.
@@ -28,13 +34,22 @@ Choose a kingdom and march through twenty battles. Before each fight you arrange
 After each victory you pick a card from the kingdom you defeated: a new unit, an upgrade for one of your squads, or an edict that lasts the whole run. Beat the elven queen and her archers may join you. Crush the undead and your own fallen may rise again.
 
 - **10 kingdoms, 40 units, 10 bosses.** Humans, elves, orcs, golems, centaurs, demons, dwarves, mudfolk, undead and slimes, each with its own mechanic: burning, slowing, regeneration, revival, splitting.
-- **Counters matter.** Spearmen stop cavalry, cavalry runs down archers, mages melt armor. Read the enemy army and plan your formation.
+- **Counters matter.** Spearmen stop cavalry, cavalry hunts down archers, mages pierce armor. Read the enemy army and plan your formation.
 - **No deck, no clutter.** Every card you pick applies immediately.
-- **Three lives.** A lost battle costs a life and is never replayed. Win the Grand Conquest in battle 20 to finish your run.
+- **Three lives.** A lost battle costs a life and is never replayed. Beat a boss to win one back. The conquest is only complete when you win the Grand Conquest in battle 20.
 - **Permanent progress.** Earn Glory, unlock kingdoms by taking their seals, buy upgrades for future runs.
 - **Plays offline.** No account, no internet required.
+- **Languages:** English and Turkish.
 
 **Tags:** Auto Battler, Roguelite, Strategy, Fantasy, Isometric, Singleplayer, Pixel Graphics
+
+**System requirements** (Steam "Minimum" alanı için; aşağıdaki Türkçe tahminle aynı, gerçek donanımda doğrulanmalı)
+
+- **OS:** Windows 10 / 11, 64-bit
+- **Processor:** 2 GHz dual core
+- **Memory:** 2 GB RAM
+- **Graphics:** OpenGL 3.3 compatible
+- **Storage:** 200 MB available space
 
 ## Türkçe
 
