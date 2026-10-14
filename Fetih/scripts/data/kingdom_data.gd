@@ -9,7 +9,8 @@ extends Resource
 @export var specialty_role: StringName  ## Krallığın en iyi olduğu rol (RoleRules sabitlerinden).
 ## Uzmanlık bir mekanikse (Diriliş, Bölünme...) arayüzde rol adı yerine bu yazar.
 @export var specialty_label: String = ""
-@export var color: Color = Color.WHITE  ## Arayüzde krallık adının rengi.
+@export var color: Color = Color.WHITE  ## Arayüzde krallık adının rengi (takım mavisi/kırmızısından ±15° uzak, gorsel_yon_dokumani.md 4.3).
+@export var accent_color: Color = Color.WHITE  ## Vurgu rengi: kart çerçeve şeridi, sancak.
 ## false ise kilitli başlar: koşuda boss'unu yenip (mühür) fethi tamamlayınca açılır.
 @export var starts_unlocked := true
 ## Koşu başında verilen bölükler; her biri 100 puanlık bir bölük olur.

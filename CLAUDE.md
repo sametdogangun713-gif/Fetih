@@ -13,8 +13,8 @@
 ## Teknik
 - Motor: **Godot 4.7.2** (standart, .NET değil). Dil: **GDScript**. API için context7'de `/godotengine/godot-docs` (4.7 dalı) kullan, tahmin etme.
 - Godot yolu: `C:\Users\Samet PC\Desktop\Godot_v4.7.2-stable_win64.exe`
-- Renderer: Compatibility. Arayüz düzeni 640x360 (viewport), stretch `canvas_items`, scale `integer`: her şey pencere çözünürlüğünde çizilir (varsayılan 3x = 1920x1080). Varsayılan texture filter Nearest (piksel sanat birlikler); HD zemin (`GroundArt`) doğrusal süzme kullanır.
-- İzometrik görünüm (64x32 karo), `y_sort_enabled`. `Ground` TileMapLayer görünmez, sadece koordinat için; zemini `GroundArt` çizer (CC0 rubberduck çimen + ağaçlar, rakip krallığa göre `BIOMES`).
+- Renderer: Compatibility. Arayüz düzeni 640x360 (viewport), stretch `canvas_items`, scale `integer`: her şey pencere çözünürlüğünde çizilir (varsayılan 3x = 1920x1080). Varsayılan texture filter Nearest: birlikler, zemin (`GroundArt`) ve ağaçlar hep Nearest, alt-piksel kayma yok.
+- İzometrik görünüm (64x32 karo), `y_sort_enabled`. `Ground` TileMapLayer görünmez, sadece koordinat için; zemini `GroundArt` çizer (CC0 rubberduck çimen + ağaçlar, rakip krallığa göre `BIOMES`). Zemin dokuları `res://tools/build_ground.gd` ile 0.5x küçültülüp Resurrect 64 paletine indirilir (`assets/terrain/px/`; karo 64x32, 1 doku pikseli = 1 dünya pikseli); `BIOMES.ramp` biyomun çim renkleridir.
 - Fizik motoru kullanılmaz; bölük tabanlı simülasyon, basit matematik.
 - Özel mekanikler `UnitData` alanlarıyla (burn_ratio, slow_amount, regen_ratio, revive_ratio, splits) ve `BattleSimulation` içinde; yeni mekanik eklerken ferman `stat` alanı da aynı alan adını kullanabilir.
 - Savaş deterministik olmalı (seed'li `RandomNumberGenerator`).
@@ -26,7 +26,7 @@
 - Ekransız test: `godot --headless --path Fetih -s <script>`; ekran görüntüsü: `--write-movie out.png --quit-after N`.
 - Denge testi: `powershell -ExecutionPolicy Bypass -File Fetih\tools\run_balance_test.ps1` — birlik değeri değişince çalıştır.
 - Koşu zorluğu: `godot --headless --path Fetih -s res://tools/run_test.gd` (botlarla fetih oranı). Yükseltme eşitliği: `res://tools/upgrade_test.gd`. Boss gücü: `res://tools/boss_test.gd`.
-- Görsel: sprite sayfası 4 satır (durma, yürüme, saldırı, ölüm), kare biçimli kareler, figür sağa bakar. `assets/sprites/units/<id>.png` varsa o, yoksa `UnitSprites` role göre koddan üretir. Efektler `BattleFx` (sadece görüntü; simülasyona dokunmaz). Önizleme: `res://tools/sprite_preview.gd -- out.png`.
+- Görsel: sprite sayfası 4 satır (durma, yürüme, saldırı, ölüm), kare biçimli kareler, figür sağa bakar. `assets/sprites/units/<id>.png` varsa o, yoksa `UnitSprites` role göre koddan üretir. Efektler `BattleFx` (sadece görüntü; simülasyona dokunmaz). Önizleme: `res://tools/sprite_preview.gd -- out.png`. Palet: Resurrect 64 (`assets/palette/resurrect-64.hex`, `SpritePalette`); `import_sprites.gd` ve `build_ground.gd` paletin dışına çıkmaz. Kuşatma birlikleri `unit_art/siege_art.gd` (top, mancınık).
 - Hazır sprite'lar: CC0 paketler `kaynak_assetler/` (Godot dışı, lisanslar `LISANSLAR.md`). `res://tools/import_sprites.gd` `SPECS` tablosuna göre `assets/sprites/units/` sayfalarını üretir, sonra `godot --headless --path Fetih --import`. Atlılar, toplar, golemler, kentaurlar koddan üretiliyor.
 - Savaş kamerası otomatik takip eder (`BattleCamera.follow`, sadece 0.5/1/2 yakınlık); elle kontrol takibi kapatır, F açar. `BattleController.PLAYBACK` x1 hızını yavaşlatır (sadece gösterim).
 - Ayarlar: `Settings` autoload (`scripts/meta/settings.gd`, `user://settings.cfg`, ConfigFile). İlerlemeden ayrı. Testler `settings_path`'i değiştirir; oyuncunun gerçek ayar dosyasına yazma.
