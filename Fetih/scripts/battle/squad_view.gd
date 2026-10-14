@@ -15,6 +15,7 @@ const COLUMNS := 5  ## Formasyonun genişliği (asker).
 const SOLDIER_SPACING := 0.24  ## Askerler arası mesafe (karo).
 const HIT_FLASH_TIME := 0.14
 const HIT_FLASH_SHADER := preload("res://assets/shaders/hit_flash.gdshader")
+const FLASH_PEAK := 0.85  ## Flaşın en güçlü anı (1 = bembeyaz siluet; biraz doku seçilsin).
 ## Ayarlarda "Vuruş flaşı" kapalıysa flaş bu güçte ve yumuşak renkte kalır (göz yormasın).
 const SOFT_FLASH := 0.35
 const SOFT_FLASH_COLOR := Color("ffd8b0")
@@ -132,7 +133,7 @@ func _update_flash() -> void:
 		return
 	material = _material
 	var t := _flash / HIT_FLASH_TIME  # 1 -> 0
-	var amount := t * t * (3.0 - 2.0 * t)  # smoothstep: başta ve sonda yumuşak
+	var amount := t * t * (3.0 - 2.0 * t) * FLASH_PEAK  # smoothstep: başta ve sonda yumuşak
 	if _settings == null and is_inside_tree():  # setup() ağaca eklenmeden de çağırır
 		_settings = get_node_or_null(^"/root/Settings")
 	if _settings and not _settings.flash_effects:

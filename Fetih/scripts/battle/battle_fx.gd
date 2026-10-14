@@ -20,6 +20,15 @@ const MAX_PARTICLES := 600
 const FIRE := Color("ff8a30")
 const MUD := Color("8a7040")
 const SPARK := Color("fff2b0")
+## Hasar / iyileşme sayıları.
+const NUMBER_INTERVAL := 0.3  ## Bir bölüğün sayıları en sık bu aralıkla çıkar (toplanır).
+const NUMBER_LIFE := 0.8
+const NUMBER_POP := 0.16  ## Büyükten normale "pop" süresi.
+const NUMBER_RISE := 12.0  ## Ömrü boyunca yükseldiği mesafe (piksel).
+const MAX_NUMBERS := 40
+const DAMAGE_TO_ENEMY := Color("fff0c0")
+const DAMAGE_TO_PLAYER := Color("ff8070")
+const HEAL := Color("8fe07f")
 
 
 class Projectile:
@@ -64,6 +73,22 @@ class Impact:
 	var color: Color
 
 
+## Uçuşan sayı: önce büyük çıkar (pop), yükselir, sonunda söner.
+class FloatText:
+	var pos: Vector2
+	var text: String
+	var color: Color
+	var size := 8  ## Yazı boyu (görüntü pikseli).
+	var time := 0.0
+
+
+## Bir bölüğün can takibi: son görülen can, biriken fark, son sayıdan beri geçen süre.
+class HpTrack:
+	var hp := 0.0
+	var pending := 0.0
+	var timer := 0.0
+
+
 class Ring:
 	var pos: Vector2
 	var radius := 10.0
@@ -79,6 +104,8 @@ var _particles: Array[Particle] = []
 var _corpses: Array[Corpse] = []
 var _rings: Array[Ring] = []
 var _impacts: Array[Impact] = []
+var _texts: Array[FloatText] = []
+var _tracks := {}  ## SquadView -> HpTrack
 var _air_drawn := false  ## Son çizimde havada efekt var mıydı.
 var _ground_drawn := false
 var _rng := RandomNumberGenerator.new()
@@ -120,8 +147,14 @@ func advance(delta: float) -> void:
 		i.time += delta
 		if i.time >= i.duration:
 			_impacts.erase(i)
+	for t in _texts.duplicate():
+		t.time += delta
+		if t.time >= NUMBER_LIFE:
+			_texts.erase(t)
+	_update_numbers(delta)
 	# Boşken yeniden çizme (performans): son efekt bittiği karede bir kez daha çizilir ki silinsin.
-	var air := not (_projectiles.is_empty() and _particles.is_empty() and _impacts.is_empty())
+	var air := not (_projectiles.is_empty() and _particles.is_empty() and _impacts.is_empty()
+			and _texts.is_empty())
 	if air or _air_drawn:
 		queue_redraw()
 	_air_drawn = air
@@ -137,6 +170,15 @@ func clear() -> void:
 	_corpses.clear()
 	_rings.clear()
 	_impacts.clear()
+	_texts.clear()
+	_tracks.clear()
+
+
+## Bölüğün canını izlemeye başla (hasar / iyileşme sayıları için). battle_controller çağırır.
+func track(view: SquadView) -> void:
+	var t := HpTrack.new()
+	t.hp = view.squad.hp_pool
+	_tracks[view] = t
 
 
 # --- Olaylar (battle_controller çağırır) ---
@@ -292,6 +334,45 @@ func _burst(at: Vector2, count: int, color: Color, speed: float, life: float, gr
 		p.size = big_size if _rng.randf() < 0.3 else 1.0
 
 
+## Canı değişen bölüklerin üstünde sayı çıkar. Simülasyon hasar miktarını bildirmez; sayı
+## SquadState.hp_pool'un karelere göre farkından okunur (sadece okuma: sonuç değişmez).
+## Farklar NUMBER_INTERVAL boyunca toplanır: her ok için ayrı sayı ekranı doldururdu.
+func _update_numbers(delta: float) -> void:
+	for view: SquadView in _tracks:
+		if not is_instance_valid(view):
+			continue
+		var t: HpTrack = _tracks[view]
+		var hp := view.squad.hp_pool
+		t.pending += t.hp - hp  # artı: hasar, eksi: iyileşme
+		t.hp = hp
+		t.timer += delta
+		if absf(t.pending) < 1.0 or (t.timer < NUMBER_INTERVAL and hp > 0.0):
+			continue
+		if _settings.damage_numbers:
+			_spawn_number(view, t.pending)
+		t.pending = 0.0
+		t.timer = 0.0
+
+
+func _spawn_number(view: SquadView, amount: float) -> void:
+	var f := FloatText.new()
+	var value := roundi(absf(amount))
+	# Sancağın sağına ya da soluna: ortadaki asker sayısının üstüne binmesin.
+	var side := 1.0 if _rng.randf() < 0.5 else -1.0
+	f.pos = (view.center() + Vector2(side * _rng.randf_range(14.0, 22.0), -6.0)).round()
+	if amount < 0.0:
+		f.text = "+%d" % value
+		f.color = HEAL
+	else:
+		f.text = str(value)
+		f.color = DAMAGE_TO_PLAYER if view.squad.team == SquadState.Team.PLAYER else DAMAGE_TO_ENEMY
+	# İki askerden fazlasını bir anda götüren darbe iri yazılır.
+	f.size = 10 if absf(amount) >= view.squad.unit.hp * 2.0 else 8
+	_texts.append(f)
+	if _texts.size() > MAX_NUMBERS:
+		_texts.pop_front()
+
+
 func _impact(at: Vector2, size: int, color: Color) -> void:
 	var i := Impact.new()
 	i.pos = at.round()
@@ -364,6 +445,28 @@ func _draw() -> void:
 		draw_rect(Rect2(i.pos + Vector2(0, -arm), Vector2(1, arm * 2 + 1)), c)
 		if t < 0.5:
 			draw_rect(Rect2(i.pos, Vector2.ONE), Color.WHITE)
+	_draw_numbers()
+
+
+## Tween.interpolate_value: Tween düğümü oluşturmadan aynı yumuşatma eğrilerini (TRANS_BACK,
+## TRANS_QUAD...) elle hesaplar. Onlarca sayı için onlarca Tween yaratmak yerine tek döngü.
+func _draw_numbers() -> void:
+	var font := ThemeDB.fallback_font
+	for f in _texts:
+		var scale: float = Tween.interpolate_value(1.8, -0.8, minf(f.time, NUMBER_POP), NUMBER_POP,
+				Tween.TRANS_BACK, Tween.EASE_OUT)
+		var rise: float = Tween.interpolate_value(0.0, -NUMBER_RISE, f.time, NUMBER_LIFE,
+				Tween.TRANS_QUAD, Tween.EASE_OUT)
+		var fade := clampf((NUMBER_LIFE - f.time) / (NUMBER_LIFE * 0.35), 0.0, 1.0)
+		var width := font.get_string_size(f.text, HORIZONTAL_ALIGNMENT_LEFT, -1, f.size).x
+		draw_set_transform(f.pos + Vector2(0, roundf(rise)), 0.0, Vector2(scale, scale))
+		var at := Vector2(-width / 2.0, 0.0)
+		draw_string_outline(font, at, f.text, HORIZONTAL_ALIGNMENT_LEFT, -1, f.size, 3,
+				Color(0.08, 0.05, 0.04, 0.9 * fade))
+		var c := f.color
+		c.a = fade
+		draw_string(font, at, f.text, HORIZONTAL_ALIGNMENT_LEFT, -1, f.size, c)
+	draw_set_transform(Vector2.ZERO)
 
 
 func _draw_ground() -> void:

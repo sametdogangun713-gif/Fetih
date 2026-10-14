@@ -52,6 +52,9 @@ static func open(host: Node, allow_language := false) -> Overlay:
 	var flash := _check(Settings.flash_effects)
 	flash.toggled.connect(Settings.set_flash_effects)
 	_row(grid, UiKit.t("Vuruş flaşı"), flash)
+	var numbers := _check(Settings.damage_numbers)
+	numbers.toggled.connect(Settings.set_damage_numbers)
+	_row(grid, UiKit.t("Hasar sayıları"), numbers)
 
 	if allow_language:
 		var lang := OptionButton.new()

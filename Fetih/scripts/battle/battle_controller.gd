@@ -201,6 +201,7 @@ func _add_view(squad: SquadState) -> void:
 	view.setup(squad)
 	view.soldier_died.connect(battlefield.fx.soldier_died)
 	battlefield.units.add_child(view)
+	battlefield.fx.track(view)
 	_views[squad] = view
 
 
