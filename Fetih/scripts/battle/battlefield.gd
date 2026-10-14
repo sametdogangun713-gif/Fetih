@@ -87,12 +87,14 @@ func field_rect() -> Rect2:
 
 
 func _setup_camera() -> void:
-	# Kamera, dört köşe karonun oluşturduğu dikdörtgenin içinde gezebilir.
+	# Kamera merkezi bu dikdörtgenin içinde gezebilir; savaş başı bütününü sığdırır.
+	# Köşeler alanın 3 karo dışında: ordunun arkasındaki yapılar (KingdomCamp) da kapsanır.
+	var pad := 3.0
 	var corners: Array[Vector2] = [
-		Vector2(0, 0),
-		Vector2(FIELD_WIDTH - 1, 0),
-		Vector2(0, FIELD_DEPTH - 1),
-		Vector2(FIELD_WIDTH - 1, FIELD_DEPTH - 1),
+		Vector2(-pad, -pad),
+		Vector2(FIELD_WIDTH - 1 + pad, -pad),
+		Vector2(-pad, FIELD_DEPTH - 1 + pad),
+		Vector2(FIELD_WIDTH - 1 + pad, FIELD_DEPTH - 1 + pad),
 	]
 	var bounds := Rect2(field_to_world(corners[0]), Vector2.ZERO)
 	for corner in corners:

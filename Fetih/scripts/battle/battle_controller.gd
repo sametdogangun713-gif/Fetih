@@ -12,7 +12,7 @@ const SPEEDS: Array[int] = [1, 2, 4]
 const PLAYBACK := 0.7
 ## Kamera kutusunda bir bölüğün kapladığı alan: yarı genişlik ve ayaktan yukarı yükseklik (piksel).
 ## Formasyon ~1 karo yayılır; sancak ve sayı askerlerin üstünde.
-const SQUAD_FRAME_PAD := Vector2(40, 48)
+const SQUAD_FRAME_PAD := Vector2(24, 24)
 const TEST_SQUAD_BUDGET := 100.0
 const TEST_PLAYER_SLOTS: Array[Vector2] = [Vector2(3, 13), Vector2(6, 13)]
 const TEST_ENEMY_SLOTS: Array[Vector2] = [Vector2(3, 2), Vector2(6, 2)]
