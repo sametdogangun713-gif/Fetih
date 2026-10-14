@@ -52,9 +52,18 @@ func play_step(run: Node) -> String:
 	return summary + "|%d" % roundi(run.army_power(run.army))
 
 
+## Testin bozuk kayıt yedeklerini siler (user://test_save.corrupt-*.json). Başka dosyaya dokunmaz.
+func remove_corrupt_backups() -> void:
+	var dir := TEST_PATH.get_base_dir()
+	var prefix := TEST_PATH.get_file().get_basename() + ".corrupt-"
+	for file in DirAccess.get_files_at(dir):
+		if file.begins_with(prefix):
+			DirAccess.remove_absolute(ProjectSettings.globalize_path(dir.path_join(file)))
+
+
 func _init() -> void:
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(TEST_PATH))
-	DirAccess.remove_absolute(ProjectSettings.globalize_path(TEST_PATH + ".bozuk"))
+	remove_corrupt_backups()
 
 	# 1) Profil kaydet / yükle
 	var a := new_profile()
@@ -88,7 +97,10 @@ func _init() -> void:
 	var c := new_profile()
 	c.load_profile()
 	check("bozuk kayıt: varsayılan profil", c.glory == 0 and c.unlocked.size() == 3)
-	check("bozuk kayıt yedeklendi", FileAccess.file_exists(TEST_PATH + ".bozuk"))
+	var backup: String = c.last_corrupt_backup
+	check("bozuk kayıt taşındı: asıl yolda artık yok", not FileAccess.file_exists(TEST_PATH))
+	check("bozuk kayıt yedeği var (%s)" % backup.get_file(), backup.begins_with("user://test_save.corrupt-")
+			and FileAccess.get_file_as_string(backup) == "{bu json değil")
 
 	# 4) Koşuya devam: kaydet -> JSON -> yükle, sonra iki kopya aynı sonuçları vermeli
 	var run1: Node = RunStateScript.new()
@@ -201,7 +213,7 @@ Range"))
 	for node in [a, b, c, d, e, tips_reload, s1, s2, run1, run2, run3, run4]:
 		node.free()
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(TEST_PATH))
-	DirAccess.remove_absolute(ProjectSettings.globalize_path(TEST_PATH + ".bozuk"))
+	remove_corrupt_backups()
 	print("SONUÇ: %s" % ("HEPSİ GEÇTİ" if failures == 0 else "%d HATA" % failures))
 	UnitCatalog.clear_cache()
 	KingdomCatalog.clear_cache()
