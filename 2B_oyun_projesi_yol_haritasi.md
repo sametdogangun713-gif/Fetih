@@ -228,6 +228,13 @@ Yerel hazırlık (kod tarafı):
 - [x] Export şablonları 4.7.2 kuruldu (resmi SHA-512 doğrulandı); `Fetih/build/windows/Fetih.exe` (105 MB, paket gömülü) üretildi ve açıldı
 - [ ] Kalanlar: gerçek çizim/ses, kapsül görselleri, fragman, oyun testi, itch.io / Steam (bkz. `yayin/magaza_metni.md`)
 
+### Aşama 12: Görsel ve okunaklılık
+- [x] 24x24 sprite sistemi, 4 satırlık sayfa (durma / yürüme / saldırı / ölüm), silahlar açılı çizilir; `assets/sprites/units/<id>.png` varsa o kullanılır
+- [x] Askerler arası mesafe 0.24 karo
+- [x] Her askerin ayağında takım renginde gölge (aynı birlikle savaşan iki ordu ayırt edilir)
+- [x] Sancak sayısı ve boss adı konturlu (kalabalıkta okunur)
+- [x] Hata: sola bakan askerler, cesetler ve boss bir kare genişliği sağa çiziliyordu (negatif genişlikli `Rect2`); çevirme artık `draw_set_transform` ölçeğiyle
+
 **Gerçekçi toplam süre:** Godot'u yeni öğrenen biri için **8-12 ay** (haftada 15-20 saat).
 
 ---

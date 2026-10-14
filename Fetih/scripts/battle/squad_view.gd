@@ -18,6 +18,10 @@ const TEAM_COLORS := {
 	SquadState.Team.PLAYER: Color("3d6fd1"),
 	SquadState.Team.ENEMY: Color("c8443a"),
 }
+## Asker ayağındaki takım gölgesinin saydamlığı: iki ordu aynı birlikten olsa da ayırt edilsin.
+const SHADOW_ALPHA := 0.7
+## Atlı ve kuşatma figürleri geniş: gölgeleri de geniş.
+const WIDE_ROLES: Array[StringName] = [&"cavalry", &"siege"]
 
 var squad: SquadState
 var sheet: UnitSprites.Sheet
@@ -121,15 +125,31 @@ func _remove_front_soldier() -> void:
 
 func _draw() -> void:
 	if squad.unit.is_boss:
+		_draw_shadow(Vector2.ZERO)
 		_draw_soldier(Vector2.ZERO, 0)
 		_draw_boss_bar()
 		return
+	# Önce bütün gölgeler: sonra çizilen askerler hep gölgelerin üstünde kalır.
+	for slot in _alive_slots:
+		_draw_shadow(_offsets[slot])
 	# Ekranda yukarıda olan asker önce çizilir (bölük içi derinlik sıralaması).
 	var order := _alive_slots.duplicate()
 	order.sort_custom(func(a: int, b: int) -> bool: return _offsets[a].y < _offsets[b].y)
 	for slot: int in order:
 		_draw_soldier(_offsets[slot], slot)
 	_draw_banner()
+
+
+## Ayağın altında takım renginde yassı oval (üç satır piksel). Boss'unki BOSS_SCALE kat büyük.
+func _draw_shadow(at: Vector2) -> void:
+	var half := 5 if WIDE_ROLES.has(squad.unit.role) else 3
+	var px := UnitSprites.BOSS_SCALE if squad.unit.is_boss else 1
+	half *= px
+	var color: Color = TEAM_COLORS[squad.team].darkened(0.15)
+	color.a = SHADOW_ALPHA
+	draw_rect(Rect2(at + Vector2(-half, -px), Vector2(half * 2, px)), color)
+	draw_rect(Rect2(at + Vector2(-half - px, 0), Vector2((half + px) * 2, px)), color)
+	draw_rect(Rect2(at + Vector2(-half, px), Vector2(half * 2, px)), color)
 
 
 ## Askerin karesi: saldırı > yürüme > durma. Ayak ortası `at` noktasına oturur.
@@ -145,14 +165,15 @@ func _draw_soldier(at: Vector2, slot: int) -> void:
 		anim = UnitSprites.Anim.WALK
 		frame = int(_anim_time * WALK_FPS + slot * 0.5) % sheet.count(anim)
 	var size := Vector2(sheet.frame_size)
-	# Negatif genişlikle çizmek resmi yatay çevirir (Sprite2D'nin flip_h'si de böyle yapar).
-	var dest := Rect2(at + Vector2(-size.x / 2.0, 1.0 - size.y), size)
-	if flip:
-		dest = Rect2(at + Vector2(size.x / 2.0, 1.0 - size.y), Vector2(-size.x, size.y))
+	var dest := Rect2(Vector2(-size.x / 2.0, 1.0 - size.y), size)
+	# Yatay çevirme: çizim dönüşümü x'te -1 ölçeklenir, ayak ortası yerinde kalır (Sprite2D'nin
+	# flip_h'si gibi). Negatif genişlikli Rect2 kareyi bir genişlik sağa kaydırıyordu.
+	draw_set_transform(at, 0.0, Vector2(-1.0 if flip else 1.0, 1.0))
 	var source := sheet.region(anim, frame)
 	draw_texture_rect_region(sheet.texture, dest, source)
 	if _flash > 0.0:
 		draw_texture_rect_region(sheet.flash, dest, source, Color(1, 1, 1, 0.75))
+	draw_set_transform(Vector2.ZERO)
 	var top := at + Vector2(-2, 1.0 - size.y)
 	if squad.burn_time > 0.0:  # yanan bölüğün askerlerinin başında kıvılcım
 		var spark := int(_anim_time * 10.0 + slot) % 2
@@ -169,7 +190,10 @@ func _draw_boss_bar() -> void:
 	var bar := Rect2(Vector2(-14, top - 5), Vector2(28, 3))
 	draw_rect(bar, Color(0, 0, 0, 0.6))
 	draw_rect(Rect2(bar.position, Vector2(bar.size.x * ratio, bar.size.y)), TEAM_COLORS[squad.team])
-	draw_string(ThemeDB.fallback_font, Vector2(-50, top - 8), tr(squad.unit.display_name),
+	var name_at := Vector2(-50, top - 8)
+	draw_string_outline(ThemeDB.fallback_font, name_at, tr(squad.unit.display_name),
+			HORIZONTAL_ALIGNMENT_CENTER, 100, 8, 3, Color(0, 0, 0, 0.85))
+	draw_string(ThemeDB.fallback_font, name_at, tr(squad.unit.display_name),
 			HORIZONTAL_ALIGNMENT_CENTER, 100, 8, UiKit.COLOR_GOLD)
 
 
@@ -179,8 +203,11 @@ func _draw_banner() -> void:
 	draw_line(Vector2(0, -14), pole_top, Color("3a2a1a"), 1.0)
 	draw_rect(Rect2(pole_top, Vector2(7, 5)), TEAM_COLORS[squad.team])
 	var font := ThemeDB.fallback_font
-	draw_string(font, pole_top + Vector2(-12, -2), str(squad.alive_count()),
-			HORIZONTAL_ALIGNMENT_CENTER, 24, 10)
+	var at := pole_top + Vector2(-12, -2)
+	var count := str(squad.alive_count())
+	# Koyu kontur: sayı kalabalık askerlerin ve çimin üstünde de okunsun.
+	draw_string_outline(font, at, count, HORIZONTAL_ALIGNMENT_CENTER, 24, 10, 3, Color(0, 0, 0, 0.85))
+	draw_string(font, at, count, HORIZONTAL_ALIGNMENT_CENTER, 24, 10)
 	# Seviye: sancak direğinin yanında küçük altın noktalar (Sv 2 = 1 nokta ... Sv 5 = 4 nokta).
 	for i in squad.level - 1:
 		draw_rect(Rect2(Vector2(-4, -26 + i * 3), Vector2(2, 2)), UiKit.COLOR_GOLD)

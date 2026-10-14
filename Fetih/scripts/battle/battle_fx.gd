@@ -319,9 +319,9 @@ func _draw_ground() -> void:
 		var alpha := 1.0 - clampf((c.time - CORPSE_STAY) / CORPSE_FADE, 0.0, 1.0)
 		var size := Vector2(c.sheet.frame_size)
 		var dest := Rect2(Vector2(-size.x / 2.0, 1.0 - size.y), size)
-		if c.flip:
-			dest = Rect2(Vector2(size.x / 2.0, 1.0 - size.y), Vector2(-size.x, size.y))
-		_ground.draw_set_transform(c.pos)  # devrilme ölüm satırının karelerinde
+		# Sola bakan asker x'te -1 ölçekle çevrilir (bkz. SquadView._draw_soldier).
+		# Devrilme ölüm satırının karelerinde.
+		_ground.draw_set_transform(c.pos, 0.0, Vector2(-1.0 if c.flip else 1.0, 1.0))
 		_ground.draw_texture_rect_region(c.sheet.texture, dest, c.sheet.region(UnitSprites.Anim.DEATH,
 				int(c.time / CORPSE_FALL * c.sheet.count(UnitSprites.Anim.DEATH))),
 				Color(0.55, 0.5, 0.5, alpha))
