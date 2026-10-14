@@ -246,11 +246,21 @@ func tint(x: float, y: float, color: Color) -> SpritePainter:
 
 ## Bir renkten 4 tonluk rampa: [en koyu, gölge, ana, ışık]. Piksel sanatındaki gibi gölgeler
 ## maviye/mora, ışıklar sarıya doğru kayar (sadece koyulaştırmaktan daha canlı durur).
-static func ramp(base: Color) -> Array[Color]:
-	var shadow := _shift(base, 0.68, 0.035, 0.12, 0.70)
-	var darkest := _shift(base, 0.70, 0.06, 0.18, 0.46)
-	var light := _shift(base, 0.14, 0.03, -0.12, 1.22)
-	return [darkest, shadow, base, light]
+## Bütün tonlar Resurrect 64 paletinden seçilir (bkz. SpritePalette); her ton bir öncekinden
+## belirgin biçimde açık/koyu kalır.
+static func ramp(color: Color) -> Array[Color]:
+	if _ramps.has(color):
+		return _ramps[color]
+	var base := SpritePalette.nearest(color)
+	var shadow := SpritePalette.nearest_step(_shift(color, 0.68, 0.035, 0.12, 0.70), base, false)
+	var darkest := SpritePalette.nearest_step(_shift(color, 0.70, 0.06, 0.18, 0.46), shadow, false)
+	var light := SpritePalette.nearest_step(_shift(color, 0.14, 0.03, -0.12, 1.22), base, true)
+	var out: Array[Color] = [darkest, shadow, base, light]
+	_ramps[color] = out
+	return out
+
+
+static var _ramps := {}  ## renk -> rampa (aynı renk her karede yeniden hesaplanmasın)
 
 
 static func _shift(c: Color, target_hue: float, amount: float, sat_add: float, val_mul: float) -> Color:
@@ -301,6 +311,32 @@ static func rotated(src: Image, degrees: float, pivot: Vector2, shift := Vector2
 				var c := src.get_pixel(sx, sy)
 				if c.a > 0.0:
 					out.set_pixel(x, y, c)
+	return out
+
+
+## Döndürmeyi taşma olmadan yapar (geniş tuvalde döndürür, sonra kırpar). ground >= 0 ise
+## sonuç dikey kaydırılıp en alt pikseli o satıra oturtulur; yatayda kare içinde tutulur.
+static func turned(src: Image, degrees: float, pivot: Vector2, shift := Vector2.ZERO, ground := -1) -> Image:
+	var side := src.get_width()
+	var pad := side / 2
+	var big := Image.create_empty(side + pad * 2, side + pad * 2, false, Image.FORMAT_RGBA8)
+	stamp(big, src, Vector2i(pad, pad))
+	var turn := rotated(big, degrees, pivot + Vector2(pad, pad), shift)
+	var used := turn.get_used_rect()
+	var out := Image.create_empty(side, side, false, Image.FORMAT_RGBA8)
+	if not used.has_area():
+		return out
+	var dy := 0
+	if ground >= 0:
+		dy = ground - (used.end.y - 1 - pad)
+	var dx := 0
+	var left := used.position.x - pad
+	var right := used.end.x - 1 - pad
+	if left < 1:
+		dx = 1 - left
+	elif right > side - 2:
+		dx = side - 2 - right
+	out.blit_rect(turn, Rect2i(pad - dx, pad - dy, side, side), Vector2i.ZERO)
 	return out
 
 

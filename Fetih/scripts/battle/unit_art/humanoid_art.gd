@@ -2,14 +2,15 @@ class_name HumanoidArt
 ## İnsansı figürler: hazır CC0 çizimi olmayan piyade rolleri için tam figür, atlılar ve kentaurlar
 ## için üst gövde, kafa, kol ve silah parçaları. UnitSprites'ın yardımcısıdır.
 ##
-## Oran hazır CC0 sprite'lara (Puny Characters, DungeonTileset II) uyar: 32x32 kare, ~18 piksel
-## boy, iri kafa (8x8), kısa gövde ve bacak. Ayak tabanı 29. satırda (kontur 30'da), figür sağa bakar.
+## Oran hazır CC0 sprite'lara (Puny Characters, DungeonTileset II) uyar: 32x32 kare, ~16-17 piksel
+## boy (hedef 14-18), iri kafa (8x7), kısa gövde (5) ve bacak (4). Ayak tabanı 29. satırda
+## (kontur 30'da), figür sağa bakar. Renkler Resurrect 64 paletinden (SpritePalette).
 ## Kare sayıları: durma 4 (nefes), yürüme 6 (adım döngüsü), saldırı 6 (hazırlık, vuruş, takip,
 ## toparlanma), ölüm 6 (sarsılma, diz bükme, devrilme, yerde sekme).
 
 const GROUND := 29.0  ## Ayak tabanı satırı.
-const HIP_Y := 25.0
-const NECK := Vector2(15, 19)  ## Durma halinde boyun (omuz hizası) noktası.
+const HIP_Y := 26.0
+const NECK := Vector2(15, 21)  ## Durma halinde boyun (omuz hizası) noktası.
 const GOLD := Color("e8c25a")
 const WHITE := Color("fffbe8")
 const SMEAR := Color(1.0, 0.98, 0.9, 0.55)
@@ -216,22 +217,23 @@ static func torso(p: SpritePainter, look: Dictionary, n: Vector2, wide := 0) -> 
 	var r: Dictionary = look.r
 	var x := n.x - 3 - wide
 	var w := 7 + wide * 2
-	p.begin().rect(x, n.y, w, 6).cut(x, n.y, 1, 1).cut(x + w - 1, n.y, 1, 1).fill(r.cloth)
-	p.begin().rect(x, n.y + 4, w, 1).fill(r.leather, true, false)
-	p.px(n.x + 1 + wide, n.y + 4, GOLD)
+	p.begin().rect(x, n.y, w, 5).cut(x, n.y, 1, 1).cut(x + w - 1, n.y, 1, 1).fill(r.cloth)
+	p.begin().rect(x, n.y + 3, w, 1).fill(r.leather, true, false)
+	p.px(n.x + 1 + wide, n.y + 3, GOLD)
 
 
 ## Kafa: ten, saç, başlık, yüz. Kafa merkezi boyun noktasının 1 sağı, 4 üstü.
 ## Saç ve başlık iç kontur çizmez (yüzü karartmasın); yüz ayrıntıları en son çizilir.
 static func head(p: SpritePainter, look: Dictionary, n: Vector2, helm: StringName = &"none") -> void:
 	var r: Dictionary = look.r
-	var c := n + Vector2(1, -4)
-	p.begin().ellipse(c.x, c.y, 3.7, 3.6).fill(r.skin)
+	var c := n + Vector2(1, look.get("head_dy", -4.0))
+	var hr: Vector2 = look.get("head_r", Vector2(3.7, 3.6))
+	p.begin().ellipse(c.x, c.y, hr.x, hr.y).fill(r.skin)
 	var covered := helm in [&"open", &"full", &"cone", &"hood", &"hat", &"horned"]
 	if look.get("hair_on", true) and not covered:
-		p.begin().ellipse(c.x - 0.8, c.y - 1.0, 3.8, 3.0).cut(c.x + 1, c.y - 0.5, 5, 6).fill(r.hair, true, false)
-	if look.get("long_hair", false) and helm != &"full":
-		p.begin().rect(c.x - 4, c.y - 1, 3, 6).fill(r.hair, true, false)
+		p.begin().ellipse(c.x - 0.6, c.y - 0.9, hr.x, hr.y - 0.7).cut(c.x, c.y - 1, 5, 6).fill(r.hair, true, false)
+	if look.get("long_hair", false) and helm != &"full":  # ense arkasına inen saç
+		p.begin().rect(c.x - hr.x, c.y, 2, 4).fill(r.hair, true, false)
 	if look.get("beard", false) and helm != &"full":
 		p.begin().ellipse(c.x + 1.0, c.y + 2.6, 3.0, 2.4).cut(c.x - 3, c.y, 3, 2).fill(r.hair, true, false)
 	if helm != &"none":
@@ -256,17 +258,18 @@ static func head(p: SpritePainter, look: Dictionary, n: Vector2, helm: StringNam
 ## hat (büyücü şapkası), horned (boynuzlu), band (saç bandı), feathers (tüylü bant).
 static func helmet(p: SpritePainter, look: Dictionary, n: Vector2, kind: StringName) -> void:
 	var r: Dictionary = look.r
-	var c := n + Vector2(1, -4)
+	var c := n + Vector2(1, look.get("head_dy", -4.0))
+	var hr: Vector2 = look.get("head_r", Vector2(3.7, 3.6))
 	match kind:
 		&"open":
-			p.begin().ellipse(c.x - 0.3, c.y - 0.6, 4.1, 3.4).cut(c.x - 5, c.y - 0.5, 10, 6).fill(r.metal, true, false)
+			p.begin().ellipse(c.x - 0.3, c.y - 0.6, hr.x + 0.4, hr.y - 0.2).cut(c.x - 5, c.y - 0.5, 10, 6).fill(r.metal, true, false)
 			p.begin().rect(c.x - 4, c.y - 1, 9, 1).fill(r.metal, true, false)
 			p.begin().rect(c.x - 4, c.y - 1, 2, 3).fill(r.metal, true, false)
 			p.begin().rect(c.x - 1, c.y - 6, 2, 2).fill(r.trim, true, false)  # sorguç
 		&"full":
-			p.begin().ellipse(c.x, c.y - 0.2, 4.0, 4.0).fill(r.metal, true, false)
+			p.begin().ellipse(c.x, c.y - 0.2, hr.x + 0.3, hr.y + 0.4).fill(r.metal, true, false)
 			for x in range(int(c.x), int(c.x) + 4):
-				p.tint(x, c.y, r.metal[0])  # göz yarığı
+				p.tint(x, c.y, look.get("visor", r.metal[0]))  # göz yarığı (ölülerde parlar)
 			p.px(c.x + 2, c.y + 2, r.metal[0]).px(c.x + 3, c.y + 2, r.metal[0])
 			if look.get("plume", true):
 				p.begin().ellipse(c.x - 2.0, c.y - 4.3, 2.4, 1.4).fill(r.trim, true, false)
@@ -283,10 +286,11 @@ static func helmet(p: SpritePainter, look: Dictionary, n: Vector2, kind: StringN
 					Vector2(c.x - 4.5, c.y - 10), Vector2(c.x + 3.5, c.y - 1.5)])).fill(r.cloth, true, false)
 			p.begin().rect(c.x - 3, c.y - 3, 7, 1).fill(r.trim, false, false)
 		&"horned":
-			p.begin().ellipse(c.x - 0.3, c.y - 0.6, 4.1, 3.4).cut(c.x - 5, c.y - 0.5, 10, 6).fill(r.metal, true, false)
-			var bone := SpritePainter.ramp(Color("e8dcc0"))
-			p.begin().line(Vector2(c.x - 3, c.y - 3), Vector2(c.x - 5, c.y - 7), 1.6).fill(bone, true, false)
-			p.begin().line(Vector2(c.x + 2, c.y - 3), Vector2(c.x + 4, c.y - 7), 1.6).fill(bone, true, false)
+			p.begin().ellipse(c.x - 0.3, c.y - 0.6, hr.x + 0.4, hr.y - 0.2).cut(c.x - 5, c.y - 0.5, 10, 6).fill(r.metal, true, false)
+			# kısa, dışa kıvrık boynuzlar (arka koyu, ön açık)
+			var bone := SpritePainter.ramp(Color("ab947a"))
+			p.begin().line(Vector2(c.x - 3, c.y - 2), Vector2(c.x - 5, c.y - 3), 1.8).line(Vector2(c.x - 5, c.y - 3), Vector2(c.x - 5.5, c.y - 5), 1.2).fill(bone, true, false)
+			p.begin().line(Vector2(c.x + 2, c.y - 3), Vector2(c.x + 4, c.y - 4), 1.8).line(Vector2(c.x + 4, c.y - 4), Vector2(c.x + 4.5, c.y - 6), 1.2).fill(bone, true, false)
 		&"band":
 			p.begin().rect(c.x - 4, c.y - 2, 8, 1).fill(r.trim, false, false)
 		&"feathers":

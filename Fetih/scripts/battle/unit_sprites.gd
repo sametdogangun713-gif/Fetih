@@ -27,14 +27,37 @@ const USER_DIR := "res://assets/sprites/units/"
 const OUTLINE := SpritePainter.OUTLINE
 const GOLD := Color("e8c25a")
 
-## Krallığa göre görünüm (ten, saç, metal, göz...). Birliğin rengi `cloth` olarak eklenir.
-## Listede olmayan krallık DEFAULT_LOOK ile çizilir.
+## Krallığa göre görünüm (ten, saç, metal, göz, binek...). Renkler Resurrect 64 paletinden
+## (bkz. SpritePalette) ve gorsel_yon_dokumani.md krallık renk kimliğinden seçildi.
+## Birliğin rengi (placeholder_color) `cloth` olur; krallık `cloth` verirse o kullanılır ve
+## birliğin rengi bineğe geçer (`coat_unit`). Listede olmayan krallık DEFAULT_LOOK ile çizilir.
 const DEFAULT_LOOK := {
-	skin = Color("e8c09a"), hair = Color("5a3a24"), pants = Color("4a4038"), boots = Color("3a2a20"),
-	metal = Color("b8bec8"), leather = Color("7a5232"), wood = Color("8a6038"), trim = Color("c8443a"),
-	eye = Color("1c1612"), glow = Color("9fe8ff"),
+	skin = Color("fca790"), hair = Color("4c3e24"), pants = Color("3e3546"), boots = Color("2e222f"),
+	metal = Color("c7dcd0"), leather = Color("9e4539"), wood = Color("966c6c"), trim = Color("e83b3b"),
+	eye = Color("2e222f"), glow = Color("8fd3ff"),
+	mount = &"horse", coat = Color("9e4539"), mane = Color("4c3e24"),
 }
-const KINGDOM_LOOKS := {}
+const KINGDOM_LOOKS := {
+	&"humans": {  # şövalye: kestane at, kraliyet moru örtü, sorguçlu kapalı miğfer, flamalı kargı
+		trim = Color("f9c22b"), barding = Color("6b3e75"), barding_on = true, rider_helm = &"full", metal = Color("9babb2"),
+		pennant = true, hair = Color("7a3045"),
+	},
+	&"elves": {  # geyik binici: açık saçlı, yeşil giysili; geyik birliğin renginde
+		hair = Color("fbb954"), long_hair = true, cloth = Color("239063"), trim = Color("cddf6c"),
+		mount = &"stag", coat_unit = true, rider_helm = &"none", leather = Color("7a3045"),
+	},
+	&"orcs": {  # kurt binici: yeşil ten, dişler, boynuzlu kara demir miğfer; kurt birliğin renginde
+		skin = Color("a2a947"), face = &"orc", eye = Color("e83b3b"), cloth = Color("676633"),
+		metal = Color("625565"), trim = Color("ae2334"), mount = &"wolf", coat_unit = true,
+		mane = Color("3e3546"), mount_eye = Color("f9c22b"), rider_helm = &"horned",
+	},
+	&"undead": {  # ölü şövalye: kafatası, parlayan vizör, iskelet at, yırtık örtü
+		skin = Color("c7dcd0"), face = &"skull", eye = Color("30e1b9"), hair_on = false,
+		metal = Color("484a77"), visor = Color("30e1b9"), plume = false, trim = Color("0b8a8f"),
+		mount = &"undead_horse", coat = Color("3e3546"), mane = Color("30e1b9"), mount_eye = Color("8ff8e2"),
+		barding = Color("45293f"), barding_on = true, tattered = true, rider_helm = &"full",
+	},
+}
 
 
 ## Bir birliğin çizime hazır sprite sayfası.
@@ -122,35 +145,49 @@ static func _count_frames(image: Image, row: int, side: int) -> int:
 
 ## 32x32 karelik sayfa (boss ise 2 kat büyük ve taçlı). Beden türü body_kind() ile seçilir.
 static func generate(unit: UnitData) -> Image:
-	var look := _look(unit)
 	var kind := body_kind(unit)
+	var look := _look(unit, kind)
 	var columns: int = GEN_FRAMES.max()
 	var sheet := Image.create_empty(SIZE * columns, SIZE * ROWS, false, Image.FORMAT_RGBA8)
 	for anim in ROWS:
 		for f in GEN_FRAMES[anim]:
 			var img := _frame(kind, unit.role, anim, f, look)
 			sheet.blit_rect(img, Rect2i(0, 0, SIZE, SIZE), Vector2i(f * SIZE, anim * SIZE))
+	SpritePalette.quantize(sheet)  # iç kontur, efekt gibi ara renkler de Resurrect 64'e
 	if unit.is_boss:
 		sheet = _boss_sheet(sheet)
 	return sheet
 
 
-## Beden türü: krallık ve rolden. humanoid her rolü çizebilir (yedek).
-static func body_kind(_unit: UnitData) -> StringName:
+## Beden türü: krallık ve rolden. rider: binekli kargıcı (süvari); humanoid her rolü çizebilir (yedek).
+static func body_kind(unit: UnitData) -> StringName:
+	if unit.role == RoleRules.CAVALRY:
+		return &"rider"
 	return &"humanoid"
 
 
-static func _frame(_kind: StringName, role: StringName, anim: int, f: int, look: Dictionary) -> Image:
+static func _frame(kind: StringName, role: StringName, anim: int, f: int, look: Dictionary) -> Image:
+	match kind:
+		&"rider":
+			return RiderArt.frame(look, anim, f)
 	return HumanoidArt.frame(role, anim, f, look)
 
 
-## Krallık görünümü + birlik rengi (cloth) + hazır renk rampaları (r).
-static func _look(unit: UnitData) -> Dictionary:
+## Krallık görünümü + birlik rengi + hazır renk rampaları (r).
+static func _look(unit: UnitData, kind: StringName) -> Dictionary:
 	var look := DEFAULT_LOOK.duplicate()
-	look.merge(KINGDOM_LOOKS.get(unit.kingdom, {}), true)
-	look.cloth = unit.placeholder_color
+	var kingdom: Dictionary = KINGDOM_LOOKS.get(unit.kingdom, {})
+	look.merge(kingdom, true)
+	if not kingdom.has("cloth"):
+		look.cloth = unit.placeholder_color
+	if look.get("coat_unit", false):
+		look.coat = unit.placeholder_color
 	look.id = unit.id
+	if kind == &"rider":  # binici kafası biraz küçük: atlı figürü ~22 piksel boyda kalsın
+		look.head_r = Vector2(3.3, 3.2)
+		look.head_dy = -3.5
 	look.r = HumanoidArt.ramps(look)
+	MountArt.add_ramps(look)
 	return look
 
 
