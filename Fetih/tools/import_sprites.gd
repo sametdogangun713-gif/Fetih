@@ -101,7 +101,7 @@ func _init() -> void:
 		var sheet := _build(SPECS[id])
 		# Palet adımı (görev 2.1): bütün sayfa Resurrect 64'e indirilir, kontur #1c1612 istisna.
 		var before := SpritePalette.off_palette_count(sheet)
-		SpritePalette.quantize(sheet)
+		SpritePalette.quantize(sheet, SpritePainter.OUTLINE, true)
 		var after := SpritePalette.off_palette_count(sheet)
 		off_before += before
 		off_after += after

@@ -17,6 +17,8 @@ const HEX: PackedStringArray = [
 
 static var _colors: Array[Color] = []
 static var _cache := {}  ## Color -> en yakın palet rengi
+static var _cache_lab := {}  ## Color -> OKLab'a göre en yakın palet rengi
+static var _lab: Array[Vector3] = []
 
 
 static func colors() -> Array[Color]:
@@ -77,14 +79,48 @@ static func nearest_step(target: Color, ref: Color, lighter: bool) -> Color:
 	return best
 
 
-## Resmi palete indirger. keep: dokunulmayacak renk (kontur).
-static func quantize(img: Image, keep := SpritePainter.OUTLINE) -> void:
+## Rengin OKLab değeri (Björn Ottosson): ton ve parlaklık algıya yakın ölçülür; gri figürler yeşile/mora kaymaz.
+static func _to_lab(c: Color) -> Vector3:
+	var lin := c.srgb_to_linear()
+	var l := 0.4122214708 * lin.r + 0.5363325363 * lin.g + 0.0514459929 * lin.b
+	var m := 0.2119034982 * lin.r + 0.6806995451 * lin.g + 0.1073969566 * lin.b
+	var s := 0.0883024619 * lin.r + 0.2817188376 * lin.g + 0.6299787005 * lin.b
+	l = pow(l, 1.0 / 3.0)
+	m = pow(m, 1.0 / 3.0)
+	s = pow(s, 1.0 / 3.0)
+	return Vector3(0.2104542553 * l + 0.7936177850 * m - 0.0040720468 * s,
+			1.9779984951 * l - 2.4285922050 * m + 0.4505937099 * s,
+			0.0259040371 * l + 0.7827717662 * m - 0.8086757660 * s)
+
+
+## OKLab uzaklığına göre en yakın palet rengi (hazır CC0 sayfaları indirgemek için; saydamlık korunur).
+static func nearest_perceptual(c: Color) -> Color:
+	var key := Color(c.r, c.g, c.b)
+	if _lab.is_empty():
+		for p in colors():
+			_lab.append(_to_lab(p))
+	if not _cache_lab.has(key):
+		var target := _to_lab(key)
+		var best := 0
+		var best_d := INF
+		for i in _lab.size():
+			var d := target.distance_squared_to(_lab[i])
+			if d < best_d:
+				best_d = d
+				best = i
+		_cache_lab[key] = colors()[best]
+	var hit: Color = _cache_lab[key]
+	return Color(hit.r, hit.g, hit.b, c.a)
+
+
+## Resmi palete indirger. keep: dokunulmayacak renk (kontur). perceptual: OKLab eşleme (hazır sayfalar).
+static func quantize(img: Image, keep := SpritePainter.OUTLINE, perceptual := false) -> void:
 	for y in img.get_height():
 		for x in img.get_width():
 			var c := img.get_pixel(x, y)
 			if c.a == 0.0 or c.is_equal_approx(keep):
 				continue
-			img.set_pixel(x, y, nearest(c))
+			img.set_pixel(x, y, nearest_perceptual(c) if perceptual else nearest(c))
 
 
 ## Palet dışı (opak) piksel sayısı: araçlar indirgemeden sonra doğrulamak için kullanır.
