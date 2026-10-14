@@ -1,0 +1,497 @@
+class_name MiniUnitArt
+## Minik birlik sanatı (9 Kings tarzı): her asker 16x16 hücrede 10-12 piksel boyunda, rolüne
+## göre tek bakışta ayırt edilen bir siluet. Gövde takım renginde (oyuncu altın, rakip kırmızı),
+## silah/şapka vurgusu birliğin placeholder_color'ı. Sayfa biçimi UnitSprites ile aynı:
+## 4 satır (durma 2, yürüme 4, saldırı 3, ölüm 4 kare), figür sağa bakar, ayak ortası (8, 14).
+## Her kare Image.set_pixel / fill_rect ile elle çizilir, sonra 1 px koyu çerçeve eklenir ve sayfa
+## Resurrect 64 paletine indirilir.
+
+const CELL := 16
+const FRAMES: Array[int] = [2, 4, 3, 4]  ## durma, yürüme, saldırı, ölüm
+const FOOT := Vector2i(8, 14)
+
+const OUTLINE := Color("2e222f")
+const SKIN := Color("fca790")
+const METAL := Color("c7dcd0")
+const WOOD := Color("966c6c")
+const SPEAR_SHAFT := Color("ab947a")
+const DARK_WOOD := Color("4c3e24")
+const IRON := Color("625565")
+const IRON_LIGHT := Color("7f708a")
+const HORSE_DARK := Color("694f62")
+const PANTS := Color("3e3546")
+const GLOW := Color("8fd3ff")
+const SPARK := Color("fbff86")
+const FIRE := Color("f79617")
+## Krallığa göre ten rengi (listede yoksa SKIN).
+const SKINS := {
+	&"orcs": Color("a2a947"), &"undead": Color("c7dcd0"), &"golems": Color("ab947a"),
+	&"demons": Color("b33831"), &"mud": Color("a2a947"),
+}
+
+enum Kind { HUMANOID, RIDER, CANNON, CATAPULT }
+
+
+## Birliğin sprite sayfası: CELL * 4 yüksekliğinde, en geniş satır kadar sütun.
+static func sheet(unit: UnitData, team_color: Color) -> Image:
+	var c := _colors(unit, team_color)
+	var kind := kind_of(unit)
+	var columns: int = FRAMES.max()
+	var out := Image.create_empty(CELL * columns, CELL * FRAMES.size(), false, Image.FORMAT_RGBA8)
+	for anim in FRAMES.size():
+		for f in FRAMES[anim]:
+			var img := _frame(kind, unit.role, c, anim, f)
+			_outline(img)
+			out.blit_rect(img, Rect2i(0, 0, CELL, CELL), Vector2i(f * CELL, anim * CELL))
+	SpritePalette.quantize(out)
+	return out
+
+
+static func kind_of(unit: UnitData) -> Kind:
+	if unit.role == RoleRules.CAVALRY:
+		return Kind.RIDER
+	if unit.role == RoleRules.SIEGE:
+		return Kind.CATAPULT if unit.kingdom == &"golems" else Kind.CANNON
+	return Kind.HUMANOID
+
+
+static func _colors(unit: UnitData, team_color: Color) -> Dictionary:
+	var main := SpritePalette.nearest(team_color)
+	return {
+		main = main,
+		shade = SpritePalette.nearest_step(main, main, false),
+		accent = SpritePalette.nearest(unit.placeholder_color),
+		skin = SKINS.get(unit.kingdom, SKIN),
+	}
+
+
+static func _frame(kind: Kind, role: StringName, c: Dictionary, anim: int, f: int) -> Image:
+	var im := Image.create_empty(CELL, CELL, false, Image.FORMAT_RGBA8)
+	match kind:
+		Kind.RIDER:
+			_rider(im, c, anim, f)
+		Kind.CANNON:
+			_cannon(im, c, anim, f)
+		Kind.CATAPULT:
+			_catapult(im, c, anim, f)
+		_:
+			_humanoid(im, role, c, anim, f)
+	return im
+
+
+# --- Yardımcılar ---
+
+static func _px(im: Image, x: int, y: int, col: Color) -> void:
+	if x >= 0 and y >= 0 and x < CELL and y < CELL:
+		im.set_pixel(x, y, col)
+
+
+static func _rect(im: Image, x: int, y: int, w: int, h: int, col: Color) -> void:
+	var r := Rect2i(x, y, w, h).intersection(Rect2i(0, 0, CELL, CELL))
+	if r.has_area():
+		im.fill_rect(r, col)
+
+
+## Dolu piksellerin boş 4-komşularına 1 px koyu çerçeve.
+static func _outline(im: Image) -> void:
+	var src := im.duplicate() as Image
+	for y in CELL:
+		for x in CELL:
+			if src.get_pixel(x, y).a > 0.0:
+				continue
+			if (x > 0 and src.get_pixel(x - 1, y).a > 0.0) or (x < CELL - 1 and src.get_pixel(x + 1, y).a > 0.0) \
+					or (y > 0 and src.get_pixel(x, y - 1).a > 0.0) or (y < CELL - 1 and src.get_pixel(x, y + 1).a > 0.0):
+				im.set_pixel(x, y, OUTLINE)
+
+
+# --- İnsansı roller ---
+
+## Piyade, mızrakçı, okçu, büyücü, tank. Vücut parçaları (bacak, gövde, baş) ortak; rol silahı ve
+## başlığı farklı. dy/ox = üst gövdenin kayması (nefes, adım, atılma).
+static func _humanoid(im: Image, role: StringName, c: Dictionary, anim: int, f: int) -> void:
+	var dy := 0
+	var ox := 0
+	var lift_a := false
+	var lift_b := false
+	var leg_a := 6
+	var leg_b := 9
+	var swing := f  # saldırı karesi: 0 hazırlık, 1 vuruş, 2 toparlanma
+	match anim:
+		UnitSprites.Anim.IDLE:
+			dy = f
+		UnitSprites.Anim.WALK:
+			dy = -1 if f % 2 == 1 else 0
+			lift_a = f == 2
+			lift_b = f == 0
+			if f % 2 == 1:
+				leg_a = 7
+				leg_b = 8
+		UnitSprites.Anim.ATTACK:
+			ox = [-1, 1, 0][f]
+		UnitSprites.Anim.DEATH:
+			_humanoid_death(im, role, c, f)
+			return
+	var main: Color = c.main
+	var shade: Color = c.shade
+	var accent: Color = c.accent
+	var tank := role == RoleRules.TANK
+	var wide := 1 if tank else 0
+	# bacaklar
+	for leg in [[leg_a, lift_a], [leg_b, lift_b]]:
+		_rect(im, leg[0] - wide, 13 if leg[1] else 12, 1 + wide, 1 if leg[1] else 2, PANTS)
+	if role == RoleRules.MAGE:  # cüppe ayakları örter
+		_rect(im, 5 + ox, 11, 6, 3, shade)
+		_rect(im, 6 + ox, 11, 4, 3, main)
+	# gövde
+	var top := 7 + dy
+	var bw := 6 if tank else 4
+	var bx := 5 + ox if tank else 6 + ox
+	_rect(im, bx, top, bw, 12 - top, main)
+	_rect(im, bx, top, 1, 12 - top, shade)  # arka kenar gölgede
+	_rect(im, bx, 11, bw, 1, shade)  # kemer
+	# baş
+	var hx := 6 + ox
+	var hy := 4 + dy
+	match role:
+		RoleRules.ARCHER:
+			_rect(im, hx, hy, 4, 3, accent)
+			_rect(im, hx + 2, hy + 1, 2, 2, c.skin)
+			_px(im, hx + 3, hy + 1, OUTLINE)
+			_px(im, hx - 1, hy + 1, accent)  # kukuleta ucu
+		RoleRules.MAGE:
+			_px(im, hx + 2, hy - 1, accent)  # sivri uç
+			_rect(im, hx + 1, hy, 3, 1, accent)  # şapka gövdesi
+			_rect(im, hx - 1, hy + 1, 6, 1, accent)  # şapka kenarı
+			_rect(im, hx + 1, hy + 2, 3, 1, c.skin)
+			_px(im, hx + 3, hy + 2, OUTLINE)
+		RoleRules.TANK:
+			_rect(im, hx - 1, hy, 6, 3, METAL)
+			_rect(im, hx + 2, hy + 1, 3, 1, OUTLINE)  # vizör
+			_px(im, hx + 1, hy - 1, accent)  # tepelik
+			_px(im, hx + 2, hy - 1, accent)
+		_:  # piyade, mızrakçı: yuvarlak kask (mızrakçının tepesi vurgu renginde)
+			_rect(im, hx, hy, 4, 2, METAL)
+			if role == RoleRules.SPEARMAN:
+				_rect(im, hx, hy, 4, 1, accent)
+			_px(im, hx, hy + 2, METAL)
+			_rect(im, hx + 1, hy + 2, 3, 1, c.skin)
+			_rect(im, hx + 2, hy + 1, 2, 1, c.skin)
+			_px(im, hx + 3, hy + 1, OUTLINE)
+	var hand_y := 8 + dy
+	match role:
+		RoleRules.WARRIOR:
+			_rect(im, 4 + ox, 8 + dy, 2, 3, accent)  # kalkan
+			_px(im, 4 + ox, 9 + dy, shade)
+			_px(im, 10 + ox, hand_y, c.skin)
+			match swing if anim == UnitSprites.Anim.ATTACK else -1:
+				0:  # kılıç yukarıda, geriye
+					_rect(im, 10 + ox, 2 + dy, 1, 5, METAL)
+					_px(im, 10 + ox, 7 + dy, WOOD)
+				1:  # ileri kesiş
+					_rect(im, 11 + ox, hand_y, 4, 1, METAL)
+					_px(im, 10 + ox, hand_y, WOOD)
+				2:  # aşağı
+					_rect(im, 11 + ox, 8 + dy, 1, 4, METAL)
+					_px(im, 11 + ox, 7 + dy, WOOD)
+				_:
+					_rect(im, 11 + ox, 4 + dy, 1, 4, METAL)
+					_px(im, 11 + ox, 8 + dy, WOOD)
+		RoleRules.SPEARMAN:
+			_px(im, 10 + ox, hand_y, c.skin)
+			if anim == UnitSprites.Anim.ATTACK and swing == 1:  # ileri saplama
+				_rect(im, 7 + ox, hand_y, 6, 1, SPEAR_SHAFT)
+				_rect(im, 13 + ox, hand_y, 2, 1, METAL)
+			elif anim == UnitSprites.Anim.ATTACK and swing == 0:  # geri çekiş
+				_rect(im, 6 + ox, hand_y, 6, 1, SPEAR_SHAFT)
+				_rect(im, 12 + ox, hand_y, 2, 1, METAL)
+			else:
+				_rect(im, 11 + ox, 5 + dy, 1, 8 - dy, SPEAR_SHAFT)
+				_rect(im, 11 + ox, 3 + dy, 1, 2, METAL)
+		RoleRules.ARCHER:
+			var draw := anim == UnitSprites.Anim.ATTACK and swing == 0
+			var bow_x := (13 if draw else 12) + ox
+			_px(im, bow_x - 1, 5 + dy, WOOD)
+			_rect(im, bow_x, 6 + dy, 1, 5, WOOD)
+			_px(im, bow_x - 1, 11 + dy, WOOD)
+			if not draw:
+				_rect(im, bow_x - 1, 6 + dy, 1, 5, METAL)  # kiriş
+			_rect(im, 10 + ox, hand_y, 2 if not draw else 1, 1, c.skin)
+			if draw:  # ok kirişte
+				_rect(im, 9 + ox, hand_y, 5, 1, METAL)
+				_px(im, 14 + ox, hand_y, METAL)
+			elif anim == UnitSprites.Anim.ATTACK and swing == 1:  # ok uçtu
+				_rect(im, 13, hand_y, 2, 1, METAL)
+			_rect(im, 5 + ox, 6 + dy, 1, 3, accent)  # sadak
+		RoleRules.MAGE:
+			var orb_dy := -1 if (anim == UnitSprites.Anim.ATTACK and swing == 0) else 0
+			_px(im, 10 + ox, hand_y, c.skin)
+			_rect(im, 11 + ox, 5 + dy, 1, 8 - dy, WOOD)
+			var orb := GLOW
+			if anim == UnitSprites.Anim.ATTACK and swing == 1:  # büyü patlar
+				_rect(im, 10 + ox, 2 + dy + orb_dy, 3, 3, SPARK)
+				_px(im, 11 + ox, 3 + dy, Color.WHITE)
+			else:
+				_rect(im, 11 + ox, 3 + dy + orb_dy, 2, 2, orb)
+				_px(im, 11 + ox, 3 + dy + orb_dy, Color.WHITE)
+		RoleRules.TANK:
+			var push := 1 if (anim == UnitSprites.Anim.ATTACK and swing == 1) else 0
+			var back := -1 if (anim == UnitSprites.Anim.ATTACK and swing == 0) else 0
+			_rect(im, 11 + push + back + ox, 6 + dy, 3, 6, main)
+			_rect(im, 11 + push + back + ox, 6 + dy, 1, 6, shade)
+			_rect(im, 12 + push + back + ox, 8 + dy, 1, 2, accent)  # kalkan göbeği
+			_px(im, 10 + ox, hand_y, c.skin)
+
+
+## Ölüm: kısa sarsıntı, devrilme, yerde yatan 8x3 beden (son iki kare).
+static func _humanoid_death(im: Image, role: StringName, c: Dictionary, f: int) -> void:
+	var main: Color = c.main
+	var shade: Color = c.shade
+	var head: Color = c.accent if role == RoleRules.ARCHER or role == RoleRules.MAGE else METAL
+	match f:
+		0:  # sendeler
+			_rect(im, 6, 12, 1, 2, PANTS)
+			_rect(im, 8, 12, 1, 2, PANTS)
+			_rect(im, 5, 8, 4, 4, main)
+			_rect(im, 5, 8, 1, 4, shade)
+			_rect(im, 4, 5, 4, 2, head)
+			_rect(im, 5, 7, 3, 1, c.skin)
+		1:  # yana yatıyor
+			_rect(im, 9, 12, 2, 2, PANTS)
+			_rect(im, 5, 10, 4, 3, main)
+			_rect(im, 5, 12, 4, 1, shade)
+			_rect(im, 3, 9, 3, 3, head)
+			_px(im, 4, 11, c.skin)
+		_:  # yerde: baş solda, bacaklar sağda
+			_rect(im, 10, 12, 2, 2, PANTS)
+			_rect(im, 6, 11, 4, 3, main)
+			_rect(im, 6, 13, 4, 1, shade)
+			_rect(im, 4, 11, 2, 3, head)
+			_px(im, 5, 12, c.skin)
+			if f == 3:  # silah yere düştü
+				var weapon: Color = METAL
+				if role == RoleRules.ARCHER:
+					weapon = WOOD
+				_rect(im, 12, 13, 2, 1, weapon)
+				_px(im, 12, 12, c.accent)
+
+
+# --- Atlı ---
+
+static func _rider(im: Image, c: Dictionary, anim: int, f: int) -> void:
+	var main: Color = c.main
+	var shade: Color = c.shade
+	var accent: Color = c.accent
+	var bob := 0
+	var ox := 0
+	var head_up := 0
+	var near_front := 10
+	var near_back := 4
+	var far_front := 9
+	var far_back := 5
+	var near_lift := false
+	match anim:
+		UnitSprites.Anim.IDLE:
+			bob = f
+		UnitSprites.Anim.WALK:
+			bob = -1 if f % 2 == 1 else 0
+			near_lift = f % 2 == 0
+			if f % 2 == 1:  # dörtnala toplanma: bacaklar altta birleşir
+				near_front = 9
+				near_back = 5
+		UnitSprites.Anim.ATTACK:
+			ox = [-1, 1, 0][f]
+			head_up = 1 if f == 0 else 0
+		UnitSprites.Anim.DEATH:
+			_rider_death(im, c, f)
+			return
+	var body_y := 8 + bob
+	# bacaklar (uzak tarafta olanlar koyu)
+	for leg in [[far_back, true], [far_front, true], [near_back, false], [near_front, false]]:
+		var lifted: bool = near_lift and not leg[1]
+		var length := 1 if lifted else 3 - bob
+		_rect(im, leg[0] + ox, 14 - length if length > 0 else 13, 1, maxi(length, 1), HORSE_DARK if leg[1] else WOOD)
+	# gövde, boyun, baş, kuyruk
+	_rect(im, 3 + ox, body_y, 8, 3, WOOD)
+	_rect(im, 3 + ox, body_y + 2, 8, 1, HORSE_DARK)
+	_rect(im, 10 + ox, 6 + bob - head_up, 2, 3, WOOD)
+	_rect(im, 11 + ox, 5 + bob - head_up, 2, 2, WOOD)
+	_px(im, 12 + ox, 7 + bob - head_up, WOOD)
+	_px(im, 12 + ox, 5 + bob - head_up, OUTLINE)  # göz
+	_px(im, 10 + ox, 5 + bob - head_up, HORSE_DARK)  # yele
+	_rect(im, 2 + ox, body_y, 1, 3, HORSE_DARK)
+	_px(im, 2 + ox, body_y + 3, HORSE_DARK)
+	# eyer örtüsü (vurgu rengi)
+	_rect(im, 5 + ox, body_y, 4, 1, accent)
+	# binici
+	_rect(im, 6 + ox, 5 + bob, 3, 3, main)
+	_rect(im, 6 + ox, 5 + bob, 1, 3, shade)
+	_rect(im, 6 + ox, 3 + bob, 3, 2, METAL)
+	_px(im, 8 + ox, 4 + bob, c.skin)
+	_px(im, 7 + ox, 3 + bob, accent)  # tepelik
+	# mızrak
+	if anim == UnitSprites.Anim.ATTACK:
+		if f == 1:
+			_rect(im, 8 + ox, 6, 7, 1, WOOD)
+			_rect(im, 14 + ox, 6, 2, 1, METAL)
+		elif f == 0:
+			_rect(im, 6 + ox, 6, 7, 1, WOOD)
+	else:
+		_rect(im, 9 + ox, 4 + bob, 1, 4, WOOD)
+		_px(im, 9 + ox, 3 + bob, METAL)
+
+
+static func _rider_death(im: Image, c: Dictionary, f: int) -> void:
+	var main: Color = c.main
+	match f:
+		0:  # at sendeler
+			_rect(im, 4, 12, 1, 2, WOOD)
+			_rect(im, 9, 12, 1, 2, WOOD)
+			_rect(im, 3, 9, 8, 3, WOOD)
+			_rect(im, 11, 6, 2, 3, WOOD)
+			_rect(im, 5, 6, 3, 3, main)
+			_rect(im, 4, 4, 3, 2, METAL)
+		1:  # çöküyor
+			_rect(im, 3, 11, 8, 3, WOOD)
+			_rect(im, 11, 9, 2, 3, WOOD)
+			_rect(im, 3, 13, 8, 1, HORSE_DARK)
+			_rect(im, 4, 8, 3, 3, main)
+			_rect(im, 2, 8, 2, 2, METAL)
+		_:  # yerde yatan at ve binici
+			_rect(im, 3, 11, 9, 3, WOOD)
+			_rect(im, 3, 13, 9, 1, HORSE_DARK)
+			_rect(im, 11, 12, 2, 2, WOOD)
+			_rect(im, 5, 9, 3, 2, main)
+			_rect(im, 4, 9, 1, 2, METAL)
+			if f == 3:
+				_px(im, 9, 10, c.accent)
+				_rect(im, 10, 10, 3, 1, WOOD)
+
+
+# --- Kuşatma ---
+
+## Top: iki tekerlek, takım renginde top arabası, demir namlu. Mürettebat yok.
+static func _cannon(im: Image, c: Dictionary, anim: int, f: int) -> void:
+	var main: Color = c.main
+	var shade: Color = c.shade
+	var recoil := 0
+	var dy := 0
+	var flash := false
+	var smoke := false
+	if anim == UnitSprites.Anim.ATTACK:
+		recoil = [0, -1, 0][f]
+		flash = f == 1
+		smoke = f == 2
+	if anim == UnitSprites.Anim.DEATH:
+		_cannon_death(im, c, f)
+		return
+	if anim == UnitSprites.Anim.WALK:
+		dy = -1 if f % 2 == 1 else 0
+	# tekerlekler (dönüş: parmak çizgisi yürümede değişir)
+	for wx in [3, 9]:
+		_rect(im, wx + 1, 11, 2, 1, DARK_WOOD)
+		_rect(im, wx, 12, 4, 1, DARK_WOOD)
+		_rect(im, wx + 1, 13, 2, 1, DARK_WOOD)
+		_px(im, wx + 1 + (f % 2 if anim == UnitSprites.Anim.WALK else 0), 12, WOOD)
+	# top arabası ve namlu
+	_rect(im, 4, 10 + dy, 8, 1, main)
+	_rect(im, 3 + recoil, 7 + dy, 8, 3, IRON)
+	_rect(im, 3 + recoil, 7 + dy, 8, 1, IRON_LIGHT)
+	_rect(im, 10 + recoil, 6 + dy, 2, 5, IRON)  # ağız halkası
+	_rect(im, 10 + recoil, 6 + dy, 2, 1, IRON_LIGHT)
+	_rect(im, 5 + recoil, 7 + dy, 2, 3, main)  # takım bandı
+	_rect(im, 5 + recoil, 9 + dy, 2, 1, shade)
+	_px(im, 2 + recoil, 8 + dy, c.accent)  # kabza topuzu
+	_px(im, 2 + recoil, 9 + dy, IRON)
+	if flash:
+		_rect(im, 12, 6, 2, 4, FIRE)
+		_rect(im, 12, 7, 3, 2, SPARK)
+	elif smoke:
+		_rect(im, 12, 5, 2, 2, METAL)
+		_px(im, 13, 4, METAL)
+
+
+static func _cannon_death(im: Image, c: Dictionary, f: int) -> void:
+	match f:
+		0:  # sarsılır
+			_rect(im, 4, 12, 4, 2, DARK_WOOD)
+			_rect(im, 3, 8, 8, 3, IRON)
+			_rect(im, 10, 7, 2, 5, IRON)
+			_rect(im, 5, 8, 2, 3, c.main)
+		1:  # namlu düşüyor
+			_rect(im, 3, 12, 4, 2, DARK_WOOD)
+			_rect(im, 5, 10, 8, 3, IRON)
+			_rect(im, 11, 9, 2, 4, IRON)
+			_rect(im, 7, 10, 2, 3, c.main)
+		_:  # devrik namlu, kopmuş tekerlek
+			_rect(im, 3, 12, 8, 2, IRON)
+			_rect(im, 3, 12, 8, 1, IRON_LIGHT)
+			_rect(im, 6, 12, 2, 2, c.main)
+			_rect(im, 11, 11, 2, 3, DARK_WOOD)
+			_px(im, 12, 12, WOOD)
+			_rect(im, 1, 13, 2, 1, DARK_WOOD)
+
+
+## Mancınık (golem): takım renginde kiriş, iki tekerlek, bir kol ve vurgu renginde kaya.
+static func _catapult(im: Image, c: Dictionary, anim: int, f: int) -> void:
+	var main: Color = c.main
+	var shade: Color = c.shade
+	var accent: Color = c.accent
+	if anim == UnitSprites.Anim.DEATH:
+		_catapult_death(im, c, f)
+		return
+	var dy := 0
+	if anim == UnitSprites.Anim.WALK:
+		dy = -1 if f % 2 == 1 else 0
+	# kol konumu: 0 geride (yüklü), 1 dik (bırakıldı), 2 ileri (atış sonrası)
+	var arm := 0
+	if anim == UnitSprites.Anim.ATTACK:
+		arm = f
+	var ball := anim != UnitSprites.Anim.ATTACK or arm == 0
+	# tekerlekler
+	for wx in [3, 9]:
+		_rect(im, wx, 12, 3, 2, DARK_WOOD)
+		_px(im, wx + 1, 12 + (f % 2 if anim == UnitSprites.Anim.WALK else 0), WOOD)
+	# kiriş ve ayaklıklar
+	_rect(im, 3, 10 + dy, 9, 1, main)
+	_rect(im, 3, 11 + dy, 9, 1, shade)
+	_rect(im, 6, 8 + dy, 2, 2, WOOD)  # kol dayanağı
+	match arm:
+		0:  # geriye yatık kol, kovada kaya
+			_px(im, 7, 8 + dy, WOOD)
+			_px(im, 6, 7 + dy, WOOD)
+			_px(im, 5, 6 + dy, WOOD)
+			_rect(im, 2, 5 + dy, 4, 1, DARK_WOOD)
+			if ball:
+				_rect(im, 3, 3 + dy, 2, 2, accent)
+		1:  # dik kol
+			_rect(im, 7, 3 + dy, 1, 6, WOOD)
+			_rect(im, 6, 2 + dy, 3, 1, DARK_WOOD)
+			if f == 1:
+				_rect(im, 10, 1, 2, 2, accent)  # kaya fırladı
+		_:  # ileri inmiş kol
+			_px(im, 8, 8 + dy, WOOD)
+			_px(im, 9, 7 + dy, WOOD)
+			_px(im, 10, 6 + dy, WOOD)
+			_rect(im, 10, 4 + dy, 3, 2, DARK_WOOD)
+
+
+static func _catapult_death(im: Image, c: Dictionary, f: int) -> void:
+	match f:
+		0:
+			_rect(im, 3, 12, 3, 2, DARK_WOOD)
+			_rect(im, 3, 10, 9, 2, c.main)
+			_rect(im, 5, 5, 1, 5, WOOD)
+			_rect(im, 3, 4, 3, 1, DARK_WOOD)
+		1:
+			_rect(im, 3, 12, 3, 2, DARK_WOOD)
+			_rect(im, 3, 11, 9, 2, c.main)
+			_rect(im, 4, 8, 4, 1, WOOD)
+			_rect(im, 8, 9, 3, 2, DARK_WOOD)
+		_:
+			_rect(im, 3, 12, 9, 2, c.main)
+			_rect(im, 3, 13, 9, 1, c.shade)
+			_rect(im, 5, 11, 4, 1, WOOD)
+			_rect(im, 10, 11, 2, 1, DARK_WOOD)
+			_rect(im, 1, 13, 2, 1, DARK_WOOD)
+			if f == 3:
+				_rect(im, 12, 12, 2, 2, c.accent)
