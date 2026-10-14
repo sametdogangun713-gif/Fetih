@@ -10,25 +10,45 @@ extends SceneTree
 ##   Yakın kamera: herhangi bir yerde "zoom" (sabit 2x, otomatik takip kapalı).
 ##   İpuçsuz: herhangi bir yerde "notips" (ekran görüntüleri için).
 ##   İngilizce: en baştaki argüman "en" olursa dil İngilizce olur (ayar dosyasına yazılmaz).
+##   Profil: tüm modlarda her açılışta boş gösterim profili (user://showcase_save.json);
+##     oyuncunun gerçek kaydı (user://save.json) ne okunur ne yazılır.
 
 const SHOWCASE_SAVE := "user://showcase_save.json"  ## Oyuncunun gerçek kaydına asla yazılmaz.
 
 
+## Araç scripti autoload'lardan önce oluşur. Profile autoload'u ağaca girerken (_ready'de kaydı
+## okumadan önce) node_added sinyaliyle yakalanıp kayıt yolu gösterim dosyasına çevrilir.
+func _init() -> void:
+	# Her açılış boş profille başlar: ekran görüntüleri tekrarlanabilir, eski kopyalar kalmaz.
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(SHOWCASE_SAVE))
+	node_added.connect(_on_node_added)
+
+
+func _on_node_added(node: Node) -> void:
+	if node.get_parent() == root and node.name == "Profile":
+		node.save_path = SHOWCASE_SAVE
+		node_added.disconnect(_on_node_added)
+
+
 func _initialize() -> void:
 	await process_frame  # autoload'lar hazır olsun (Settings dili kendi ayarına göre kurar)
+	var profile := root.get_node("Profile")
+	if profile.save_path != SHOWCASE_SAVE:  # yedek yol: yakalanamadıysa yolu çevir, yeniden yükle
+		push_warning("Profile autoload'u yakalanamadı; gösterim kaydı sonradan yüklendi.")
+		profile.save_path = SHOWCASE_SAVE
+		profile.load_profile()
+	print("Gösterim profili: %s (Şan %d)" % [profile.save_path, profile.glory])
 	var args := Array(OS.get_cmdline_user_args())
 	var zoom := args.has("zoom")  # savaşta kamera 2x yakın (ekran görüntüleri için)
 	args.erase("zoom")
 	if args.has("notips"):  # ekran görüntüleri için: ipuçları sadece bellekte "görüldü" (kayda yazılmaz)
 		args.erase("notips")
-		var profile := root.get_node("Profile")
 		for id in ["menu", "prep", "battle", "cards", "treasury"]:
 			profile.tips_seen.append(id)
 	if not args.is_empty() and args[0] == "en":
 		TranslationServer.set_locale("en")
 		args.pop_front()
 	if args.size() > 1 and args[0] == "scene":
-		root.get_node("Profile").save_path = SHOWCASE_SAVE
 		var screen: Node = load(args[1]).instantiate()
 		root.add_child(screen)
 		# Sınıflar load() ile alınır: doğrudan ad kullanılsa bu araç autoload'lar kurulmadan
@@ -51,15 +71,12 @@ func _initialize() -> void:
 		return
 	var speed_arg := 1
 	if args.size() > 0 and args[0] == "boss":
-		var profile := root.get_node("Profile")
-		profile.save_path = SHOWCASE_SAVE
 		var kingdoms := KingdomCatalog.all()
 		root.get_node("RunState").start_run(kingdoms[int(args[1]) % kingdoms.size()], 7)
 		# Rakip krallık kendi kilit sırasına göre seçilir; 5. savaş her zaman boss.
 		root.get_node("RunState").battle_index = Balance.BOSS_EVERY - 1
 		speed_arg = 2
 	elif args.size() > 2 and args[0] == "run":
-		root.get_node("Profile").save_path = SHOWCASE_SAVE
 		var kingdoms := KingdomCatalog.all()
 		var run := root.get_node("RunState")
 		run.start_run(kingdoms[int(args[1]) % kingdoms.size()], 11)
