@@ -13,6 +13,9 @@ const PAN_SPEED := 320.0  ## Saniyede kaç ekran pikseli kayar.
 const ZOOM_LEVELS: Array[float] = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0]
 const SHAKE_DECAY := 18.0  ## Sarsıntı gücü saniyede bu kadar piksel azalır.
 const MAX_SHAKE := 8.0
+## Sarsıntı ofseti saniyede bu kadar kez yenilenir. Her karede rastgele zıplamak (60+ Hz)
+## titreme gibi görünür; 30 Hz "darbe" gibi okunur ve yüksek FPS'te de aynı hissi verir.
+const SHAKE_HZ := 30.0
 const FOLLOW_SPEED := 2.5  ## Takipte kameranın hedefe yaklaşma hızı (1/sn, üstel).
 const ZOOM_SPEED := 3.0
 ## Daha yakına geçmek için kutunun etrafında kalması gereken boşluk (ekran pikseli). Geri çıkmak için
@@ -28,6 +31,7 @@ var auto_follow := true
 var _zoom_index := 1
 var _dragging := false
 var _shake := 0.0
+var _shake_tick := 0.0
 
 
 ## Ekranı sarsar (piksel). Üst üste gelen sarsıntılar toplanmaz, güçlü olan geçerlidir.
@@ -107,10 +111,16 @@ func _clamp_to_bounds() -> void:
 
 
 ## Kameranın kendisi değil, offset'i titrer: kaydırma ve sınırlar etkilenmez.
-## Tam piksele yuvarlanır ki piksel sanat bulanıklaşmasın.
+## Tam piksele yuvarlanır ki piksel sanat bulanıklaşmasın. Offset dünya pikseli: yakınlığa
+## bölünür ki 2x yakında sarsıntı ekranda iki kat büyümesin.
 func _update_shake(delta: float) -> void:
 	if _shake <= 0.0:
 		offset = Vector2.ZERO
 		return
-	offset = Vector2(randf_range(-_shake, _shake), randf_range(-_shake, _shake)).round()
+	_shake_tick -= delta
+	if _shake_tick <= 0.0:
+		_shake_tick = 1.0 / SHAKE_HZ
+		# Rastgele yönde, gücün yarısı ile tamamı arasında: hep belirgin bir itme.
+		var kick := Vector2.from_angle(randf() * TAU) * randf_range(0.5, 1.0) * _shake
+		offset = (kick / zoom.x).round()
 	_shake = maxf(_shake - SHAKE_DECAY * delta, 0.0)

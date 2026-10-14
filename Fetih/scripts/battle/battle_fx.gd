@@ -108,6 +108,10 @@ class Ring:
 	var color: Color
 
 
+## Vuruş duraksaması isteği (sn): boss vuruşu, gülle inişi. battle_controller dinler ve
+## ayara, bekleme süresine göre uygular. Efekt sadece istek yapar, gösterim saatine dokunmaz.
+signal hitstop_requested(duration: float)
+
 var camera: BattleCamera  ## Sarsıntı için; battle_controller atar.
 
 var _projectiles: Array[Projectile] = []
@@ -216,6 +220,7 @@ func melee_hit(attacker: SquadView, target: SquadView) -> void:
 	if unit.is_boss:
 		_audio.play("hit_heavy", 0.0)
 		_shake(2.5)
+		hitstop_requested.emit(0.06)
 	elif unit.role == RoleRules.TANK or unit.role == RoleRules.CAVALRY:
 		_audio.play("hit_heavy", -6.0)
 	else:
@@ -346,6 +351,7 @@ func _land(p: Projectile) -> void:
 			_burst(p.to, 8, Color("6a6058"), 50.0, 0.7, 0.1)
 			_audio.play("explosion", -4.0)
 			_shake(1.5)
+			hitstop_requested.emit(0.03)
 	if p.splash > 0.0:
 		_ring(p.to + Vector2(0, 6), p.splash, 0.35, p.color)
 

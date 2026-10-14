@@ -30,9 +30,14 @@ var _accumulator := 0.0
 var _speed := 1
 var _test_seed := 1
 var _pause_menu: PauseMenu
-## Vuruş duraksaması (hit-stop): boss düşünce gösterim bir anlığına donar. Sadece gösterim
-## bekler; simülasyon adımları ve sonuç aynı kalır (biriken süre bu sırada artmaz).
+## Vuruş duraksaması (hit-stop) ve yavaş çekim: sadece gösterim saati durur / yavaşlar;
+## simülasyon adımları ve sonuç aynı kalır (biriken süre bu sırada artmaz ya da yavaş artar).
+## Değerler gorsel_yon_dokumani.md 5.2. Ayarlardan "Vuruş duraklaması" kapatılabilir.
+const HITSTOP_GAP := 0.4  ## İki duraksama arası en az bu kadar (kitle savaşında sürekli donmasın).
 var _hitstop := 0.0
+var _hitstop_gap := 0.0
+var _slowmo := 0.0  ## Kalan yavaş çekim süresi (gerçek sn).
+var _slowmo_scale := 1.0
 
 
 func _ready() -> void:
@@ -44,6 +49,7 @@ func _ready() -> void:
 	continue_button.pressed.connect(_on_continue)
 	battlefield.set_debug_tools(not RunState.active)
 	battlefield.fx.camera = battlefield.camera
+	battlefield.fx.hitstop_requested.connect(_request_hitstop)
 	_set_speed(Settings.battle_speed)
 	_pause_menu = PauseMenu.new(tr("Koşun kayıtlı. Ana menüye dönersen bu savaş baştan oynanır (sonuç değişmez).")
 			if RunState.active else "")
@@ -64,9 +70,13 @@ func _process(delta: float) -> void:
 	# Simülasyon kare hızından bağımsız: biriken süre kadar sabit adım atılır.
 	# PLAYBACK sadece gösterimi yavaşlatır: adımlar ve sonuç aynı kalır (deterministik).
 	var sim_delta := delta * _speed * PLAYBACK
+	_hitstop_gap = maxf(_hitstop_gap - delta, 0.0)
 	if _hitstop > 0.0:
 		_hitstop -= delta
 		sim_delta = 0.0
+	elif _slowmo > 0.0:
+		_slowmo -= delta
+		sim_delta *= _slowmo_scale
 	_accumulator += sim_delta
 	while _accumulator >= BattleSimulation.TICK:
 		simulation.step()
@@ -106,6 +116,7 @@ func _start_battle() -> void:
 	battlefield.fx.clear()
 	_accumulator = 0.0
 	_hitstop = 0.0
+	_slowmo = 0.0
 	result_label.text = ""
 	continue_button.visible = false
 	if simulation:
@@ -236,7 +247,23 @@ func _on_squad_attacked(attacker: SquadState, target: SquadState) -> void:
 func _on_squad_destroyed(squad: SquadState) -> void:
 	battlefield.fx.squad_down(_views[squad])
 	if squad.unit.is_boss:
-		_hitstop = 0.25
+		_request_hitstop(0.15, true)
+		_slow_motion(0.5, 0.4)
+
+
+## force: bekleme süresini (HITSTOP_GAP) yok say (boss ölümü kaçmasın).
+func _request_hitstop(duration: float, force := false) -> void:
+	if not Settings.hit_stop or (_hitstop_gap > 0.0 and not force):
+		return
+	_hitstop = maxf(_hitstop, duration)
+	_hitstop_gap = HITSTOP_GAP
+
+
+func _slow_motion(duration: float, scale: float) -> void:
+	if not Settings.hit_stop:
+		return
+	_slowmo = duration
+	_slowmo_scale = scale
 
 
 func _on_squad_spawned(squad: SquadState) -> void:
@@ -251,6 +278,7 @@ func _on_battle_finished(winner: SquadState.Team) -> void:
 		if squad.team == winner:
 			survivors += squad.alive_count()
 	Audio.play("victory" if won else "defeat", 0.0, 0.0, 0.0)
+	_slow_motion(0.6, 0.5)  # son bölük düşerken kısa yavaş çekim
 	if won:
 		result_label.text = tr("ZAFER! (%d asker hayatta)") % survivors
 		result_label.add_theme_color_override("font_color", UiKit.COLOR_GOOD)
