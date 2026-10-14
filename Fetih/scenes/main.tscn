@@ -1,0 +1,10 @@
+[gd_scene format=3 uid="uid://cp7mwqke5d7h6"]
+
+[node name="Main" type="Node2D" unique_id=1528458990]
+
+[node name="Title" type="Label" parent="." unique_id=572425211]
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 316.0
+offset_bottom = 39.0
+text = "Fetih - Aşama 0"
