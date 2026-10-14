@@ -238,6 +238,9 @@ Yerel hazırlık (kod tarafı):
 - [ ] Atlılar, toplar, golemler, kentaurlar için uygun ücretsiz sprite yok: koddan üretiliyor (çizim veya ücretli paket)
 - [x] Savaş kamerası otomatik takip: bütün bölükler kadrajda, sığınca 2x yakınlaşır; F ile takibe dönülür
 - [x] Savaş gösterimi x1'de %70 hız (simülasyon ve sonuç aynı)
+- [x] 1080p: stretch `canvas_items` (düzen 640x360, çizim pencere çözünürlüğünde), varsayılan pencere 1920x1080; kamera ara yakınlıklar (0.5-2)
+- [x] Savaş alanı haritası: HD çimen karoları, ot/kaya süsleri, etrafta arazi ve ağaçlar (CC0 rubberduck), rakip krallığa göre ton ve ağaç türü
+- [ ] Birlik sprite'ları hâlâ 16-24 px piksel sanat (3x büyütülmüş); HD birlik çizimi yok
 
 **Gerçekçi toplam süre:** Godot'u yeni öğrenen biri için **8-12 ay** (haftada 15-20 saat).
 

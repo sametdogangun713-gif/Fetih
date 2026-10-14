@@ -10,13 +10,14 @@ const AudioScript = preload("res://scripts/audio/audio.gd")
 const SETTINGS_PATH := "user://settings.cfg"
 const LANGUAGES := ["tr", "en"]
 const SPEEDS: Array[int] = [1, 2, 4]
-const BASE_SIZE := Vector2i(640, 360)  ## Oyunun çizildiği boyut (project.godot viewport).
+const BASE_SIZE := Vector2i(640, 360)  ## Arayüz düzeninin boyutu (project.godot viewport). canvas_items
+## modunda her şey pencere çözünürlüğünde çizilir (3x pencerede 1920x1080).
 
 ## Ayar dosyası. Testler bunu değiştirir; oyuncunun gerçek ayarlarına dokunmasınlar diye.
 var settings_path := SETTINGS_PATH
 var volumes := {}  ## bus adı -> 0..1 (Master, Music, SFX)
 var fullscreen := false
-var window_scale := 2  ## Pencere = BASE_SIZE x bu sayı (piksel sanat tam sayı katla büyür).
+var window_scale := 3  ## Pencere = BASE_SIZE x bu sayı (3 = 1920x1080; ekrana sığmazsa en büyük kat).
 var battle_speed := 1
 var screen_shake := true
 var language := ""  ## "tr" / "en"; boşsa sistem diline göre seçilir.
@@ -127,7 +128,7 @@ func available_scales() -> Array[int]:
 func _reset() -> void:
 	volumes = {&"Master": 1.0, &"Music": 0.8, &"SFX": 0.8}
 	fullscreen = false
-	window_scale = 2
+	window_scale = 3
 	battle_speed = 1
 	screen_shake = true
 	language = ""

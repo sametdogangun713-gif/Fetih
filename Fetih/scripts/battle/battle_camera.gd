@@ -2,14 +2,15 @@ class_name BattleCamera
 extends Camera2D
 ## Savaş alanı kamerası.
 ## Otomatik takip (varsayılan): follow() her karede yaşayan bölükleri kapsayan kutuyu alır;
-## kamera kutunun ortasına kayar ve hepsi sığdığı sürece en yakın tam kat yakınlığa geçer.
+## kamera kutunun ortasına kayar ve hepsi sığdığı sürece en yakın seviyeye geçer.
 ## WASD / ok tuşları: kaydır. Sağ veya orta tuşla sürükle: kaydır. Fare tekerleği: yakınlaştır.
 ## Elle kaydırma/yakınlaştırma takibi kapatır; F tuşu tekrar açar.
 ## shake(): ekran sarsıntısı (boss vuruşu, patlama).
 
 const PAN_SPEED := 320.0  ## Saniyede kaç ekran pikseli kayar.
-## Piksel sanatın bozulmaması için yakınlaştırma sadece bu değerleri alır.
-const ZOOM_LEVELS: Array[float] = [0.5, 1.0, 2.0]
+## Yakınlık seviyeleri. Oyun pencere çözünürlüğünde çizildiği için (canvas_items, 3x pencerede
+## 1920x1080) ara değerler de temiz görünür; piksel sanat birlikler ekranda 3 x yakınlık katı büyür.
+const ZOOM_LEVELS: Array[float] = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0]
 const SHAKE_DECAY := 18.0  ## Sarsıntı gücü saniyede bu kadar piksel azalır.
 const MAX_SHAKE := 8.0
 const FOLLOW_SPEED := 2.5  ## Takipte kameranın hedefe yaklaşma hızı (1/sn, üstel).
@@ -53,7 +54,7 @@ func _process(delta: float) -> void:
 
 
 ## Otomatik takip: rect (bu düğümün ebeveyn koordinatında) ekranda kalsın. instant: beklemeden atla
-## (savaş başı). Yakınlık sadece ZOOM_LEVELS değerlerine yerleşir; aradaki değerler geçiş anında.
+## (savaş başı). Yakınlık ZOOM_LEVELS değerlerine yerleşir; aradaki değerler sadece geçiş anında.
 func follow(rect: Rect2, delta: float, instant := false) -> void:
 	if not auto_follow or not rect.has_area():
 		return

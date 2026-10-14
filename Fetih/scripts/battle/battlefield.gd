@@ -28,6 +28,8 @@ const ZONE_NAMES := {
 	Zone.ENEMY: "Düşman bölgesi",
 }
 
+@onready var ground_art: GroundArt = $GroundArt
+## Görünmez: sadece karo <-> ekran dönüşümleri için (local_to_map, map_to_local). Zemini GroundArt çizer.
 @onready var ground: TileMapLayer = $Ground
 @onready var highlight: TileMapLayer = $Highlight
 @onready var units: Node2D = $Units
@@ -62,6 +64,12 @@ static func field_offset_to_world(d: Vector2) -> Vector2:
 func _ready() -> void:
 	_build_field()
 	_setup_camera()
+	set_biome(&"default")
+
+
+## Arazi görünümü (zemin tonu, ağaçlar) rakip krallığa göre. Bkz. GroundArt.BIOMES.
+func set_biome(kingdom_id: StringName) -> void:
+	ground_art.setup(kingdom_id, units)
 
 
 func _process(_delta: float) -> void:

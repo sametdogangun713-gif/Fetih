@@ -78,7 +78,7 @@ func _initialize() -> void:
 	root.add_child(battle)
 	if zoom:  # sabit 2x yakın kamera: otomatik takip kapanır
 		battle.battlefield.camera.auto_follow = false
-		battle.battlefield.camera._set_zoom_index(2)
+		battle.battlefield.camera._set_zoom_index(BattleCamera.ZOOM_LEVELS.size() - 1)
 	if args.size() > speed_arg:
 		battle._set_speed(int(args[speed_arg]))
 

@@ -127,6 +127,7 @@ func _setup_run_battle() -> void:
 	for squad in RunState.build_enemy_squads():
 		_add_state(squad)
 	var opponent := RunState.current_opponent()
+	battlefield.set_biome(opponent.id)
 	matchup_label.text = tr("Savaş %d / %d  -  Rakip: %s") % [RunState.battle_index + 1,
 			Balance.RUN_LENGTH, tr(opponent.display_name)]
 	if RunState.is_final_battle():
