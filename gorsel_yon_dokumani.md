@@ -504,3 +504,18 @@ Aşağıdakiler Seçenek A içindir; B seçilirse 2.3 yerine zemin posterize/ren
 6. **Yeni paket indirme izni:** Kenney (yazı tipi, ikon, arayüz) ve palet dosyası indirilip `kaynak_assetler/`'e eklenebilir mi?
 7. **Savaş girişi süresi:** 1.2 s giriş ve zafer sahnesi her savaşta mı, yoksa sadece boss/ilk savaşta mı?
 8. **Ton:** Kan/iç organ yok (bugünkü gibi damla parçacık) mı kalsın, yoksa daha sert (kırmızı kan, iz) mi?
+
+### 8.1 Verilen kararlar (2026-10-14)
+
+| # | Karar | Durum |
+|---|---|---|
+| 1 | **Seçenek A — Tutarlı piksel** | Kullanıcı onayladı |
+| 2 | HD çimen zemin piksel zemine dönüşür | A'nın gereği (kabul) |
+| 3 | **Palet: Resurrect 64** | Kullanıcı onayladı |
+| 4 | Krallık renkleri 4.3 tablosu | Açık — varsayılan öneri uygulanır, kullanıcı itiraz edebilir |
+| 5 | Çizim kaynağı | Açık — sprite ajanı sonucundan sonra karar |
+| 6 | Kenney paketi indirme | Açık — indirme için kullanıcı izni gerekli |
+| 7 | Savaş girişi | Açık — varsayılan: sadece ilk savaş + boss |
+| 8 | Ton | Açık — varsayılan: bugünkü kansız ton |
+
+Terim kararı: "bölük" İngilizcede **squad** kalır.
