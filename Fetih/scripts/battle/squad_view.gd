@@ -54,10 +54,19 @@ const COUNT_PULSE_TIME := 0.15  ## Asker kaybında sayı bu sürede büyüyüp k
 const COUNT_PULSE_COLOR := Color("f68181")
 ## Atlı ve kuşatma figürleri geniş: gölgeleri de geniş (7x2).
 const WIDE_ROLES: Array[StringName] = [&"cavalry", &"siege"]
+const AURA_ALPHA := 0.25  ## Ferman aurası elipsinin saydamlığı.
+const AURA_PAD := Vector2(7, 4)  ## Aura, formasyonun dışına bu kadar taşar (yarıçap, piksel).
+const BOSS_AURA_RADIUS := Vector2(20, 9)
 
 var squad: SquadState
 var sheet: UnitSprites.Sheet
 var flip := false  ## Sola bakıyor mu (sprite yatay çevrilir).
+## Fermanın uygulandığı bölüğün altında çizilen aura rengi (krallık rengi). Alfa 0 = aura yok.
+## Çizim alfası sabit AURA_ALPHA; değer atanınca gölge katmanı yeniden çizilir.
+var aura_color := Color(0, 0, 0, 0):
+	set(value):
+		aura_color = value
+		_under.queue_redraw()
 
 var _slots: Array[Vector2] = []  ## Her askerin formasyondaki yeri: x = yana, y = geriye (karo).
 var _alive_slots: Array[int] = []
@@ -264,11 +273,48 @@ func _draw() -> void:
 
 ## Gölgeler (_under düğümünün draw sinyali): askerlerin hep altında kalır.
 func _draw_under() -> void:
+	if aura_color.a > 0.0:
+		_draw_aura()
 	if squad.unit.is_boss:
 		_draw_shadow(Vector2.ZERO)
 		return
 	for slot in _alive_slots:
 		_draw_shadow(_offsets[slot])
+
+
+## Ferman aurası: formasyonu kaplayan yassı elips, satır satır dolu piksel (alt-piksel yok).
+## Merkez ve yarıçap yaşayan askerlerin konumlarından hesaplanır; asker sayısı değişince
+## _under_key değiştiği için aura da küçülür. Gölgenin altında kalır.
+func _draw_aura() -> void:
+	var lo := Vector2.ZERO
+	var hi := Vector2.ZERO
+	var radius := BOSS_AURA_RADIUS
+	if not squad.unit.is_boss:
+		if _alive_slots.is_empty():
+			return
+		lo = Vector2(INF, INF)
+		hi = Vector2(-INF, -INF)
+		for slot in _alive_slots:
+			lo = lo.min(_offsets[slot])
+			hi = hi.max(_offsets[slot])
+		radius = ((hi - lo) / 2.0 + AURA_PAD).round()
+	var center := ((lo + hi) / 2.0).round()
+	var color := Color(aura_color, AURA_ALPHA)
+	var ry := int(radius.y)
+	for dy in range(-ry, ry + 1):
+		var half := roundi(radius.x * sqrt(maxf(1.0 - float(dy * dy) / (radius.y * radius.y), 0.0)))
+		_under.draw_rect(Rect2(center + Vector2(-half, dy), Vector2(half * 2 + 1, 1)), color)
+
+
+## Bölüğe uygulanan ilk fermanın krallık rengi (aura için); ferman yoksa alfa 0.
+## Oyuncu bölükleri için RunState.passives, boss savaşında rakip için RunState.enemy_passives().
+static func aura_color_for(army_squad: ArmySquad, passives: Array[PassiveData]) -> Color:
+	for passive in passives:
+		if passive.applies_to(army_squad, Balance.GRID_SIZE):
+			var kingdom := KingdomCatalog.get_kingdom(passive.kingdom)
+			if kingdom:
+				return Color(kingdom.color, 1.0)
+	return Color(0, 0, 0, 0)
 
 
 ## Sayı etiketi ve boss çubuğu (_over düğümünün draw sinyali): flaştan etkilenmez.

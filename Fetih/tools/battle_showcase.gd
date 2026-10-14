@@ -9,6 +9,7 @@ extends SceneTree
 ##   Başka ekran: -- scene res://scenes/run/prep.tscn [settings|pause]  (kayıt ayrı dosyaya)
 ##   Yakın kamera: herhangi bir yerde "zoom" (sabit 2x, otomatik takip kapalı).
 ##   İpuçsuz: herhangi bir yerde "notips" (ekran görüntüleri için).
+##   Flaş/sarsıntı kapalı: herhangi bir yerde "nofx" (bellekte; ayar dosyasına yazılmaz).
 ##   İngilizce: en baştaki argüman "en" olursa dil İngilizce olur (ayar dosyasına yazılmaz).
 ##   Profil: tüm modlarda her açılışta boş gösterim profili (user://showcase_save.json);
 ##     oyuncunun gerçek kaydı (user://save.json) ne okunur ne yazılır.
@@ -45,6 +46,11 @@ func _initialize() -> void:
 		args.erase("notips")
 		for id in ["menu", "prep", "battle", "cards", "treasury"]:
 			profile.tips_seen.append(id)
+	if args.has("nofx"):  # erişilebilirlik denemesi: flaş ve sarsıntı kapalı (sadece bellekte, ayar dosyasına yazılmaz)
+		args.erase("nofx")
+		var settings := root.get_node("Settings")
+		settings.flash_effects = false
+		settings.screen_shake = false
 	if not args.is_empty() and args[0] == "en":
 		TranslationServer.set_locale("en")
 		args.pop_front()

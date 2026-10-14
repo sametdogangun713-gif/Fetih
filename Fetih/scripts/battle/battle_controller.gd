@@ -154,10 +154,17 @@ func _start_battle() -> void:
 
 func _setup_run_battle() -> void:
 	# Seviyeler ve fermanlar SquadBuilder'da uygulanır.
-	for squad in RunState.build_player_squads():
-		_add_state(squad)
-	for squad in RunState.build_enemy_squads():
-		_add_state(squad)
+	# Ferman aurası (sadece görüntü): build_*_squads sırası ordu sırasıyla aynıdır.
+	var player_squads := RunState.build_player_squads()
+	for i in player_squads.size():
+		_add_state(player_squads[i])
+		_views[player_squads[i]].aura_color = SquadView.aura_color_for(RunState.army[i], RunState.passives)
+	var enemy_squads := RunState.build_enemy_squads()
+	var enemy_army := RunState.current_enemy_army()
+	var enemy_fermans := RunState.enemy_passives()
+	for i in enemy_squads.size():
+		_add_state(enemy_squads[i])
+		_views[enemy_squads[i]].aura_color = SquadView.aura_color_for(enemy_army[i], enemy_fermans)
 	var opponent := RunState.current_opponent()
 	battlefield.set_biome(opponent.id)
 	battlefield.set_camps(RunState.kingdom, opponent)
