@@ -11,4 +11,7 @@ param(
 $godot = if ($env:GODOT) { $env:GODOT } else { "C:\Users\Samet PC\Desktop\Godot_v4.7.2-stable_win64.exe" }
 $project = Split-Path $PSScriptRoot -Parent
 
-& $godot --headless --path $project -s res://tools/balance_test.gd -- --seeds=$Seeds --budget=$Budget
+# Godot GUI alt sistemli bir exe: PowerShell, çıktısı borulanmayan GUI uygulamasını beklemez.
+# Out-Host çıktıyı borular; betik Godot bitene kadar bekler ve çıkış kodunu aktarır.
+& $godot --headless --path $project -s res://tools/balance_test.gd -- --seeds=$Seeds --budget=$Budget | Out-Host
+exit $LASTEXITCODE
