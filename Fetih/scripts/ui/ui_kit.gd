@@ -12,15 +12,65 @@ const COLOR_GOOD := Color("8fd47f")
 const COLOR_BAD := Color("e06a5a")
 const COLOR_GOLD := Color("e8c25a")
 
+## Panel ve düğme kenarı (Resurrect 64 gri-mor): 9 Kings tarzı koyu kutu, ince açık kenar.
+const COLOR_EDGE := Color("625565")
+## Piksel yazı tipi (varsa). Dosya yoksa Godot'un varsayılan yazı tipi kullanılır.
+const FONT_PATH := "res://assets/fonts/pixel.ttf"
+
 static var _theme: Theme
 
 
-## Ekranların kök düğümüne verilir; tüm alt düğümler bu yazı boyutunu kullanır.
+## Ekranların kök düğümüne verilir; tüm alt düğümler bu yazı boyutunu, kutuları ve düğmeleri kullanır.
+## Godot: Theme, Control'lere tür adına göre (Button, PanelContainer...) stil verir; alt düğümler
+## temayı ebeveynden devralır, bu yüzden kökteki tek tema bütün ekranı boyar.
 static func theme() -> Theme:
 	if _theme == null:
 		_theme = Theme.new()
 		_theme.default_font_size = FONT_SIZE
+		if ResourceLoader.exists(FONT_PATH):
+			var font: FontFile = load(FONT_PATH)
+			font.antialiasing = TextServer.FONT_ANTIALIASING_NONE
+			font.hinting = TextServer.HINTING_NONE
+			font.subpixel_positioning = TextServer.SUBPIXEL_POSITIONING_DISABLED
+			_theme.default_font = font
+		var box := panel_style(COLOR_PANEL)
+		_theme.set_stylebox("panel", "PanelContainer", box)
+		_theme.set_stylebox("panel", "Panel", box)
+		_theme.set_stylebox("panel", "TooltipPanel", panel_style(COLOR_BG, 4))
+		_theme.set_stylebox("normal", "Button", _button_style(COLOR_PANEL, COLOR_EDGE))
+		_theme.set_stylebox("hover", "Button", _button_style(COLOR_PANEL.lightened(0.08), COLOR_GOLD))
+		_theme.set_stylebox("pressed", "Button", _button_style(COLOR_BG, COLOR_GOLD))
+		_theme.set_stylebox("disabled", "Button", _button_style(COLOR_BG, COLOR_EDGE.darkened(0.4)))
+		_theme.set_stylebox("focus", "Button", StyleBoxEmpty.new())
+		_theme.set_color("font_color", "Button", COLOR_TEXT)
+		_theme.set_color("font_hover_color", "Button", COLOR_GOLD)
+		_theme.set_color("font_pressed_color", "Button", COLOR_GOLD)
+		_theme.set_color("font_disabled_color", "Button", COLOR_MUTED.darkened(0.3))
 	return _theme
+
+
+## Koyu kutu: 1 px kenar, keskin köşe, altta 2 px gölge (9 Kings panelleri gibi).
+static func panel_style(color := COLOR_PANEL, margin := 6) -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = color
+	style.set_border_width_all(1)
+	style.border_color = COLOR_EDGE
+	style.set_corner_radius_all(0)
+	style.shadow_color = Color(0, 0, 0, 0.5)
+	style.shadow_size = 2
+	style.shadow_offset = Vector2(0, 2)
+	style.set_content_margin_all(margin)
+	return style
+
+
+static func _button_style(color: Color, edge: Color) -> StyleBoxFlat:
+	var style := panel_style(color, 0)
+	style.border_color = edge
+	style.content_margin_left = 8
+	style.content_margin_right = 8
+	style.content_margin_top = 1
+	style.content_margin_bottom = 1
+	return style
 
 
 ## Ekranı kaplayan arka plan + kenar boşluklu içerik kutusu. İçeriği döndürür.
@@ -108,10 +158,7 @@ static func unit_icon(unit: UnitData, scale := 2) -> TextureRect:
 
 static func panel(color := COLOR_PANEL) -> PanelContainer:
 	var p := PanelContainer.new()
-	var style := StyleBoxFlat.new()
-	style.bg_color = color
-	style.set_content_margin_all(6)
-	p.add_theme_stylebox_override("panel", style)
+	p.add_theme_stylebox_override("panel", panel_style(color))
 	return p
 
 
