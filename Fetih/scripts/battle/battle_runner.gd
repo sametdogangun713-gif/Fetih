@@ -90,13 +90,13 @@ func clear() -> void:
 		simulation = null
 
 
-## İlk çerçeve: iki ordu ve iki kampın yapıları; alt şerit oyuncu kampını örtmesin diye kutunun
+## İlk çerçeve: iki ordu ve iki sancak; alt şerit oyuncu sancağını örtmesin diye kutunun
 ## altına (ve üstüne) frame_pad_* ekran pikseli kadar pay. Savaş içi takip (_process) sadece bölükleri izler.
 func frame_all() -> void:
 	var first_frame := squads_rect()
-	var camps := battlefield.camps_rect()
-	if camps.has_area():
-		first_frame = first_frame.merge(camps)
+	var banners := battlefield.banners_rect()
+	if banners.has_area():
+		first_frame = first_frame.merge(banners)
 	# Pay ekran pikselidir; en uzak yakınlıkta (kutu en küçük görünür) dünya birimine çevrilir.
 	var far := BattleCamera.ZOOM_LEVELS[0]
 	first_frame.position.y -= frame_pad_top / far

@@ -1,13 +1,13 @@
 class_name RunField
-## Koşu savaş alanı hazırlığı: biyom, krallık kampları ve ferman aurası.
+## Koşu savaş alanı hazırlığı: biyom, ordu sancakları ve ferman aurası.
 ## Meydan ve battle.tscn (koşu modu) aynı kodu kullanır; hepsi sadece görüntüdür.
 
 
-## Zemin biyomu rakip krallığa göre, kamplar iki krallığa göre kurulur.
+## Zemin biyomu rakip krallığa göre, sancaklar iki krallığa göre kurulur.
 static func apply_scenery(battlefield: Battlefield) -> void:
 	var opponent := RunState.current_opponent()
 	battlefield.set_biome(opponent.id)
-	battlefield.set_camps(RunState.kingdom, opponent)
+	battlefield.set_banners(RunState.kingdom, opponent)
 
 
 ## Ferman aurası: build_*_squads sırası ordu sırasıyla aynıdır, görüntüler ekleme sırasındadır.

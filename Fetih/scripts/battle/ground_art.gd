@@ -186,7 +186,7 @@ func _draw_decals(w: int, d: int) -> void:
 
 ## Ağaçlar alanın dışında öbek öbek (2-5 ağaçlık kümeler) durur: 3x3 karoluk kaba hücrelerin bir kısmında
 ## küme var. Kenardan uzak tutulur (ekranda alanın önünde kalan kenarlarda daha geniş boşluk: uzun ağaçlar
-## kenardaki bölükleri örtmesin) ve ordu arkasındaki yapı şeridi (KingdomCamp, 1-4 karo dışı) boş kalır.
+## kenardaki bölükleri örtmesin) ve ordu arkasındaki sancak yeri (BannerArt, 1-2 karo dışı) boş kalır.
 func _plant_trees(parent: Node2D) -> void:
 	var textures := _tree_textures()
 	if textures.is_empty():
@@ -222,7 +222,7 @@ func _plant_trees(parent: Node2D) -> void:
 				_trees.append(tree)
 
 
-## Bu karoda ağaç olabilir mi: alandan yeterince uzak, arazi sınırı içinde ve yapı şeridi dışında.
+## Bu karoda ağaç olabilir mi: alandan yeterince uzak, arazi sınırı içinde ve sancak yeri dışında.
 static func tree_allowed(cell: Vector2i) -> bool:
 	var w := Battlefield.FIELD_WIDTH
 	var d := Battlefield.FIELD_DEPTH
@@ -233,9 +233,9 @@ static func tree_allowed(cell: Vector2i) -> bool:
 	var clear := 4 if front >= back else 3
 	if maxi(back, front) < clear:
 		return false
-	# Yapı şeridi: iki ordunun arkası, ilk 4 karo ve yan taşmalar için 2 karo pay.
-	if cell.x >= -2 and cell.x <= w + 1:
-		if (cell.y >= d and cell.y <= d + 3) or (cell.y <= -1 and cell.y >= -4):
+	# Sancak yeri: iki ordunun arkasının ortası, ilk 2 karo (sancak ve direğin üstündeki bez).
+	if cell.x >= 2 and cell.x <= w - 3:
+		if (cell.y >= d and cell.y <= d + 1) or (cell.y <= -1 and cell.y >= -2):
 			return false
 	return true
 

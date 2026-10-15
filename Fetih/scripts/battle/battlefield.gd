@@ -18,7 +18,7 @@ const TILE_HALF := Vector2(32, 16)
 @onready var fx: BattleFx = $Fx
 @onready var camera: BattleCamera = $BattleCamera
 
-var _camps: Array[Sprite2D] = []  ## Kamp/kale yapıları (KingdomCamp), set_camps yeniler.
+var _banners: Array[Node2D] = []  ## Ordu sancakları (BannerArt), set_banners yeniler.
 
 
 ## Geliştirici aracı: tıklanan savaş alanı noktasını yazar. Koşuda kapalı; sahne tek başına açılınca açık.
@@ -72,28 +72,41 @@ func set_biome(kingdom_id: StringName) -> void:
 	ground_art.setup(kingdom_id, units)
 
 
-## Ordularının arkasındaki krallık kampları: eskileri silinir, yenileri kurulur (sadece görüntü).
-func set_camps(player_kingdom: KingdomData, enemy_kingdom: KingdomData) -> void:
-	for sprite in _camps:
-		sprite.queue_free()
-	_camps.clear()
+## Her ordunun arkasında, arka kenarın ortasında kendi renginde tek sancak (sadece görüntü).
+## Eskileri silinir. Godot: AnimatedSprite2D, SpriteFrames içindeki kareleri verilen hızda oynatır.
+func set_banners(player_kingdom: KingdomData, enemy_kingdom: KingdomData) -> void:
+	for banner in _banners:
+		banner.free()  # hemen: aynı karede yeniden kurulunca eski sayılmasın
+	_banners.clear()
+	var mid := (FIELD_WIDTH - 1) / 2.0
 	if player_kingdom != null:
-		_camps.append_array(KingdomCamp.build(units, player_kingdom, SquadState.Team.PLAYER))
+		_banners.append(_add_banner(player_kingdom, Vector2(mid, FIELD_DEPTH + 0.6)))
 	if enemy_kingdom != null:
-		_camps.append_array(KingdomCamp.build(units, enemy_kingdom, SquadState.Team.ENEMY))
+		_banners.append(_add_banner(enemy_kingdom, Vector2(mid, -1.6)))
 
 
-## Kamp yapılarının dünya kutusu (iki kampın sprite'ları birleşik). Kamp yoksa boş Rect2.
-## Godot: Sprite2D.offset ve texture boyutu sprite'ın kutusunu verir (centered kapalı).
-func camps_rect() -> Rect2:
+func _add_banner(kingdom: KingdomData, field_pos: Vector2) -> Node2D:
+	var sprite := AnimatedSprite2D.new()
+	var frames := SpriteFrames.new()
+	frames.set_animation_speed(&"default", 4.0)
+	for i in BannerArt.FRAMES:
+		frames.add_frame(&"default", BannerArt.texture(kingdom, i))
+	sprite.sprite_frames = frames
+	sprite.centered = false
+	sprite.offset = -Vector2(BannerArt.ANCHOR)
+	sprite.position = field_to_world(field_pos).round()
+	sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	units.add_child(sprite)
+	sprite.play()
+	return sprite
+
+
+## Sancakların dünya kutusu (ikisi birleşik). Sancak yoksa boş Rect2.
+func banners_rect() -> Rect2:
 	var rect := Rect2()
-	var first := true
-	for sprite in _camps:
-		if sprite.texture == null:
-			continue
-		var box := Rect2(sprite.position + sprite.offset, sprite.texture.get_size())
-		rect = box if first else rect.merge(box)
-		first = false
+	for i in _banners.size():
+		var box := Rect2(_banners[i].position - Vector2(BannerArt.ANCHOR), Vector2(BannerArt.SIZE))
+		rect = box if i == 0 else rect.merge(box)
 	return rect
 
 
@@ -122,8 +135,8 @@ func field_rect() -> Rect2:
 
 func _setup_camera() -> void:
 	# Kamera merkezi bu dikdörtgenin içinde gezebilir; savaş başı bütününü sığdırır.
-	# Köşeler alanın 3 karo dışında: ordunun arkasındaki yapılar (KingdomCamp) da kapsanır.
-	var pad := 3.0
+	# Köşeler alanın 2 karo dışında: ordunun arkasındaki sancak da kapsanır.
+	var pad := 2.0
 	var corners: Array[Vector2] = [
 		Vector2(-pad, -pad),
 		Vector2(FIELD_WIDTH - 1 + pad, -pad),

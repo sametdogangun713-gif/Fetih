@@ -81,7 +81,7 @@ func _setup_run_battle() -> Array[SquadState]:
 
 func _setup_test_battle() -> Array[SquadState]:
 	var matchup := _choose_test_matchup()
-	battlefield.set_camps(KingdomCatalog.get_kingdom(&"humans"), KingdomCatalog.get_kingdom(&"orcs"))
+	battlefield.set_banners(KingdomCatalog.get_kingdom(&"humans"), KingdomCatalog.get_kingdom(&"orcs"))
 	var states: Array[SquadState] = []
 	for slot in TEST_PLAYER_SLOTS:
 		states.append(SquadState.new(matchup[0], SquadState.Team.PLAYER,
