@@ -178,7 +178,7 @@ func _build_result_panel() -> void:
 	_result_label = Label.new()
 	_result_label.custom_minimum_size = Vector2(240, 0)
 	_result_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_result_label.add_theme_font_size_override("font_size", 16)
+	UiKit.set_font_size(_result_label, 16)
 	box.add_child(_result_label)
 	_continue_button = Button.new()
 	_continue_button.text = tr("Devam")

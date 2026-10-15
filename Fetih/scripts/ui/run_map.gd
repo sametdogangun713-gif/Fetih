@@ -16,7 +16,7 @@ func _ready() -> void:
 
 
 func _draw() -> void:
-	var font := ThemeDB.fallback_font
+	var font := UiKit.pixel_font(true)
 	for i in Balance.RUN_LENGTH:
 		var rect := _box_rect(i)
 		var opponent := RunState.opponents[i]

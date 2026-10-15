@@ -14,10 +14,14 @@ const COLOR_GOLD := Color("e8c25a")
 
 ## Panel ve düğme kenarı (Resurrect 64 gri-mor): 9 Kings tarzı koyu kutu, ince açık kenar.
 const COLOR_EDGE := Color("625565")
-## Piksel yazı tipi (varsa). Dosya yoksa Godot'un varsayılan yazı tipi kullanılır.
-const FONT_PATH := "res://assets/fonts/pixel.ttf"
+## Piksel yazı tipi: Pixel Operator (CC0), Türkçe harfler eklenmiş (kaynak_assetler/fontlar/pixel_operator).
+## FONT_PATH 16 px, FONT_SMALL_PATH 8 px tasarımlı. Pikseller net kalsın diye yazı boyutu tasarım boyutunun
+## katına oturtulur (bkz. font_spec). Dosya yoksa Godot'un varsayılan yazı tipi kullanılır.
+const FONT_PATH := "res://assets/fonts/PixelOperator.ttf"
+const FONT_SMALL_PATH := "res://assets/fonts/PixelOperator8.ttf"
 
 static var _theme: Theme
+static var _fonts := {}  ## yol -> Font
 
 
 ## Ekranların kök düğümüne verilir; tüm alt düğümler bu yazı boyutunu, kutuları ve düğmeleri kullanır.
@@ -26,13 +30,9 @@ static var _theme: Theme
 static func theme() -> Theme:
 	if _theme == null:
 		_theme = Theme.new()
-		_theme.default_font_size = FONT_SIZE
-		if ResourceLoader.exists(FONT_PATH):
-			var font: FontFile = load(FONT_PATH)
-			font.antialiasing = TextServer.FONT_ANTIALIASING_NONE
-			font.hinting = TextServer.HINTING_NONE
-			font.subpixel_positioning = TextServer.SUBPIXEL_POSITIONING_DISABLED
-			_theme.default_font = font
+		var spec := font_spec(FONT_SIZE)
+		_theme.default_font = spec[0]
+		_theme.default_font_size = spec[1]
 		var box := panel_style(COLOR_PANEL)
 		_theme.set_stylebox("panel", "PanelContainer", box)
 		_theme.set_stylebox("panel", "Panel", box)
@@ -47,6 +47,44 @@ static func theme() -> Theme:
 		_theme.set_color("font_pressed_color", "Button", COLOR_GOLD)
 		_theme.set_color("font_disabled_color", "Button", COLOR_MUTED.darkened(0.3))
 	return _theme
+
+
+## Piksel yazı tipi (small: 8 px tasarımlı). Kenar yumuşatma ve alt-piksel konum kapalı: pikseller keskin.
+## Godot: FontFile bir Resource'tur; ayarları bir kez verilir, onu kullanan her yazı aynı ayarla çizilir.
+static func pixel_font(small := false) -> Font:
+	var path := FONT_SMALL_PATH if small else FONT_PATH
+	if not _fonts.has(path):
+		if not ResourceLoader.exists(path):
+			_fonts[path] = ThemeDB.fallback_font
+		else:
+			var font: FontFile = load(path)
+			font.antialiasing = TextServer.FONT_ANTIALIASING_NONE
+			font.hinting = TextServer.HINTING_NONE
+			font.subpixel_positioning = TextServer.SUBPIXEL_POSITIONING_DISABLED
+			_fonts[path] = font
+	return _fonts[path]
+
+
+## İstenen yazı boyutu -> [yazı tipi, piksel net boyut]. Ekran 3x çizildiği için sadece tasarım
+## boyutunun katları net olur: küçük (<=9) 8 px font @8, gövde (10-14) 16 px font @16,
+## başlık (15-22) 8 px font @16 (iri pikseller), büyük (23+) 16 px font @32.
+static func font_spec(size: int) -> Array:
+	if not ResourceLoader.exists(FONT_PATH):
+		return [ThemeDB.fallback_font, size]
+	if size <= 9:
+		return [pixel_font(true), 8]
+	if size <= 14:
+		return [pixel_font(false), 16]
+	if size <= 22:
+		return [pixel_font(true), 16]
+	return [pixel_font(false), 32]
+
+
+## Bir Control'ün yazısını piksel net boyuta ayarlar (Label, Button...).
+static func set_font_size(control: Control, size: int) -> void:
+	var spec := font_spec(size)
+	control.add_theme_font_override("font", spec[0])
+	control.add_theme_font_size_override("font_size", spec[1])
 
 
 ## Koyu kutu: 1 px kenar, keskin köşe, altta 2 px gölge (9 Kings panelleri gibi).
@@ -93,7 +131,7 @@ static func screen_root(screen: Control, margin := 10) -> VBoxContainer:
 static func label(text: String, size := FONT_SIZE, color := COLOR_TEXT) -> Label:
 	var l := Label.new()
 	l.text = text
-	l.add_theme_font_size_override("font_size", size)
+	set_font_size(l, size)
 	l.add_theme_color_override("font_color", color)
 	return l
 

@@ -516,12 +516,12 @@ msgid "Kilitli krallıklar, koşu içinde boss'larını yenip fethi tamamlayınc
 msgstr "Locked kingdoms open when you beat their boss during a run and finish the conquest."
 
 #: scripts/ui/tips.gd
-msgid "Bölükleri sürükleyip bırakarak yerlerini değiştir. Üst sıra ön cephedir."
-msgstr "Drag and drop squads to rearrange them. The top row is the front line."
+msgid "Bölükleri alanda sürükleyip bırakarak yerleştir. Rakibe en yakın şerit ön cephe, en uzak şerit arka saftır."
+msgstr "Drag and drop squads on the field to place them. The band nearest the enemy is the front line, the farthest is the back row."
 
 #: scripts/ui/tips.gd
-msgid "Sağda sıradaki rakibin ordusu var: rolleri incele, karşılığını öne koy."
-msgstr "The next enemy's army is on the right: check their roles and put your counters in front."
+msgid "Rakibin ordusu karşıda bekliyor; soldaki panelde rolleri incele, karşılığını öne koy."
+msgstr "The enemy army waits across the field. Check their roles in the left panel and put your counters up front."
 
 #: scripts/ui/tips.gd
 msgid "Canların üstte yazar. Kaybedilen savaş bir can götürür ve tekrar oynanmaz."
@@ -900,8 +900,8 @@ msgid "Rüzgâr Okları"
 msgstr "Wind Arrows"
 
 #: data/passives/elf_wind_arrows.tres
-msgid "Arka saftaki (ızgaranın alt satırı) okçu ve büyücülerin menzili +1."
-msgstr "Archers and mages in the back row (bottom row of the grid) get +1 range."
+msgid "Arka saftaki (rakibe en uzak şeritteki) okçu ve büyücülerin menzili +1."
+msgstr "Archers and mages in the back row (the band farthest from the enemy) get +1 range."
 
 #: data/passives/golem_heavy_step.tres
 msgid "Ağır Adım"
@@ -932,8 +932,8 @@ msgid "Kraliyet Sancağı"
 msgstr "Royal Banner"
 
 #: data/passives/human_banner.tres
-msgid "Ön cephedeki (ızgaranın üst satırı) bölüklerin hasarı +%30."
-msgstr "Squads in the front line (top row of the grid) deal +30% damage."
+msgid "Ön cephedeki (rakibe en yakın şeritteki) bölüklerin hasarı +%30."
+msgstr "Squads in the front line (the band nearest the enemy) deal +30% damage."
 
 #: data/passives/human_pike_wall.tres
 msgid "Mızrak Duvarı"

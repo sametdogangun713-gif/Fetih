@@ -437,9 +437,10 @@ func _draw_boss_bar() -> void:
 	_over.draw_rect(bar, Color(0, 0, 0, 0.6))
 	_over.draw_rect(Rect2(bar.position, Vector2(bar.size.x * ratio, bar.size.y)), UnitSprites.team_color(squad.team))
 	var name_at := Vector2(-50, top - 8)
-	_over.draw_string_outline(ThemeDB.fallback_font, name_at, tr(squad.unit.display_name),
+	var font := UiKit.pixel_font(true)
+	_over.draw_string_outline(font, name_at, tr(squad.unit.display_name),
 			HORIZONTAL_ALIGNMENT_CENTER, 100, 8, 3, Color(0, 0, 0, 0.85))
-	_over.draw_string(ThemeDB.fallback_font, name_at, tr(squad.unit.display_name),
+	_over.draw_string(font, name_at, tr(squad.unit.display_name),
 			HORIZONTAL_ALIGNMENT_CENTER, 100, 8, UiKit.COLOR_GOLD)
 
 
@@ -448,9 +449,7 @@ func _draw_boss_bar() -> void:
 ## büyür ve kızarır (ölçek sayının ortasından). Seviye: sayının yanında küçük altın noktalar.
 ## Godot: draw_set_transform ölçek + konum verir; yazı bunun içinde çizilince büyüme yerinde kalır.
 func _draw_count_label() -> void:
-	var font := UiKit.theme().default_font
-	if font == null:
-		font = ThemeDB.fallback_font
+	var font := UiKit.pixel_font(true)
 	var top := 0.0  # en üst figürün baş satırı (bu düğüme göre)
 	var first := true
 	for slot in _alive_slots:

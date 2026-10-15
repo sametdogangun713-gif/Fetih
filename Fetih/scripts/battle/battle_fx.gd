@@ -557,7 +557,7 @@ func _draw() -> void:
 ## Tween.interpolate_value: Tween düğümü oluşturmadan aynı yumuşatma eğrilerini (TRANS_BACK,
 ## TRANS_QUAD...) elle hesaplar. Onlarca sayı için onlarca Tween yaratmak yerine tek döngü.
 func _draw_numbers() -> void:
-	var font := ThemeDB.fallback_font
+	var font := UiKit.pixel_font(true)
 	for f in _texts:
 		var pop := 1.0 if f.big else 0.5
 		var scale: float = Tween.interpolate_value(1.0 + pop, -pop, minf(f.time, NUMBER_POP), NUMBER_POP,
