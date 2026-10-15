@@ -31,7 +31,8 @@ var _near_mountains := PackedVector2Array()
 var _hills := PackedVector2Array()
 var _stars: Array[Vector3] = []  ## x, y, evre
 var _clouds: Array[Array] = []  ## katman -> [[x, y, ölçek], ...]
-var _trees: Array[Array] = []  ## [doku, konum]
+var _trees: Array[Array] = []  ## [doku, gövde dibi (zemindeki nokta), dokudaki gövde dibi]
+var _castle_ground := Vector2.ZERO  ## Kalenin oturduğu nokta: yakın dağların tepesi.
 var _cloud_tex: Array[Texture2D] = []
 var _banners: Array[KingdomData] = []
 var _army: Array[UnitSprites.Sheet] = []  ## Ön tepede soldan sağa yürüyen bölük (sancaktar başta).
@@ -60,6 +61,27 @@ func army_positions() -> Array[Vector2]:
 	var out: Array[Vector2] = []
 	for i in _army.size() + 1:
 		out.append(_soldier_pos(i))
+	return out
+
+
+## Test kancası: kalenin oturduğu nokta (paralakssız).
+func castle_ground() -> Vector2:
+	return _castle_ground
+
+
+func near_ridge_y(x: float) -> float:
+	return _ridge_y(_near_mountains, x)
+
+
+func hill_ridge_y(x: float) -> float:
+	return _ridge_y(_hills, x)
+
+
+## Test kancası: ağaç gövdelerinin yere değdiği noktalar.
+func tree_feet() -> Array[Vector2]:
+	var out: Array[Vector2] = []
+	for tree in _trees:
+		out.append(tree[1])
 	return out
 
 
@@ -99,14 +121,17 @@ func _rebuild() -> void:
 		for i in 4 - layer:
 			row.append([rng.randf() * s.x, s.y * (0.12 + 0.1 * layer) + rng.randf_range(-12, 12), 1.0])
 		_clouds.append(row)
+	_castle_ground = _peak(_near_mountains, s.x * 0.66, s.x * 0.9) + Vector2(0, 3)
 	_trees.clear()
 	var plants := _tree_textures()
 	if not plants.is_empty():
-		for i in 14:
-			var x := rng.randf_range(0.0, s.x)
-			if x < s.x * 0.4 or (x > s.x * 0.62 and x < s.x * 0.92):
-				continue  # menü düğmelerinin ve kale tepesinin önü boş kalsın
-			_trees.append([plants[rng.randi_range(0, plants.size() - 1)], Vector2(x, _ridge_y(_hills, x) + 2)])
+		# Öbekler: düğmelerin (sol) ve kalenin önü boş; her ağaç gövdesi tepe çizgisinin 2 px altında.
+		for center: float in [0.45, 0.55, 0.63, 0.93]:
+			for j in rng.randi_range(2, 3):
+				var x := s.x * center + rng.randf_range(-14.0, 14.0)
+				var tex: Texture2D = plants[rng.randi_range(0, plants.size() - 1)]
+				_trees.append([tex, Vector2(round(x), round(_ridge_y(_hills, x) + 2.0)), _trunk_base(tex)])
+		_trees.sort_custom(func(a: Array, b: Array) -> bool: return a[1].y < b[1].y)
 	_banners.clear()
 	var all := KingdomCatalog.all()
 	for i in 3:
@@ -145,6 +170,27 @@ func _ridge(s: Vector2, base: float, height: float, freq: float, rng: RandomNumb
 	return pts
 
 
+## Sırtın [x0, x1] aralığındaki en yüksek noktası (ekranda en küçük y).
+func _peak(ridge: PackedVector2Array, x0: float, x1: float) -> Vector2:
+	var best := Vector2(x0, INF)
+	for i in ridge.size() - 2:
+		var p := ridge[i]
+		if p.x >= x0 and p.x <= x1 and p.y < best.y:
+			best = p
+	return best
+
+
+## Ağaç dokusunun gövde dibi: dolu alanın alt ortası (dokuların altında 3-12 px boşluk var).
+static var _base_cache := {}
+
+
+static func _trunk_base(tex: Texture2D) -> Vector2:
+	if not _base_cache.has(tex.resource_path):
+		var used := tex.get_image().get_used_rect()
+		_base_cache[tex.resource_path] = Vector2(used.position.x + used.size.x / 2, used.end.y - 1)
+	return _base_cache[tex.resource_path]
+
+
 func _ridge_y(ridge: PackedVector2Array, x: float) -> float:
 	for i in ridge.size() - 3:
 		if ridge[i + 1].x >= x:
@@ -170,7 +216,7 @@ func _draw() -> void:
 	for tree: Array in _trees:
 		var tex: Texture2D = tree[0]
 		var at: Vector2 = tree[1] + _shift(PARALLAX[4])
-		draw_texture(tex, (at - Vector2(tex.get_width() / 2.0, tex.get_height())).round())
+		draw_texture(tex, (at - tree[2]).round())
 	_draw_army()
 	for bush: Array in _bushes:
 		var tex: Texture2D = bush[0]
@@ -231,12 +277,15 @@ func _draw_layer(ridge: PackedVector2Array, body: Color, rim: Color, amount: flo
 
 ## Kale: sağdaki tepede gövde + 3 kule, mazgallar, titreyen pencereler, kulelerde sancak.
 func _draw_castle(s: Vector2) -> void:
-	var shift := _shift(PARALLAX[3])
-	var base_x := s.x * 0.77
-	var ground := _ridge_y(_near_mountains, base_x) + 4.0
-	var origin := Vector2(base_x, ground) + shift
+	var shift := _shift(PARALLAX[2])  # dağla aynı kayar: kale yerinden oynamaz
+	var origin := (_castle_ground + shift).round()
 	var dark := Color("2e222f")
 	var wall := Color("3e3546")
+	# Kaya temeli: dağ renginde, kalenin altından yamaçlara açılır (kale tepeye oturur, altı boş kalmaz).
+	draw_colored_polygon(PackedVector2Array([origin + Vector2(-50, -6), origin + Vector2(50, -6),
+			origin + Vector2(78, 34), origin + Vector2(-78, 34)]), Color("45293f"))
+	for r: Vector3 in [Vector3(-46, -2, 5), Vector3(44, -1, 4), Vector3(-30, 1, 3), Vector3(30, 2, 3)]:
+		draw_circle(origin + Vector2(r.x, r.y), r.z, Color("3e3546"))
 	var body := Rect2(origin + Vector2(-34, -30), Vector2(68, 30))
 	draw_rect(body, wall)
 	_crenels(Vector2(body.position.x, body.position.y), body.size.x, wall)
@@ -322,7 +371,7 @@ static func _tree_textures() -> Array[Texture2D]:
 	if not DirAccess.dir_exists_absolute(dir):
 		return out
 	for file in DirAccess.get_files_at(dir):
-		if file.ends_with(".png") and (file.begins_with("pine") or file.begins_with("bigtree")):
+		if file.ends_with(".png") and (file.begins_with("pine-none") or file.begins_with("bigtree")):
 			out.append(load(dir + file))
 	return out
 

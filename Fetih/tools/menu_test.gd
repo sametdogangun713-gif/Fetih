@@ -59,6 +59,23 @@ func test_backdrop() -> void:
 	check("boyut değişince katmanlar yeniden kuruldu", bd.layer_width() == 853)
 	bd.dim = 0.4
 	check("karartma ayarlanır", is_equal_approx(bd.dim, 0.4))
+	# Kale ve ağaçlar zemine basmalı (havada durmamalı).
+	check("kale yerleşim kancası", bd.has_method("castle_ground"))
+	if bd.has_method("castle_ground"):
+		var g: Vector2 = bd.castle_ground()
+		var peak := true
+		for dx in range(-40, 41, 4):
+			peak = peak and bd.near_ridge_y(g.x) <= bd.near_ridge_y(g.x + dx) + 0.01
+		check("kale dağın tepesinde", peak)
+		check("kale tabanı dağ yüzeyinde (fark %.1f)" % (g.y - bd.near_ridge_y(g.x)),
+				g.y >= bd.near_ridge_y(g.x) and g.y - bd.near_ridge_y(g.x) <= 6.0)
+		var feet: Array[Vector2] = bd.tree_feet()
+		check("ön tepede ağaç var (%d)" % feet.size(), feet.size() >= 4)
+		var grounded := true
+		for f in feet:
+			var d: float = f.y - bd.hill_ridge_y(f.x)
+			grounded = grounded and d >= 0.0 and d <= 4.0
+		check("ağaçların gövdesi tepede", grounded)
 	check("manzarada yürüyen ordu var", bd.has_method("army_positions") and bd.army_positions().size() >= 6)
 	if bd.has_method("army_positions"):
 		var before: Vector2 = bd.army_positions()[0]
