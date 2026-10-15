@@ -59,6 +59,11 @@ func test_backdrop() -> void:
 	check("boyut değişince katmanlar yeniden kuruldu", bd.layer_width() == 853)
 	bd.dim = 0.4
 	check("karartma ayarlanır", is_equal_approx(bd.dim, 0.4))
+	check("manzarada yürüyen ordu var", bd.has_method("army_positions") and bd.army_positions().size() >= 6)
+	if bd.has_method("army_positions"):
+		var before: Vector2 = bd.army_positions()[0]
+		await create_timer(0.3).timeout
+		check("ordu yürüyor", bd.army_positions()[0] != before)
 	bd.queue_free()
 	await process_frame
 
@@ -100,6 +105,22 @@ func test_main_menu() -> void:
 	menu.queue_free()
 	await process_frame
 	profile.clear_run()
+	# Açılış doğal bitince: alt başlık açılışta gizli, sonunda logo + alt başlık görünür, perde kalkmış.
+	menu = load("res://scenes/ui/main_menu.tscn").instantiate()
+	menu.set("force_intro", true)
+	root.add_child(menu)
+	await process_frame
+	check("açılışta alt başlık gizli", menu.subtitle().modulate.a < 0.01)
+	var waited := 0.0
+	while menu.intro_playing() and waited < 6.0:
+		await create_timer(0.1).timeout
+		waited += 0.1
+	await create_timer(0.6).timeout
+	check("açılış kendiliğinden bitti (%.1f sn)" % waited, not menu.intro_playing())
+	check("açılış sonunda logo görünür", menu.logo().modulate.a > 0.99)
+	check("açılış sonunda alt başlık görünür", menu.subtitle().modulate.a > 0.5)
+	menu.queue_free()
+	await process_frame
 	# Review Focus 5: açılış tık/tuşla her an geçer.
 	menu = load("res://scenes/ui/main_menu.tscn").instantiate()
 	menu.set("force_intro", true)

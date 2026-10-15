@@ -11,6 +11,9 @@ const CLOUD_SPEEDS: Array[float] = [3.0, 6.0, 11.0]  ## Uzaktan yakına bulut ka
 const PARALLAX: Array[float] = [1.0, 2.0, 4.0, 7.0, 10.0]  ## gök, bulut, dağ, kale, ön tepe
 const BIRD_PERIOD := 18.0  ## Kuş sürüsü kaç saniyede bir geçer.
 const BIRD_TIME := 9.0  ## Ekranı geçme süresi.
+const MARCH_SPEED := 9.0  ## Ön tepede yürüyen ordunun hızı (düzen pikseli/sn).
+const MARCH_GAP := 12.0  ## Askerler arası.
+const EMBERS := 26  ## Yükselen kıvılcım sayısı.
 const SKY: Array[Color] = [Color("323353"), Color("484a77"), Color("905ea9"), Color("f68181"), Color("fbb954")]
 
 ## Karartma (0..1): menü öğeleri öne çıksın diye arka plan koyulaşır (krallık seçimi 0.35).
@@ -31,6 +34,9 @@ var _clouds: Array[Array] = []  ## katman -> [[x, y, ölçek], ...]
 var _trees: Array[Array] = []  ## [doku, konum]
 var _cloud_tex: Array[Texture2D] = []
 var _banners: Array[KingdomData] = []
+var _army: Array[UnitSprites.Sheet] = []  ## Ön tepede soldan sağa yürüyen bölük (sancaktar başta).
+var _army_banner: KingdomData
+var _bushes: Array[Array] = []  ## [doku, konum] ön plan çalı ve otları
 
 
 func _init() -> void:
@@ -47,6 +53,14 @@ func _ready() -> void:
 ## Test kancası: bulut katmanının şu anki kayması.
 func cloud_offset(layer: int) -> float:
 	return _time * CLOUD_SPEEDS[layer]
+
+
+## Test kancası: yürüyen askerlerin şu anki konumları (sancaktar dahil, öndeki ilk).
+func army_positions() -> Array[Vector2]:
+	var out: Array[Vector2] = []
+	for i in _army.size() + 1:
+		out.append(_soldier_pos(i))
+	return out
 
 
 ## Test kancası: katmanların kurulduğu genişlik.
@@ -97,6 +111,21 @@ func _rebuild() -> void:
 	var all := KingdomCatalog.all()
 	for i in 3:
 		_banners.append(all[(i * 3 + 1) % all.size()])
+	_army.clear()
+	_army_banner = all[0]
+	for i in 9:  # birkaç krallığın başlangıç birliklerinden karışık bir sefer kolu
+		var kingdom: KingdomData = all[i % 4]
+		if kingdom.starting_units.is_empty():
+			continue
+		var unit: UnitData = kingdom.starting_units[i % kingdom.starting_units.size()]
+		_army.append(UnitSprites.sheet_for(unit, SquadState.Team.PLAYER))
+	_bushes.clear()
+	for i in 22:  # ön tepe boyunca küçük çalı ve otlar (düğmelerin altında da: kısa boylu)
+		var kind: StringName = [&"dry_bush", &"savanna_grass", &"mushroom", &"rock"][rng.randi_range(0, 3)]
+		var x := rng.randf_range(0.0, s.x)
+		_bushes.append([TerrainProps.texture(kind, rng.randi_range(0, TerrainProps.VARIANTS - 1)),
+				Vector2(x, _ridge_y(_hills, x) + rng.randf_range(6.0, s.y * 0.12))])
+	_bushes.sort_custom(func(a: Array, b: Array) -> bool: return a[1].y < b[1].y)
 	queue_redraw()
 
 
@@ -142,6 +171,12 @@ func _draw() -> void:
 		var tex: Texture2D = tree[0]
 		var at: Vector2 = tree[1] + _shift(PARALLAX[4])
 		draw_texture(tex, (at - Vector2(tex.get_width() / 2.0, tex.get_height())).round())
+	_draw_army()
+	for bush: Array in _bushes:
+		var tex: Texture2D = bush[0]
+		var at: Vector2 = bush[1] + _shift(PARALLAX[4])
+		draw_texture(tex, (at - Vector2(tex.get_width() / 2.0, tex.get_height())).round())
+	_draw_embers(s)
 	if dim > 0.0:
 		draw_rect(Rect2(Vector2.ZERO, s), Color(0.04, 0.03, 0.08, dim))
 
@@ -207,18 +242,35 @@ func _draw_castle(s: Vector2) -> void:
 	_crenels(Vector2(body.position.x, body.position.y), body.size.x, wall)
 	var towers := [Rect2(origin + Vector2(-44, -52), Vector2(16, 52)), Rect2(origin + Vector2(-9, -66), Vector2(18, 66)),
 			Rect2(origin + Vector2(28, -48), Vector2(16, 48))]
+	var lit := Color("7f708a")  # güneşe bakan (sol) kenar
+	draw_rect(Rect2(body.position, Vector2(1, body.size.y)), lit)
 	for i in towers.size():
 		var t: Rect2 = towers[i]
 		draw_rect(t, dark if i == 1 else wall)
-		_crenels(t.position, t.size.x, dark if i == 1 else wall)
+		draw_rect(Rect2(t.position, Vector2(1, t.size.y)), lit)
+		# Sivri çatı: sol yarı açık, sağ yarı koyu kırmızı; sancak tepeden yükselir.
+		var apex := t.position + Vector2(t.size.x / 2.0, -16)
+		var left := t.position + Vector2(-2, 0)
+		var right := t.position + Vector2(t.size.x + 2, 0)
+		var mid := t.position + Vector2(t.size.x / 2.0, 0)
+		draw_colored_polygon(PackedVector2Array([apex, mid, left]), Color("b33831"))
+		draw_colored_polygon(PackedVector2Array([apex, right, mid]), Color("6e2727"))
 		var flicker := 0.7 + 0.3 * sin(_time * 5.0 + i * 1.7)
 		draw_rect(Rect2(t.position + Vector2(t.size.x / 2.0 - 2, 14), Vector2(4, 6)), Color(Color("f9c22b"), flicker))
 		if i < _banners.size():
 			var frame := int(_time * 4.0 + i) % BannerArt.FRAMES
 			var tex := BannerArt.texture(_banners[i], frame)
-			var at := t.position + Vector2(t.size.x / 2.0, -3) - Vector2(BannerArt.ANCHOR)
+			var at := apex + Vector2(0, 2) - Vector2(BannerArt.ANCHOR)
 			draw_texture(tex, at.round())
-	draw_rect(Rect2(origin + Vector2(-6, -14), Vector2(12, 14)), dark)  # kapı
+	var gate := origin + Vector2(0, -14)  # kemerli kapı
+	draw_rect(Rect2(gate + Vector2(-6, 0), Vector2(12, 14)), dark)
+	draw_circle(gate, 6.0, dark)
+	for side in [-1.0, 1.0]:  # kapı meşaleleri: titreyen ışık halesi
+		var torch := origin + Vector2(side * 11.0, -12)
+		var f := 0.75 + 0.25 * sin(_time * 9.0 + side * 2.0) * sin(_time * 5.3)
+		draw_circle(torch, 7.0 * f, Color(1.0, 0.6, 0.2, 0.18))
+		draw_circle(torch, 2.0, Color(Color("fbb954"), f))
+		draw_rect(Rect2(torch + Vector2(-0.5, 1), Vector2(1, 4)), Color("694f62"))
 	for i in 3:  # gövde pencereleri
 		var flicker := 0.6 + 0.4 * sin(_time * 3.0 + i * 2.3)
 		draw_rect(Rect2(origin + Vector2(-26 + i * 18, -22), Vector2(3, 4)), Color(Color("fbb954"), flicker))
@@ -273,3 +325,40 @@ static func _tree_textures() -> Array[Texture2D]:
 		if file.ends_with(".png") and (file.begins_with("pine") or file.begins_with("bigtree")):
 			out.append(load(dir + file))
 	return out
+
+
+## Ön tepe boyunca soldan sağa yürüyen sefer kolu: başta sancaktar, ardından askerler (yürüme kareleri).
+func _soldier_pos(i: int) -> Vector2:
+	var span := _built_size.x + 160.0
+	var x := fposmod(_built_size.x * 0.45 + _time * MARCH_SPEED - i * MARCH_GAP, span) - 60.0  # ilk anda ortada
+	return Vector2(x, _ridge_y(_hills, x) + 3.0)
+
+
+func _draw_army() -> void:
+	var shift := _shift(PARALLAX[4])
+	var bearer := _soldier_pos(0) + shift
+	var frame := int(_time * 4.0) % BannerArt.FRAMES
+	draw_texture(BannerArt.texture(_army_banner, frame), (bearer - Vector2(BannerArt.ANCHOR)).round())
+	for i in _army.size():
+		var sheet := _army[i]
+		var at := _soldier_pos(i + 1) + shift
+		var walk := UnitSprites.Anim.WALK
+		var region := sheet.region(walk, int(_time * 8.0 + i * 0.7) % sheet.count(walk))
+		var bob := 0.0 if int(_time * 8.0 + i) % 2 == 0 else -1.0
+		draw_rect(Rect2(at + Vector2(-4, -1), Vector2(8, 2)), Color(0, 0, 0, 0.25))
+		draw_texture_rect_region(sheet.texture,
+				Rect2((at - Vector2(region.size.x / 2.0, region.size.y - bob)).round(), region.size), region)
+
+
+## Gün batımı kıvılcımları: alttan yavaşça yükselir, sağa sola salınır, söner.
+func _draw_embers(s: Vector2) -> void:
+	for i in EMBERS:
+		var seed_x := fposmod(i * 97.13, 1.0)
+		var speed := 8.0 + fposmod(i * 13.7, 9.0)
+		var life := s.y * 0.55
+		var travel := fposmod(_time * speed + i * 37.0, life)
+		var k := travel / life
+		var x := seed_x * s.x + sin(_time * 0.7 + i) * 6.0
+		var y := s.y - travel
+		var a := sin(k * PI) * (0.55 + 0.45 * sin(_time * 6.0 + i * 1.3))
+		draw_rect(Rect2(Vector2(x, y).round(), Vector2(1, 1)), Color(1.0, 0.75, 0.35, a * 0.8))

@@ -20,7 +20,11 @@ var _logo: Label
 var _intro_root: Control
 var _intro_tween: Tween
 var _reveal_tweens: Array[Tween] = []
+var _reveal_gen := 0  ## Her ortaya çıkışta artar: bekleyen eski animasyon yarıda kalırsa devam etmez.
 var _confirm: Overlay
+var _subtitle: Label
+var _extras: Array[CanvasItem] = []  ## Logo dışında açılışta gizlenen yazılar (alt başlık, devam bilgisi).
+var _sparkles: Control
 
 
 func _ready() -> void:
@@ -48,6 +52,14 @@ func is_confirming() -> bool:
 	return _confirm != null
 
 
+func logo() -> Label:
+	return _logo
+
+
+func subtitle() -> Label:
+	return _subtitle
+
+
 func _build_menu() -> void:
 	var margin := MarginContainer.new()
 	margin.set_anchors_preset(Control.PRESET_LEFT_WIDE)
@@ -64,11 +76,14 @@ func _build_menu() -> void:
 	_logo.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.45))
 	_logo.add_theme_constant_override("shadow_offset_y", 3)
 	_menu_column.add_child(_logo)
-	var subtitle := UiKit.label(tr("Krallıkları fethet"), 12, UiKit.COLOR_PARCHMENT)
-	subtitle.add_theme_color_override("font_outline_color", Color("2e222f"))
-	subtitle.add_theme_constant_override("outline_size", 4)
-	_menu_column.add_child(subtitle)
-	_menu_column.add_child(_gap(18))
+	_sparkles = _LogoSparkles.new()
+	_logo.add_child(_sparkles)
+	_subtitle = UiKit.label(tr("Krallıkları fethet"), 12, UiKit.COLOR_PARCHMENT)
+	_subtitle.add_theme_color_override("font_outline_color", Color("2e222f"))
+	_subtitle.add_theme_constant_override("outline_size", 4)
+	_menu_column.add_child(_subtitle)
+	_extras.append(_subtitle)
+	_menu_column.add_child(_gap(14))
 	var has_run := Profile.has_saved_run()
 	if has_run:
 		var cont := UiKit.button_primary(tr("Devam et"), _on_continue)
@@ -77,6 +92,7 @@ func _build_menu() -> void:
 		info.add_theme_color_override("font_outline_color", Color("2e222f"))
 		info.add_theme_constant_override("outline_size", 3)
 		_menu_column.add_child(info)
+		_extras.append(info)
 	var new_game := UiKit.button_primary(tr("Yeni oyun"), _on_new_game) if not has_run \
 			else UiKit.button(tr("Yeni oyun"), _on_new_game)
 	_add_button(new_game)
@@ -99,6 +115,18 @@ func _add_button(button: Button) -> void:
 		button.add_theme_font_override("font", UiKit.ui_font(800))
 	_menu_column.add_child(button)
 	_buttons.append(button)
+	# Fare üstünde düğme hafifçe sağa kayar (kapsayıcı konumu yeniden dizince sıfırlanır; dizim ancak
+	# boyut değişince olur). Taban konum ortaya çıkış animasyonundan sonra kaydedilir.
+	button.mouse_entered.connect(_nudge.bind(button, true))
+	button.mouse_exited.connect(_nudge.bind(button, false))
+
+
+func _nudge(button: Button, on: bool) -> void:
+	if not button.has_meta("base_x") or button.disabled:
+		return
+	var tw := button.create_tween()
+	tw.tween_property(button, "position:x", float(button.get_meta("base_x")) + (8.0 if on else 0.0), 0.12) \
+			.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 
 
 func _gap(height: float) -> Control:
@@ -134,12 +162,12 @@ func _continue_info() -> String:
 
 # --- Açılış ---
 
-## Siyah perde üstünde FETİH harfleri sırayla düşer, kılıç parıltısı geçer, perde solar, menü gelir.
+## Siyah perde üstünde FETİH harfleri sırayla düşer, kılıç parıltısı geçer; sonra logo küçülerek menüdeki
+## yerine uçar ve perde aynı anda açılır (logo hiç kaybolmaz). Ardından alt başlık ve düğmeler gelir.
 func _play_intro() -> void:
 	intro_done = true
-	for b in _buttons:
-		b.modulate.a = 0.0
-	_logo.modulate.a = 0.0
+	for item: CanvasItem in _hidden_items():
+		item.modulate.a = 0.0
 	_intro_root = Control.new()
 	_intro_root.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_intro_root.mouse_filter = Control.MOUSE_FILTER_STOP
@@ -148,20 +176,13 @@ func _play_intro() -> void:
 	curtain.color = Color("0c0a10")
 	curtain.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_intro_root.add_child(curtain)
-	var row := UiKit.hbox(2)
-	row.set_anchors_preset(Control.PRESET_CENTER)
-	row.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	row.grow_vertical = Control.GROW_DIRECTION_BOTH
+	var row := UiKit.hbox(0)  # harfler doğal genişlikte: aralık eşit
 	_intro_root.add_child(row)
 	var letters: Array[Label] = []
 	for ch in LOGO:
-		var holder := Control.new()
-		holder.custom_minimum_size = Vector2(40, 64)
+		var l := _logo_label(ch)
+		var holder := Control.new()  # boyutu _center_row'da (etiket ağaçtayken ölçülebilir)
 		row.add_child(holder)
-		var l := UiKit.label(ch, 56, UiKit.COLOR_GOLD, true)
-		l.add_theme_font_override("font", UiKit.heading_font(900))
-		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		l.size = holder.custom_minimum_size
 		l.position.y = -60
 		l.modulate.a = 0.0
 		holder.add_child(l)
@@ -172,33 +193,68 @@ func _play_intro() -> void:
 	_intro_root.add_child(flash)
 	var k := UiKit.anim_scale()
 	_intro_tween = create_tween()
+	_intro_tween.tween_callback(_center_row.bind(row))  # yerleşim bitince ortala
 	for i in letters.size():
 		_intro_tween.parallel().tween_property(letters[i], "position:y", 0.0, 0.45 * k) \
 				.set_delay(i * 0.12 * k).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
 		_intro_tween.parallel().tween_property(letters[i], "modulate:a", 1.0, 0.2 * k).set_delay(i * 0.12 * k)
 	_intro_tween.tween_callback(_sword_flash.bind(row, flash, 0.35 * k))
-	_intro_tween.tween_interval(0.75 * k)
-	_intro_tween.tween_property(_intro_root, "modulate:a", 0.0, 0.4 * k)
+	_intro_tween.tween_interval(0.55 * k)
+	_intro_tween.tween_callback(_fly_logo.bind(row, curtain, 0.6 * k))
+	_intro_tween.tween_interval(0.62 * k)
 	_intro_tween.tween_callback(_end_intro)
 
 
-## Logonun üstünden soldan sağa geçen ince parlak şerit (konum yerleşim bittikten sonra okunur).
+## Menü logosuyla aynı biçimde büyük harf etiketi (açılış harfleri).
+func _logo_label(text: String) -> Label:
+	var l := UiKit.label(text, 56, UiKit.COLOR_GOLD, true)
+	l.add_theme_font_override("font", UiKit.heading_font(900))
+	l.add_theme_color_override("font_outline_color", Color("2e222f"))
+	l.add_theme_constant_override("outline_size", 7)
+	l.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.45))
+	l.add_theme_constant_override("shadow_offset_y", 4)
+	return l
+
+
+## Harf kutuları etiketlerin gerçek genişliğine göre (ağaca girmeden önce ölçü 0 döner), sonra satır ortalanır.
+func _center_row(row: Control) -> void:
+	for holder in row.get_children():
+		var l := holder.get_child(0) as Label
+		holder.custom_minimum_size = l.get_minimum_size()
+		l.size = holder.custom_minimum_size
+	row.reset_size()
+	row.position = ((size - row.size) / 2.0).round()
+
+
+## Logonun üstünden soldan sağa geçen ince parlak şerit; sona varmadan tamamen söner (iz kalmaz).
 func _sword_flash(row: Control, flash: ColorRect, time: float) -> void:
 	var r := row.get_global_rect()
-	flash.position = Vector2(r.position.x - 10, r.position.y - 4)
-	flash.size = Vector2(5, r.size.y + 8)
+	flash.position = Vector2(r.position.x - 10, r.position.y + 4)
+	flash.size = Vector2(4, r.size.y - 8)
 	flash.color.a = 0.9
 	Audio.play("hit", -6.0)
 	var tw := flash.create_tween().set_parallel()
-	tw.tween_property(flash, "position:x", r.end.x + 10, time).set_trans(Tween.TRANS_QUAD)
-	tw.tween_property(flash, "color:a", 0.0, time).set_delay(time * 0.5)
+	tw.tween_property(flash, "position:x", r.end.x - 6, time).set_trans(Tween.TRANS_QUAD)
+	tw.tween_property(flash, "color:a", 0.0, time * 0.9).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tw.chain().tween_callback(flash.hide)
+
+
+## Açılış harfleri menü logosunun yerine uçar (konum + ölçek), perde aynı anda solar.
+func _fly_logo(row: Control, curtain: ColorRect, time: float) -> void:
+	var target := _logo.get_global_rect()
+	var scale := target.size.y / maxf(row.size.y, 1.0)
+	var tw := row.create_tween().set_parallel().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
+	tw.tween_property(row, "scale", Vector2.ONE * scale, time)
+	tw.tween_property(row, "position", target.position, time)
+	tw.tween_property(curtain, "color:a", 0.0, time * 0.9)
 
 
 func _end_intro() -> void:
+	_logo.modulate.a = 1.0  # uçan harfler tam logonun yerinde: değiş tokuş görünmez
 	if _intro_root:
 		_intro_root.queue_free()
 		_intro_root = null
-	_reveal(false)
+	_reveal(false, true)
 
 
 ## Açılışı hemen bitirir (tık/tuş ya da test): tween'ler kesilir, menü son hâline gelir.
@@ -211,23 +267,65 @@ func skip_intro() -> void:
 	_reveal(true)
 
 
-## Logo ve düğmeler görünür olur: instant değilse sırayla solarak.
-func _reveal(instant: bool) -> void:
+func _hidden_items() -> Array[CanvasItem]:
+	var items: Array[CanvasItem] = [_logo]
+	items.append_array(_extras)
+	items.append_array(_buttons)
+	return items
+
+
+## Logo, alt başlık ve düğmeler görünür olur. instant değilse: logo (açılıştan geliyorsa zaten yerinde),
+## alt başlık solar, düğmeler soldan sırayla kayarak gelir. Logo yavaşça parlar, çevresinde ışıltılar.
+func _reveal(instant: bool, logo_ready := false) -> void:
 	for tw in _reveal_tweens:
 		if tw.is_valid():
 			tw.kill()
 	_reveal_tweens.clear()
-	var items: Array[CanvasItem] = [_logo]
-	items.append_array(_buttons)
-	for i in items.size():
-		if instant:
-			items[i].modulate.a = 1.0
-		else:
-			_reveal_tweens.append(UiKit.fade_in(items[i], i * 0.06, 0.25))
-	if not instant:
-		var glow := _logo.create_tween().set_loops()  # logo yavaşça parlar
-		glow.tween_property(_logo, "self_modulate", Color(1.2, 1.15, 1.0), 1.6).set_trans(Tween.TRANS_SINE)
-		glow.tween_property(_logo, "self_modulate", Color.WHITE, 1.6).set_trans(Tween.TRANS_SINE)
+	_reveal_gen += 1
+	var gen := _reveal_gen
+	if instant:
+		for item in _hidden_items():
+			item.modulate.a = 1.0
+		_store_bases()
+		_start_logo_glow()
+		return
+	for b in _buttons:
+		b.modulate.a = 0.0  # kaymadan önce görünmesin (ilk karede yanıp sönme olmasın)
+	if not logo_ready:
+		_reveal_tweens.append(UiKit.fade_in(_logo, 0.0, 0.3))
+	for i in _extras.size():
+		_reveal_tweens.append(UiKit.fade_in(_extras[i], 0.1 + i * 0.05, 0.3))
+	await get_tree().process_frame  # kapsayıcı yerleşimi bitsin: taban konumlar doğru okunsun
+	if gen != _reveal_gen or not is_inside_tree():
+		return  # bu arada açılış atlandı ya da ekran kapandı
+	_store_bases()
+	var k := UiKit.anim_scale()
+	for i in _buttons.size():
+		var b := _buttons[i]
+		var base: float = b.get_meta("base_x")
+		b.position.x = base - 36.0
+		b.modulate.a = 0.0
+		var tw := b.create_tween().set_parallel()
+		tw.tween_property(b, "position:x", base, 0.35 * k).set_delay((0.15 + i * 0.07) * k) \
+				.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		tw.tween_property(b, "modulate:a", 1.0, 0.25 * k).set_delay((0.15 + i * 0.07) * k)
+		_reveal_tweens.append(tw)
+	_start_logo_glow()
+
+
+func _store_bases() -> void:
+	for b in _buttons:
+		b.set_meta("base_x", b.position.x)
+
+
+func _start_logo_glow() -> void:
+	if _logo.has_meta("glowing"):
+		return
+	_logo.set_meta("glowing", true)
+	var glow := _logo.create_tween().set_loops()  # logo yavaşça parlar
+	glow.tween_property(_logo, "self_modulate", Color(1.2, 1.15, 1.0), 1.6).set_trans(Tween.TRANS_SINE)
+	glow.tween_property(_logo, "self_modulate", Color.WHITE, 1.6).set_trans(Tween.TRANS_SINE)
+	_sparkles.active = true
 
 
 func _input(event: InputEvent) -> void:
@@ -267,3 +365,45 @@ func _on_new_game() -> void:
 func cancel_confirm() -> void:
 	if _confirm:
 		_confirm.close()
+
+
+## Logonun çevresinde yanıp sönen küçük ışıltılar (dört kollu yıldız). Logo etiketinin çocuğu, fareyi yok sayar.
+class _LogoSparkles:
+	extends Control
+
+	const COUNT := 5
+	const LIFE := 1.4
+	var active := false
+	var _time := 0.0
+	var _rng := RandomNumberGenerator.new()
+	var _sparks: Array[Vector3] = []  ## x, y, doğum zamanı
+
+	func _init() -> void:
+		mouse_filter = Control.MOUSE_FILTER_IGNORE
+		set_anchors_preset(Control.PRESET_FULL_RECT)
+		_rng.seed = 1071
+
+	func _process(delta: float) -> void:
+		if not active:
+			return
+		_time += delta
+		for i in range(_sparks.size() - 1, -1, -1):
+			if _time - _sparks[i].z > LIFE:
+				_sparks.remove_at(i)
+		while _sparks.size() < COUNT:
+			_sparks.append(Vector3(_rng.randf_range(0.0, size.x), _rng.randf_range(size.y * 0.15, size.y * 0.8),
+					_time + _rng.randf_range(0.0, LIFE)))
+		queue_redraw()
+
+	func _draw() -> void:
+		for sp in _sparks:
+			var age := _time - sp.z
+			if age < 0.0:
+				continue
+			var k := sin(age / LIFE * PI)  # 0 -> 1 -> 0
+			var r := 1.0 + 3.0 * k
+			var c := Color(1.0, 0.97, 0.8, 0.9 * k)
+			var p := Vector2(sp.x, sp.y)
+			draw_line(p - Vector2(r, 0), p + Vector2(r, 0), c, 1.0)
+			draw_line(p - Vector2(0, r), p + Vector2(0, r), c, 1.0)
+			draw_circle(p, 0.8 + 0.6 * k, c)
