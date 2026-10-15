@@ -12,14 +12,26 @@ func _ready() -> void:
 			RunState.wins, RunState.battle_index + 1, RunState.seals)
 	RunState.end_run()
 
-	var root := UiKit.screen_root(self, 16)
+	var backdrop := MenuBackdrop.new()  # menü manzarası, koyu: yazılar öne çıksın
+	backdrop.dim = 0.62
+	add_child(backdrop)
+	var root := UiKit.screen_root(self, 16, true)
 	root.add_child(UiKit.spacer(true))
-	if RunState.is_victory():
-		root.add_child(UiKit.centered(tr("FETİH TAMAMLANDI"), 24, UiKit.COLOR_GOLD))
-	elif RunState.is_defeated():
-		root.add_child(UiKit.centered(tr("ORDUN DAĞILDI"), 24, UiKit.COLOR_BAD))
-	else:
-		root.add_child(UiKit.centered(tr("BÜYÜK FETİH KAYBEDİLDİ"), 24, UiKit.COLOR_BAD))
+	var title_text := tr("FETİH TAMAMLANDI")
+	var title_color := UiKit.COLOR_GOLD
+	if RunState.is_defeated():
+		title_text = tr("ORDUN DAĞILDI")
+		title_color = UiKit.COLOR_BAD
+	elif not RunState.is_victory():
+		title_text = tr("BÜYÜK FETİH KAYBEDİLDİ")
+		title_color = UiKit.COLOR_BAD
+	var title := UiKit.label(title_text, 28, title_color, true)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_color_override("font_outline_color", Color("2e222f"))
+	title.add_theme_constant_override("outline_size", 6)
+	root.add_child(title)
+	UiKit.pop(title, 0.35)
+	if not RunState.is_victory() and not RunState.is_defeated():
 		root.add_child(UiKit.centered(tr("Son savaşı kazanmadan fetih tamamlanmaz."), 11, UiKit.COLOR_MUTED))
 	root.add_child(UiKit.centered("%s  ·  %s  ·  %s" % [tr(RunState.kingdom.display_name),
 			tr("Kazanılan savaş: %d / %d") % [RunState.wins, RunState.battle_index + 1],
@@ -39,7 +51,7 @@ func _ready() -> void:
 
 	var bottom := UiKit.hbox()
 	bottom.add_child(UiKit.spacer())
-	bottom.add_child(UiKit.button(tr("Ana menüye dön"), _back_to_menu))
+	bottom.add_child(UiKit.button_primary(tr("Ana menüye dön"), _back_to_menu))
 	bottom.add_child(UiKit.spacer())
 	root.add_child(bottom)
 

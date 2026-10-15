@@ -6,7 +6,10 @@ var _root: VBoxContainer
 
 func _ready() -> void:
 	Audio.play_music("menu")
-	_root = UiKit.screen_root(self, 14)
+	var backdrop := MenuBackdrop.new()
+	backdrop.dim = 0.6
+	add_child(backdrop)
+	_root = UiKit.screen_root(self, 14, true)
 	_build()
 	Tips.show_once(self, Tips.TREASURY)
 
@@ -16,7 +19,10 @@ func _build() -> void:
 		_root.remove_child(child)
 		child.queue_free()
 	var header := UiKit.hbox(10)
-	header.add_child(UiKit.label(tr("HAZİNE"), 20, UiKit.COLOR_GOLD))
+	var title := UiKit.label(tr("HAZİNE"), 20, UiKit.COLOR_GOLD, true)
+	title.add_theme_color_override("font_outline_color", Color("2e222f"))
+	title.add_theme_constant_override("outline_size", 5)
+	header.add_child(title)
 	header.add_child(UiKit.spacer())
 	header.add_child(UiKit.label(tr("Şan: %d") % Profile.glory, 14, UiKit.COLOR_GOLD))
 	_root.add_child(header)
@@ -30,7 +36,7 @@ func _build() -> void:
 	_root.add_child(UiKit.spacer(true))
 	var bottom := UiKit.hbox()
 	bottom.add_child(UiKit.spacer())
-	bottom.add_child(UiKit.button(tr("Geri"), func() -> void: Screens.goto(Screens.MAIN_MENU)))
+	bottom.add_child(UiKit.button_primary(tr("Geri"), func() -> void: Screens.goto(Screens.MAIN_MENU)))
 	_root.add_child(bottom)
 
 

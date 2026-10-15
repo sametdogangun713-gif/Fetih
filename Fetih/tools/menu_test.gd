@@ -32,6 +32,7 @@ func _initialize() -> void:
 	await test_backdrop()
 	await test_main_menu()
 	await test_kingdom_select()
+	await test_settings()
 	print("Hata: %d" % failures)
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(TEST_SAVE))
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(TEST_SETTINGS))
@@ -167,4 +168,39 @@ func test_kingdom_select() -> void:
 	check("EN: Başla düğmesi ekranda (%s)" % rect, rect.end.x <= view.x + 0.5 and rect.end.y <= view.y + 0.5)
 	TranslationServer.set_locale("tr")
 	screen.queue_free()
+	await process_frame
+
+
+func test_settings() -> void:
+	var settings := root.get_node("Settings")
+	settings.volumes[&"Music"] = 0.6
+	var host := Control.new()
+	root.add_child(host)
+	var panel = load("res://scripts/ui/settings_panel.gd").open(host, true)
+	await process_frame
+	check("ayarlar sekmeli", panel.has_method("select_tab"))
+	if not panel.has_method("select_tab"):
+		host.queue_free()
+		return
+	check("menüde dört sekme", panel.tab_count() == 4)
+	panel.select_tab(0)
+	check("müzik sürgüsü gerçek değeri gösterir", is_equal_approx(panel.slider_for(&"Music").value, 60.0))
+	panel.select_tab(2)
+	var checks: Array[Node] = panel.tab_content().find_children("*", "CheckButton", true, false)
+	check("oyun sekmesinde açma/kapamalar (%d)" % checks.size(), checks.size() >= 4)
+	var styles := {}
+	for c: CheckButton in checks:
+		styles[c.get_theme_stylebox("normal")] = true
+		styles[c.get_theme_stylebox("focus")] = true
+	check("açma/kapama stilleri tek tip (%d)" % styles.size(), styles.size() == 2)
+	check("menüde parşömen tema", panel.is_menu_theme())
+	panel.close()
+	await process_frame
+	var game_panel = load("res://scripts/ui/settings_panel.gd").open(host, false)
+	await process_frame
+	check("oyun içinde dil sekmesi yok", game_panel.tab_count() == 3)
+	check("oyun içinde koyu tema", not game_panel.is_menu_theme())
+	game_panel.close()
+	await process_frame
+	host.queue_free()
 	await process_frame

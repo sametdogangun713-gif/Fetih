@@ -77,6 +77,14 @@ static func _build_theme(panel_color: Color, edge: Color, border: int, radius: i
 	t.set_stylebox("hover", "Button", _box(button_bg.lightened(0.1), COLOR_GOLD, border, radius, 6))
 	t.set_stylebox("pressed", "Button", _box(button_bg.darkened(0.25), COLOR_GOLD, border, radius, 6))
 	t.set_stylebox("disabled", "Button", _box(Color(button_bg.darkened(0.3), 0.7), edge.darkened(0.5), border, radius, 6))
+	for state in ["normal", "hover", "pressed", "disabled"]:  # açılır liste düğme gibi
+		t.set_stylebox(state, "OptionButton", t.get_stylebox(state, "Button"))
+	t.set_stylebox("tab_selected", "TabBar", _box(button_bg.lightened(0.12), COLOR_GOLD, border, radius, 8))
+	t.set_stylebox("tab_hovered", "TabBar", _box(button_bg.lightened(0.05), Color(COLOR_GOLD, 0.7), border, radius, 8))
+	t.set_stylebox("tab_unselected", "TabBar", _box(Color(button_bg, 0.6), Color(edge, 0.5), border, radius, 8))
+	t.set_color("font_selected_color", "TabBar", COLOR_GOLD if text == COLOR_TEXT else COLOR_INK)
+	t.set_color("font_hovered_color", "TabBar", text)
+	t.set_color("font_unselected_color", "TabBar", Color(text, 0.65))
 	var empty := StyleBoxEmpty.new()
 	for type in ["CheckButton", "CheckBox"]:  # açma/kapama: zeminsiz, hepsi aynı stil
 		for state in ["normal", "hover", "pressed", "disabled", "hover_pressed"]:

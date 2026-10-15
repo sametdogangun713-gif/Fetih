@@ -11,6 +11,7 @@ signal closed
 
 var content: VBoxContainer  ## Panelin içi; çağıran doldurur.
 var close_on_cancel := true  ## Esc pencereyi kapatsın mı.
+var menu_theme := false  ## Parşömen (menü) teması mı.
 
 var _pause_tree := false
 var _panel: PanelContainer
@@ -18,12 +19,14 @@ var _dim: ColorRect
 var _paused_by_me := false  ## Oyunu bu pencere durdurdu (kapanınca o devam ettirir).
 
 
-func _init(width := 300.0, pause_tree := false, layer_index := 10) -> void:
+## menu: renkli fantastik (parşömen) pencere; yoksa koyu şık oyun penceresi.
+func _init(width := 300.0, pause_tree := false, layer_index := 10, menu := false) -> void:
 	layer = layer_index
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	menu_theme = menu
 	var root := Control.new()
 	root.set_anchors_preset(Control.PRESET_FULL_RECT)
-	root.theme = UiKit.theme()
+	root.theme = UiKit.theme_menu() if menu else UiKit.theme()
 	add_child(root)
 	var dim := ColorRect.new()
 	dim.color = Color(0, 0, 0, 0.6)
@@ -33,9 +36,10 @@ func _init(width := 300.0, pause_tree := false, layer_index := 10) -> void:
 	var center := CenterContainer.new()
 	center.set_anchors_preset(Control.PRESET_FULL_RECT)
 	root.add_child(center)
-	var panel := UiKit.game_panel(0.95)
+	var panel := UiKit.menu_panel() if menu else UiKit.game_panel(0.95)
 	var style: StyleBoxFlat = panel.get_theme_stylebox("panel")
-	style.border_color = Color(UiKit.COLOR_GOLD, 0.6)
+	if not menu:
+		style.border_color = Color(UiKit.COLOR_GOLD, 0.6)
 	style.set_corner_radius_all(8)
 	style.set_content_margin_all(12)
 	panel.custom_minimum_size.x = width
