@@ -22,6 +22,15 @@ func _on_node_added(node: Node) -> void:
 		node_added.disconnect(_on_node_added)
 
 
+## Betiğinin global sınıf adı cls olan ilk alt düğüm (yoksa null).
+func _find(node: Node, cls: String) -> Node:
+	for child in node.find_children("*", "", true, false):
+		var script: Script = child.get_script()
+		if script and script.get_global_name() == cls:
+			return child
+	return null
+
+
 func _initialize() -> void:
 	await process_frame
 	var run := root.get_node("RunState")
@@ -33,6 +42,22 @@ func _initialize() -> void:
 	await process_frame
 	check("PREP ile açıldı", meydan.phase == meydan.Phase.PREP)
 	check("bölük görüntüleri", meydan.runner.views().size() == run.army.size() + run.current_enemy_army().size())
+	# Sade arayüz: kalpler + aşama göstergesi; rakip sırası çubuğu ve asker sayısı etiketi yok.
+	var hearts: Control = _find(meydan.prep, "LivesHearts")
+	check("kalpler hazırlıkta", hearts != null and hearts.full_count() == run.lives)
+	var progress: Control = _find(meydan.prep, "RunProgress")
+	check("aşama göstergesi şu anki savaş", progress != null and progress.current_index() == run.battle_index)
+	check("rakip sırası çubuğu (RunMap) yok", _find(meydan.prep, "RunMap") == null)
+	check("savaş HUD'unda kalpler", _find(meydan.hud, "LivesHearts") != null)
+	var first_view: SquadView = meydan.player_views()[0]
+	check("bölükte sayı etiketi yok", not first_view.has_method("_draw_count_label"))
+	var lone: Control = load("res://scripts/ui/lives_hearts.gd").new(3, 3)
+	root.add_child(lone)
+	lone.set_lives(2, true)
+	check("can kaybında kalp azalır", lone.full_count() == 2)
+	await create_timer(0.8).timeout
+	check("kırılan kalp boş kontur kalır", lone.full_count() == 2 and lone.heart_count() == 3)
+	lone.queue_free()
 	# Sürükle-bırak: ilk bölüğü ikincinin üstüne bırak.
 	var prep = meydan.prep
 	var b_field := Formation.deploy_to_field(run.army[1].pos, SquadState.Team.PLAYER)

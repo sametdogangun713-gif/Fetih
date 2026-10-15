@@ -6,8 +6,8 @@ extends Node2D
 
 enum Phase { PREP, BATTLE, CARDS }
 const PHASE_NAMES := {Phase.PREP: "prep", Phase.BATTLE: "battle", Phase.CARDS: "cards"}
-## İlk kamera çerçevesine eklenen ekran pikseli: üstte şerit + harita, altta "Savaşa başla".
-const FRAME_PAD_TOP := 56.0
+## İlk kamera çerçevesine eklenen ekran pikseli: üstte kalpler + aşama göstergesi, altta "Savaşa başla".
+const FRAME_PAD_TOP := 26.0
 const FRAME_PAD_BOTTOM := 34.0
 const FRAME_PAD_LEFT := 30.0  ## Sol bilgi paneli.
 const PICK_RADIUS := 0.6  ## Bölük seçme yarıçapı (karo): hazırlıkta sürükleme, kart aşamasında değiştirme.
@@ -84,7 +84,7 @@ func enter(p: Phase) -> void:
 			var states := RunState.build_player_squads()
 			states.append_array(RunState.build_enemy_squads())
 			hud.reset()
-			hud.show_matchup(RunField.matchup_text())
+			hud.show_run_header()
 			battlefield.camera.auto_follow = true
 			runner.start(RunState.battle_seed(), states)
 			RunField.apply_auras(runner)
@@ -142,6 +142,7 @@ func finish_battle(won: bool, survivors := 0) -> void:
 	if phase != Phase.BATTLE:
 		return
 	RunState.finish_battle(won)
+	hud.update_run_header()  # kaybedilen savaşta kalp kırılır, aşama göstergesi ilerler
 	var over := RunState.is_defeated() or RunState.is_last_battle()
 	Profile.store_run(RunState.to_dict("end" if over else "cards"))
 	hud.show_result(won, survivors, true)

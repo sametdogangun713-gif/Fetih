@@ -47,12 +47,8 @@ const SHADOW_ALPHA := 0.75
 const DISC_ROWS := [[-1, 3], [0, 4], [1, 3]]
 ## Minik figürün gölgesi: figür başına 5x2 px (geniş rollerde 7x2) yarı saydam siyah.
 const SHADOW_COLOR := Color(0, 0, 0, 0.35)
-## Figürün baş üstü: 16x16 karede baş yaklaşık 2. satırda; sayı bunun 4 px üstüne oturur.
+## Figürün baş üstü: 16x16 karede baş yaklaşık 2. satırda (boss adı bunun üstüne oturur).
 const HEAD_ROW := 2
-const LABEL_GAP := 4
-const LABEL_SIZE := 8
-const COUNT_PULSE_TIME := 0.15  ## Asker kaybında sayı bu sürede büyüyüp kızarır.
-const COUNT_PULSE_COLOR := Color("f68181")
 ## Atlı ve kuşatma figürleri geniş: gölgeleri de geniş (7x2).
 const WIDE_ROLES: Array[StringName] = [&"cavalry", &"siege"]
 const AURA_ALPHA := 0.12  ## Ferman aurası iç dolgusunun saydamlığı (ince leke).
@@ -83,14 +79,12 @@ var _melee_attack := true  ## Son saldırı yakın dövüş müydü (atılma) yo
 var _visual_rng := RandomNumberGenerator.new()
 var _material := ShaderMaterial.new()
 var _under := Node2D.new()  ## Gölgeler: show_behind_parent ile askerlerin arkasında çizilir.
-var _over := Node2D.new()  ## Sayı etiketi, boss can çubuğu: askerlerin üstünde, flaşsız.
+var _over := Node2D.new()  ## Boss can çubuğu: askerlerin üstünde, flaşsız.
 var _settings: Node
 ## Gölge ve etiket katmanları sadece içerikleri değişince yeniden çizilir (performans):
 ## konum değişimi için yeniden çizim gerekmez, düğümün dönüşümü kaydırır.
 var _under_key := Vector3.ZERO  ## (yön x, yön y, asker sayısı)
-var _over_key := Vector3(-1, 0, 0)  ## (yön x, yön y, asker sayısı ya da boss canı)
-var _count_pulse := 0.0  ## Asker kaybında sayı etiketinin sönen vurgusu.
-var _last_count := -1
+var _over_key := Vector3(-1, 0, 0)  ## (yön x, yön y, boss canı)
 
 
 func setup(p_squad: SquadState) -> void:
@@ -182,17 +176,11 @@ func update_visual(alpha: float, delta: float) -> void:
 	if under_key != _under_key:
 		_under_key = under_key
 		_under.queue_redraw()
-	var count := squad.alive_count()
-	if count < _last_count:
-		_count_pulse = COUNT_PULSE_TIME
-	_last_count = count
-	var pulsing := _count_pulse > 0.0
-	_count_pulse = maxf(_count_pulse - delta, 0.0)
-	var over_value := roundi(squad.hp_pool / squad.max_hp * 100.0) if squad.unit.is_boss else count
-	var over_key := Vector3(squad.facing.x, squad.facing.y, over_value)  # yön: üst figür değişebilir
-	if over_key != _over_key or pulsing:
-		_over_key = over_key
-		_over.queue_redraw()
+	if squad.unit.is_boss:
+		var over_key := Vector3(squad.facing.x, squad.facing.y, roundi(squad.hp_pool / squad.max_hp * 100.0))
+		if over_key != _over_key:
+			_over_key = over_key
+			_over.queue_redraw()
 
 
 func flash() -> void:
@@ -345,12 +333,11 @@ static func aura_color_for(army_squad: ArmySquad, passives: Array[PassiveData]) 
 	return Color(0, 0, 0, 0)
 
 
-## Sayı etiketi ve boss çubuğu (_over düğümünün draw sinyali): flaştan etkilenmez.
+## Boss can çubuğu (_over düğümünün draw sinyali): flaştan etkilenmez. Normal bölüklerin üstünde
+## yazı yok (sade alan); asker kaybı figürlerin düşmesinden okunur.
 func _draw_over() -> void:
 	if squad.unit.is_boss:
 		_draw_boss_bar()
-	else:
-		_draw_count_label()
 
 
 ## Ayağın altında gölge. Minik figür: 5x2 px (geniş rollerde 7x2) yarı saydam siyah.
@@ -442,32 +429,3 @@ func _draw_boss_bar() -> void:
 			HORIZONTAL_ALIGNMENT_CENTER, 100, 8, 3, Color(0, 0, 0, 0.85))
 	_over.draw_string(font, name_at, tr(squad.unit.display_name),
 			HORIZONTAL_ALIGNMENT_CENTER, 100, 8, UiKit.COLOR_GOLD)
-
-
-## Bölüğün en üst figürünün 4 px üstünde takım renginde küçük asker sayısı (1 px koyu gölgeli).
-## Renk körlüğü için sayı zaten ayırt edici; renk ek ipucu. Asker kaybında sayı bir an 1.3 kat
-## büyür ve kızarır (ölçek sayının ortasından). Seviye: sayının yanında küçük altın noktalar.
-## Godot: draw_set_transform ölçek + konum verir; yazı bunun içinde çizilince büyüme yerinde kalır.
-func _draw_count_label() -> void:
-	var font := UiKit.ui_font(800)
-	var top := 0.0  # en üst figürün baş satırı (bu düğüme göre)
-	var first := true
-	for slot in _alive_slots:
-		var y: float = _offsets[slot].y + 1.0 - sheet.frame_size.y + HEAD_ROW
-		top = y if first else minf(top, y)
-		first = false
-	if first:
-		return
-	var count := str(squad.alive_count())
-	var pulse := _count_pulse / COUNT_PULSE_TIME
-	var team_color := UnitSprites.team_color(squad.team)
-	var color := team_color.lerp(COUNT_PULSE_COLOR, pulse)
-	var width := 24.0
-	var center := Vector2(0, top - LABEL_GAP - LABEL_SIZE * 0.5)
-	_over.draw_set_transform(center.round(), 0.0, Vector2.ONE * (1.0 + 0.3 * pulse))
-	var at := Vector2(-width / 2.0, LABEL_SIZE * 0.5 - 1.0)
-	_over.draw_string(font, at + Vector2(0, 1), count, HORIZONTAL_ALIGNMENT_CENTER, width, LABEL_SIZE, Color(0, 0, 0, 0.85))
-	_over.draw_string(font, at, count, HORIZONTAL_ALIGNMENT_CENTER, width, LABEL_SIZE, color)
-	_over.draw_set_transform(Vector2.ZERO)
-	for i in squad.level - 1:  # seviye noktaları sayının sağında
-		_over.draw_rect(Rect2(center + Vector2(width * 0.5 - 4 + i * 2, -LABEL_SIZE * 0.5), Vector2(1, 1)), UiKit.COLOR_GOLD)

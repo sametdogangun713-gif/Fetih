@@ -1,25 +1,7 @@
 class_name SquadInfo
 extends RefCounted
-## Hazırlık bilgi metinleri ve küçük arayüz parçaları (üst şerit, ferman satırı, rakip özeti, bölük ayrıntısı).
+## Hazırlık bilgi metinleri ve küçük arayüz parçaları (ferman satırı, rakip özeti, bölük ayrıntısı).
 ## Hepsi statik: hem Meydan hem eski hazırlık ekranı kullanır. Statik fonksiyonda tr() olmadığı için UiKit.t().
-
-
-## Üst şerit: solda savaş ve can, sağda krallık (renk karesiyle). Savaş HUD'uyla aynı dil.
-static func top_bar() -> Control:
-	var panel := UiKit.strip_panel(1.0)
-	var bar := UiKit.hbox(16)
-	panel.add_child(bar)
-	bar.add_child(UiKit.label(UiKit.t("Savaş %d / %d") % [RunState.battle_index + 1, Balance.RUN_LENGTH], 12))
-	var lives_color := UiKit.COLOR_TEXT if RunState.lives == RunState.max_lives else UiKit.COLOR_BAD
-	bar.add_child(UiKit.label(UiKit.t("Can: %d / %d") % [RunState.lives, RunState.max_lives], 12, lives_color))
-	bar.add_child(UiKit.spacer())
-	var swatch := ColorRect.new()
-	swatch.color = RunState.kingdom.color
-	swatch.custom_minimum_size = Vector2(8, 8)
-	swatch.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	bar.add_child(swatch)
-	bar.add_child(UiKit.label(UiKit.t(RunState.kingdom.display_name), 12, RunState.kingdom.color))
-	return panel
 
 
 ## Alınan fermanlar; üstüne gelince açıklaması görünür.

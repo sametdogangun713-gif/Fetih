@@ -20,6 +20,8 @@ var info_text := Callable()
 var _runner: BattleRunner
 var _root: Control
 var _matchup_label: Label
+var _matchup_panel: PanelContainer
+var _run_header: HBoxContainer  ## Koşuda: kalpler + aşama göstergesi (PrepLayer.run_header).
 var _info_label: Label
 var _speed_buttons: Array[Button] = []
 var _result_panel: PanelContainer
@@ -41,6 +43,9 @@ func setup(runner: BattleRunner, pause_menu: PauseMenu) -> void:
 	add_child(_root)
 	_build_info_strip()
 	_build_matchup_panel()
+	_run_header = PrepLayer.run_header()
+	_run_header.visible = false
+	_root.add_child(_run_header)
 	_build_speed_buttons(pause_menu)
 	_build_result_panel()
 	# Şerit ekran pikselidir: ilk kamera çerçevesi kutunun altına bu payı ekler.
@@ -56,7 +61,23 @@ func reset() -> void:
 	set_speed(Settings.battle_speed)
 
 
+## Koşu modu: sol üstte kalpler, ortada aşama göstergesi (eşleşme kutusu gizli).
+func show_run_header() -> void:
+	_matchup_panel.visible = false
+	_run_header.visible = true
+	update_run_header(false)
+
+
+## Can ve aşama göstergesini RunState'e göre günceller. animate: kaybedilen kalp kırılarak boşalır.
+func update_run_header(animate := true) -> void:
+	_run_header.get_meta("hearts").set_lives(RunState.lives, animate)
+	_run_header.get_meta("progress").refresh()
+
+
+## Test modu: sol üstte eşleşme yazısı kutusu.
 func show_matchup(text: String) -> void:
+	_matchup_panel.visible = true
+	_run_header.visible = false
 	_matchup_label.text = text
 	# Etiket genişliği metne göre (en çok MATCHUP_MAX_WIDTH): kutu metin kadar olur, uzun metin alt satıra geçer.
 	var font := _matchup_label.get_theme_font("font")
@@ -97,6 +118,7 @@ func _process(_delta: float) -> void:
 func _build_matchup_panel() -> void:
 	var panel := UiKit.strip_panel(0.82)
 	panel.position = Vector2(4, 4)
+	_matchup_panel = panel
 	_root.add_child(panel)
 	_matchup_label = UiKit.label("", 10)
 	_matchup_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

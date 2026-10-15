@@ -1,6 +1,6 @@
 class_name PrepLayer
 extends CanvasLayer
-## Hazırlık katmanı: üst şerit (savaş, can, krallık, harita), sol bilgi paneli, "Savaşa başla".
+## Hazırlık katmanı: sol üstte kalpler, üst ortada aşama göstergesi, sol bilgi paneli, "Savaşa başla".
 ## Bölükler alanda sürüklenir: sol tıkla tut, bırak. Sürüklerken bant adı (ön/orta/arka) görünür.
 ## Godot: CanvasLayer ekrana sabit çizilir (kamerayla kaymaz); fare olayları _input / _unhandled_input ile alınır.
 
@@ -11,6 +11,8 @@ const SIDE_WIDTH := 150.0  ## Sol panelin genişliği (640 px'lik ekranda küç�
 var dragging := -1  ## Sürüklenen bölüğün ordu sırası; -1 yok.
 var _meydan: Node
 var _info: Label
+var _hearts: LivesHearts
+var _progress: RunProgress
 var _band_label: Label
 var _drag_from := Vector2.ZERO
 var _mouse := Vector2.ZERO  ## Son fare olayının ekran konumu (bant etiketi için).
@@ -23,25 +25,15 @@ func setup(meydan: Node) -> void:
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.theme = UiKit.theme()  # CanvasLayer bir Control değil: tema ebeveynden gelmez, kök Control'e verilir
 	add_child(root)
-	# Üst şerit + harita: köşelerde az arayüz; ortası boş kalır.
-	var top := UiKit.vbox(2)
-	top.set_anchors_preset(Control.PRESET_TOP_WIDE)
-	top.offset_left = 6
-	top.offset_right = -6
-	top.offset_top = 4
-	top.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# Üst satır: solda kalpler, ortada aşama göstergesi; ekranın geri kalanı alana kalır.
+	var top := run_header()
+	_hearts = top.get_meta("hearts")
+	_progress = top.get_meta("progress")
 	root.add_child(top)
-	top.add_child(SquadInfo.top_bar())
-	var map_row := UiKit.hbox()
-	map_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	map_row.add_child(UiKit.spacer())
-	map_row.add_child(RunMap.new())
-	map_row.add_child(UiKit.spacer())
-	top.add_child(map_row)
 	# Sol bilgi paneli: yarı saydam, dar; rakip özeti, fermanlar ve fare altındaki bölüğün ayrıntısı.
 	var side := UiKit.panel(Color(UiKit.COLOR_PANEL, 0.78))
 	side.set_anchors_preset(Control.PRESET_TOP_LEFT)
-	side.position = Vector2(6, 62)
+	side.position = Vector2(6, 30)
 	side.custom_minimum_size = Vector2(SIDE_WIDTH, 0)
 	root.add_child(side)
 	var box := UiKit.vbox(3)
@@ -71,6 +63,36 @@ func setup(meydan: Node) -> void:
 func refresh() -> void:
 	dragging = -1
 	_band_label.visible = false
+	_hearts.set_lives(RunState.lives, false)
+	_progress.refresh()
+
+
+## Üst satır (hazırlık ve savaş HUD'u ortak): sol üstte kalpler, ortada aşama göstergesi.
+## Parçalar set_meta ile iliştirilir ("hearts", "progress"): çağıran günceller.
+static func run_header() -> HBoxContainer:
+	var top := UiKit.hbox(10)
+	top.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	top.offset_left = 8
+	top.offset_right = -8
+	top.offset_top = 6
+	top.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var hearts := LivesHearts.new(RunState.lives, RunState.max_lives)
+	top.add_child(hearts)
+	var left_pad := UiKit.spacer()
+	left_pad.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	top.add_child(left_pad)
+	var progress := RunProgress.new()
+	top.add_child(progress)
+	var right_pad := UiKit.spacer()
+	right_pad.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	top.add_child(right_pad)
+	var balance := Control.new()  # sağda kalp genişliği kadar boşluk: gösterge tam ortada kalsın
+	balance.custom_minimum_size = hearts.custom_minimum_size
+	balance.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	top.add_child(balance)
+	top.set_meta("hearts", hearts)
+	top.set_meta("progress", progress)
+	return top
 
 
 ## Sürükleme aşaması _input'ta: sol panelin üstünde bırakılan düğme de yakalanır (GUI olayı yutamaz).
