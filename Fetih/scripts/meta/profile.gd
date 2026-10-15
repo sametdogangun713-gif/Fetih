@@ -51,6 +51,9 @@ func load_profile() -> void:
 
 
 func save_profile() -> void:
+	if save_path == SAVE_PATH and is_tool_run():
+		push_warning("Araç scripti oyuncunun gerçek kaydına yazmak istedi; atlandı (save_path'i değiştir).")
+		return
 	var unlocked_ids: Array[String] = []
 	for id in unlocked:
 		unlocked_ids.append(String(id))
@@ -74,6 +77,13 @@ func save_profile() -> void:
 			ProjectSettings.globalize_path(save_path))
 	if err != OK:
 		push_error("Kayıt taşınamadı (%d)" % err)
+
+
+## Araç scriptiyle mi çalışıyoruz (godot -s ...)? Oyun (editörden F5 ya da yayın) hiç -s almaz.
+## Godot: OS.get_cmdline_args() motorun komut satırı argümanlarını verir.
+static func is_tool_run() -> bool:
+	var args := OS.get_cmdline_args()
+	return args.has("-s") or args.has("--script")
 
 
 ## Eski sürüm kayıtlarını yeni biçime çevirir. Sürüm 2 gelince buraya adım eklenir.

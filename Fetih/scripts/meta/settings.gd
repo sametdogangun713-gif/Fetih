@@ -50,6 +50,10 @@ func load_settings() -> void:
 
 
 func save_settings() -> void:
+	var args := OS.get_cmdline_args()
+	if settings_path == SETTINGS_PATH and (args.has("-s") or args.has("--script")):
+		push_warning("Araç scripti oyuncunun gerçek ayar dosyasına yazmak istedi; atlandı.")
+		return
 	var file := ConfigFile.new()
 	for bus: StringName in volumes:
 		file.set_value("audio", String(bus), volumes[bus])
