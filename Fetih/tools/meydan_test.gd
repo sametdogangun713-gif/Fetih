@@ -89,11 +89,14 @@ func _initialize() -> void:
 	meydan.enter(meydan.Phase.BATTLE)
 	check("savaş başladı", meydan.runner.running)
 	check("BATTLE: HUD görünür, hazırlık gizli", meydan.hud.visible and not meydan.prep.visible)
+	check("koşuda süre şeridi gizli", not meydan.hud.strip_visible())
+	check("hız düğmeleri simgeli", meydan.hud.speed_buttons().all(func(b: Button) -> bool: return b.icon != null))
 	var sim: BattleSimulation = meydan.runner.simulation
 	while not sim.finished:
 		sim.step()
 	await process_frame
 	check("sonuç kaydedildi", run.results.size() == 1)
+	check("sonuç başlığı büyük başlık fontu", meydan.hud.result_title().get_theme_font("font") == UiKit.heading_font())
 	meydan.hud.continue_pressed.emit()
 	await process_frame
 	check("CARDS aşaması", meydan.phase == meydan.Phase.CARDS)

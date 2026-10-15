@@ -13,6 +13,8 @@ var content: VBoxContainer  ## Panelin içi; çağıran doldurur.
 var close_on_cancel := true  ## Esc pencereyi kapatsın mı.
 
 var _pause_tree := false
+var _panel: PanelContainer
+var _dim: ColorRect
 var _paused_by_me := false  ## Oyunu bu pencere durdurdu (kapanınca o devam ettirir).
 
 
@@ -31,16 +33,28 @@ func _init(width := 300.0, pause_tree := false, layer_index := 10) -> void:
 	var center := CenterContainer.new()
 	center.set_anchors_preset(Control.PRESET_FULL_RECT)
 	root.add_child(center)
-	var panel := UiKit.panel()
+	var panel := UiKit.game_panel(0.95)
 	var style: StyleBoxFlat = panel.get_theme_stylebox("panel")
-	style.set_border_width_all(1)
-	style.border_color = UiKit.COLOR_GOLD.darkened(0.4)
-	style.set_content_margin_all(10)
+	style.border_color = Color(UiKit.COLOR_GOLD, 0.6)
+	style.set_corner_radius_all(8)
+	style.set_content_margin_all(12)
 	panel.custom_minimum_size.x = width
 	center.add_child(panel)
+	_panel = panel
+	_dim = dim
 	content = UiKit.vbox(6)
 	panel.add_child(content)
 	_pause_tree = pause_tree
+
+
+## Açılış: karartma solar, panel küçükten "zıplayarak" gelir (yerleşim bir kare sonra biter).
+func _ready() -> void:
+	UiKit.fade_in(_dim, 0.0, 0.15)
+	_panel.modulate.a = 0.0
+	await get_tree().process_frame
+	if is_instance_valid(_panel):
+		UiKit.fade_in(_panel, 0.0, 0.15)
+		UiKit.pop(_panel, 0.22)
 
 
 func _enter_tree() -> void:

@@ -31,10 +31,12 @@ func open() -> void:
 		return
 	_overlay = Overlay.new(220.0, true, 15)
 	var box := _overlay.content
-	box.add_child(UiKit.centered(tr("DURAKLATILDI"), 16, UiKit.COLOR_GOLD))
+	var title := UiKit.label(tr("DURAKLATILDI"), 18, UiKit.COLOR_GOLD, true)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	box.add_child(title)
 	if note != "":
 		box.add_child(UiKit.wrapped(note, 9, UiKit.COLOR_MUTED))
-	box.add_child(UiKit.button(tr("Devam"), _close))
+	box.add_child(UiKit.button_primary(tr("Devam"), _close))
 	box.add_child(UiKit.button(tr("Ayarlar"), func() -> void: SettingsPanel.open(self)))
 	box.add_child(UiKit.button(tr("Ana menüye dön"), _to_main_menu))
 	_overlay.closed.connect(func() -> void: _overlay = null)

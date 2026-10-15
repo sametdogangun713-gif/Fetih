@@ -35,7 +35,12 @@ func setup(meydan: Node) -> void:
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.theme = UiKit.theme()  # CanvasLayer bir Control değil: tema ebeveynden gelmez
 	add_child(root)
-	_panel = UiKit.panel(Color(UiKit.COLOR_PANEL, 0.97))
+	_panel = UiKit.game_panel(0.95)
+	var panel_style: StyleBoxFlat = _panel.get_theme_stylebox("panel")
+	panel_style.corner_radius_bottom_left = 0
+	panel_style.corner_radius_bottom_right = 0
+	panel_style.corner_radius_top_left = 10
+	panel_style.corner_radius_top_right = 10
 	_panel.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
 	_panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	_panel.offset_top = -PANEL_HEIGHT
@@ -77,13 +82,13 @@ func _header() -> Control:
 		var text := tr("%s yenildi!") % tr(opponent.boss.display_name)
 		if RunState.last_life_restored:
 			text += tr("  +1 can (%d/%d)") % [RunState.lives, RunState.max_lives]
-		title = UiKit.label(text, 13, UiKit.COLOR_GOLD)
+		title = UiKit.label(text, 13, UiKit.COLOR_GOLD, true)
 	elif RunState.last_battle_won:
-		title = UiKit.label(tr("Zafer!"), 14, UiKit.COLOR_GOOD)
+		title = UiKit.label(tr("Zafer!"), 14, UiKit.COLOR_GOLD, true)
 	else:
-		title = UiKit.label(tr("Yenilgi... Bir can kaybettin (kalan: %d).") % RunState.lives, 12, UiKit.COLOR_BAD)
-	var sub := UiKit.label(tr("%s ganimeti: bir kart seç  ·  Ordun %d/%d bölük") % [
-			tr(opponent.display_name), RunState.army.size(), Balance.MAX_SQUADS], 9, UiKit.COLOR_MUTED)
+		title = UiKit.label(tr("Yenilgi"), 14, UiKit.COLOR_BAD, true)
+	var sub := UiKit.label(tr("Ganimet seç  ·  Ordun %d/%d bölük") % [RunState.army.size(), Balance.MAX_SQUADS],
+			9, UiKit.COLOR_MUTED)
 	sub.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	sub.clip_text = true  # dar ekranda butonlara çarpmasın: taşan kısım kırpılır
 	sub.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
@@ -92,8 +97,8 @@ func _header() -> Control:
 		label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		bar.add_child(label)
 	if RunState.rerolls_left > 0:
-		bar.add_child(UiKit.button(tr("Yeniden çek (%d hak)") % RunState.rerolls_left, _on_reroll))
-	bar.add_child(UiKit.button(tr("Kart alma, devam et"), func() -> void: skipped.emit()))
+		bar.add_child(UiKit.button_ghost(tr("Yeniden çek (%d hak)") % RunState.rerolls_left, _on_reroll))
+	bar.add_child(UiKit.button_ghost(tr("Kart alma, devam et"), func() -> void: skipped.emit()))
 	return bar
 
 

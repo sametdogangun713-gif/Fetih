@@ -517,15 +517,21 @@ static func card_frame(kind: CardOffer.Kind, kingdom: KingdomData, unit: UnitDat
 		CardOffer.Kind.PASSIVE:
 			edge = COLOR_PASSIVE
 	var frame := PanelContainer.new()
-	var style := panel_style(COLOR_PANEL, 2)  # iç boşluk = kenar kalınlığı: içerik kenarı örtmesin
-	style.set_border_width_all(2)
+	# Koyu şık kart: 6 px köşe, 1 px tür renkli kenar, üstte 3 px tür şeridi (resim alanının üst kenarı).
+	var style := _box(Color(0.10, 0.11, 0.14, 0.97), Color(edge, 0.85), 1, 6, 1)
+	style.border_width_top = 3
 	style.border_color = edge
+	style.content_margin_top = 3
 	frame.add_theme_stylebox_override("panel", style)
 	var column := vbox(0)
 	frame.add_child(column)
-	# Resim alanı: koyu zemin, ortalanmış resim, altında tür renginde 1 px çizgi.
-	var art_bg := ColorRect.new()
-	art_bg.color = COLOR_SLOT_EMPTY
+	# Resim alanı: biraz daha koyu zemin (üst köşeleri karta uyar), ortalanmış resim, altında 1 px çizgi.
+	var art_bg := Panel.new()
+	var art_style := StyleBoxFlat.new()
+	art_style.bg_color = Color(0.05, 0.06, 0.08, 1.0)
+	art_style.corner_radius_top_left = 3
+	art_style.corner_radius_top_right = 3
+	art_bg.add_theme_stylebox_override("panel", art_style)
 	art_bg.custom_minimum_size = Vector2(0, art_height)
 	art_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	column.add_child(art_bg)
@@ -546,7 +552,7 @@ static func card_frame(kind: CardOffer.Kind, kingdom: KingdomData, unit: UnitDat
 	center.add_child(art)
 	art_bg.add_child(center)
 	var line := ColorRect.new()
-	line.color = edge
+	line.color = Color(edge, 0.5)
 	line.custom_minimum_size = Vector2(0, 1)
 	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	column.add_child(line)

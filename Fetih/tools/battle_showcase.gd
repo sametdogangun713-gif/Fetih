@@ -9,6 +9,7 @@ extends SceneTree
 ##   Başka ekran: -- scene res://scenes/ui/kingdom_select.tscn [settings|pause]  (kayıt ayrı dosyaya)
 ##     Koşu ekranı için "meydan" modunu kullan: Meydan aşamasını (prep|battle|cards) o mod açar.
 ##   Meydan: -- meydan prep|battle|cards [krallık sırası] [oynanmış savaş sayısı]  (kayıt ayrı dosyaya)
+##     Ek: "pause" duraklatma menüsünü, "result" (battle ile) sonuç panelini açar.
 ##   Yakın kamera: herhangi bir yerde "zoom" (sabit 2x, otomatik takip kapalı).
 ##   İpuçsuz: herhangi bir yerde "notips" (ekran görüntüleri için).
 ##   Flaş/sarsıntı kapalı: herhangi bir yerde "nofx" (bellekte; ayar dosyasına yazılmaz).
@@ -88,6 +89,11 @@ func _initialize() -> void:
 		if zoom:
 			meydan.battlefield.camera.auto_follow = false
 			meydan.battlefield.camera._set_zoom_index(BattleCamera.ZOOM_LEVELS.size() - 1)
+		await process_frame
+		if args.has("pause"):  # duraklatma menüsü açık
+			meydan._pause_menu.open()
+		if args.has("result"):  # savaş sonucu paneli (gösterim; koşu durumu değişmez)
+			meydan.hud.show_result(true, 12, true)
 		return
 	var battle: Node = load("res://scenes/battle/battle.tscn").instantiate()
 	if args.size() > 0 and args[0] == "list":

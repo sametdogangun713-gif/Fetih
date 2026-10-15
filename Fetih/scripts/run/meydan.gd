@@ -111,9 +111,9 @@ func _set_frame_pads(p: Phase) -> void:
 			runner.frame_pad_top = 8.0
 			runner.frame_pad_bottom = CardLayer.PANEL_HEIGHT
 			runner.frame_pad_left = 0.0
-		_:
-			runner.frame_pad_top = 0.0
-			runner.frame_pad_bottom = BattleHud.STRIP_HEIGHT
+		_:  # savaş: üstte kalpler + aşama göstergesi (alt şerit koşuda yok)
+			runner.frame_pad_top = FRAME_PAD_TOP
+			runner.frame_pad_bottom = 0.0
 			runner.frame_pad_left = 0.0
 
 
