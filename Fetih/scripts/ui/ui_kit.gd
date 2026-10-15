@@ -1,6 +1,6 @@
 class_name UiKit
-## Arayüz yardımcıları: bütün ekranlar aynı yazı boyutunu, renkleri ve kutuları kullansın.
-## Gerçek arayüz çizimleri gelince (Aşama 9) bu dosya bir Theme kaynağına dönüşecek.
+## Arayüz yardımcıları: bütün ekranlar aynı yazı tiplerini, renkleri ve kutuları kullansın.
+## İki tema: theme_menu() (menü ekranları, renkli fantastik) ve theme_game() (Meydan, koyu şık).
 
 const FONT_SIZE := 11
 const COLOR_BG := Color("1a1714")
@@ -12,6 +12,13 @@ const COLOR_GOOD := Color("8fd47f")
 const COLOR_BAD := Color("e06a5a")
 const COLOR_GOLD := Color("e8c25a")
 
+## Menü teması (renkli fantastik): gece mavisi gök, parşömen panel, koyu mürekkep yazı.
+const COLOR_SKY := Color("1e2a4a")
+const COLOR_PARCHMENT := Color("f2e3c0")
+const COLOR_INK := Color("3b2a1e")
+## Oyun teması (koyu şık): saydam koyu panel.
+const COLOR_GAME_PANEL := Color(0.07, 0.08, 0.10, 0.82)
+
 ## Panel ve düğme kenarı (Resurrect 64 gri-mor): 9 Kings tarzı koyu kutu, ince açık kenar.
 const COLOR_EDGE := Color("625565")
 ## Arayüz yazı tipleri (OFL, Google Fonts): Cinzel başlık (fantastik büyük harf), Nunito metin.
@@ -21,32 +28,88 @@ const COLOR_EDGE := Color("625565")
 const FONT_BODY_PATH := "res://assets/fonts/Nunito.ttf"
 const FONT_HEADING_PATH := "res://assets/fonts/Cinzel.ttf"
 
-static var _theme: Theme
 static var _fonts := {}  ## "yol|ağırlık" -> Font
 
 
-## Ekranların kök düğümüne verilir; tüm alt düğümler bu yazı boyutunu, kutuları ve düğmeleri kullanır.
+static var _theme_menu: Theme
+static var _theme_game: Theme
+
+
+## Ekranların kök düğümüne verilir; tüm alt düğümler bu yazı tipini, kutuları ve düğmeleri kullanır.
 ## Godot: Theme, Control'lere tür adına göre (Button, PanelContainer...) stil verir; alt düğümler
 ## temayı ebeveynden devralır, bu yüzden kökteki tek tema bütün ekranı boyar.
+## theme(): oyun içi (Meydan) koyu şık tema. Menü ekranları theme_menu() kullanır.
 static func theme() -> Theme:
-	if _theme == null:
-		_theme = Theme.new()
-		_theme.default_font = ui_font()
-		_theme.default_font_size = FONT_SIZE
-		var box := panel_style(COLOR_PANEL)
-		_theme.set_stylebox("panel", "PanelContainer", box)
-		_theme.set_stylebox("panel", "Panel", box)
-		_theme.set_stylebox("panel", "TooltipPanel", panel_style(COLOR_BG, 4))
-		_theme.set_stylebox("normal", "Button", _button_style(COLOR_PANEL, COLOR_EDGE))
-		_theme.set_stylebox("hover", "Button", _button_style(COLOR_PANEL.lightened(0.08), COLOR_GOLD))
-		_theme.set_stylebox("pressed", "Button", _button_style(COLOR_BG, COLOR_GOLD))
-		_theme.set_stylebox("disabled", "Button", _button_style(COLOR_BG, COLOR_EDGE.darkened(0.4)))
-		_theme.set_stylebox("focus", "Button", StyleBoxEmpty.new())
-		_theme.set_color("font_color", "Button", COLOR_TEXT)
-		_theme.set_color("font_hover_color", "Button", COLOR_GOLD)
-		_theme.set_color("font_pressed_color", "Button", COLOR_GOLD)
-		_theme.set_color("font_disabled_color", "Button", COLOR_MUTED.darkened(0.3))
-	return _theme
+	return theme_game()
+
+
+## Koyu şık: %82 saydam koyu panel, 1 px ince altın kenar, 4 px köşe, yumuşak gölge.
+static func theme_game() -> Theme:
+	if _theme_game == null:
+		_theme_game = _build_theme(COLOR_GAME_PANEL, Color(COLOR_GOLD, 0.55), 1, 4, COLOR_TEXT)
+	return _theme_game
+
+
+## Renkli fantastik: parşömen panel, 2 px altın kenar, 8 px köşe, koyu mürekkep yazı.
+static func theme_menu() -> Theme:
+	if _theme_menu == null:
+		_theme_menu = _build_theme(COLOR_PARCHMENT, COLOR_GOLD, 2, 8, COLOR_INK)
+	return _theme_menu
+
+
+static func _build_theme(panel_color: Color, edge: Color, border: int, radius: int, text: Color) -> Theme:
+	var t := Theme.new()
+	t.default_font = ui_font()
+	t.default_font_size = FONT_SIZE
+	var box := _box(panel_color, edge, border, radius, 8)
+	t.set_stylebox("panel", "PanelContainer", box)
+	t.set_stylebox("panel", "Panel", box)
+	t.set_stylebox("panel", "TooltipPanel", _box(Color(0.05, 0.05, 0.07, 0.95), Color(COLOR_GOLD, 0.6), 1, 4, 4))
+	t.set_color("font_color", "Label", text)
+	t.set_color("font_color", "TooltipLabel", COLOR_TEXT)
+	# Odak çerçevesi tek tip ve ince: sadece klavyeyle gezilirken görünür (fareyle tıklanınca odak bırakılır).
+	var focus := _box(Color(0, 0, 0, 0), COLOR_GOLD, 1, radius, 0)
+	focus.shadow_size = 0
+	for type in ["Button", "CheckButton", "CheckBox", "OptionButton", "HSlider", "TabBar"]:
+		t.set_stylebox("focus", type, focus)
+	var button_bg := panel_color.darkened(0.15) if text == COLOR_INK else Color(0.12, 0.13, 0.16, 0.9)
+	t.set_stylebox("normal", "Button", _box(button_bg, edge, border, radius, 6))
+	t.set_stylebox("hover", "Button", _box(button_bg.lightened(0.1), COLOR_GOLD, border, radius, 6))
+	t.set_stylebox("pressed", "Button", _box(button_bg.darkened(0.25), COLOR_GOLD, border, radius, 6))
+	t.set_stylebox("disabled", "Button", _box(Color(button_bg.darkened(0.3), 0.7), edge.darkened(0.5), border, radius, 6))
+	var empty := StyleBoxEmpty.new()
+	for type in ["CheckButton", "CheckBox"]:  # açma/kapama: zeminsiz, hepsi aynı stil
+		for state in ["normal", "hover", "pressed", "disabled", "hover_pressed"]:
+			t.set_stylebox(state, type, empty)
+	t.set_color("font_color", "Button", text)
+	t.set_color("font_hover_color", "Button", COLOR_GOLD if text == COLOR_TEXT else COLOR_INK.darkened(0.4))
+	t.set_color("font_pressed_color", "Button", COLOR_GOLD if text == COLOR_TEXT else COLOR_INK)
+	t.set_color("font_focus_color", "Button", text)
+	t.set_color("font_disabled_color", "Button", COLOR_MUTED)
+	for type in ["CheckButton", "CheckBox", "OptionButton"]:
+		for key in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
+			t.set_color(key, type, text)
+	t.set_stylebox("slider", "HSlider", _box(Color(0, 0, 0, 0.35), Color(0, 0, 0, 0), 0, 3, 2))
+	t.set_stylebox("grabber_area", "HSlider", _box(COLOR_GOLD, Color(0, 0, 0, 0), 0, 3, 2))
+	t.set_stylebox("grabber_area_highlight", "HSlider", _box(COLOR_GOLD.lightened(0.2), Color(0, 0, 0, 0), 0, 3, 2))
+	return t
+
+
+## Yuvarlak köşeli, gölgeli kutu (temaların ve düğme türlerinin ortak yapı taşı).
+static func _box(bg: Color, edge: Color, border: int, radius: int, margin: int) -> StyleBoxFlat:
+	var s := StyleBoxFlat.new()
+	s.bg_color = bg
+	s.border_color = edge
+	s.set_border_width_all(border)
+	s.set_corner_radius_all(radius)
+	s.shadow_color = Color(0, 0, 0, 0.35)
+	s.shadow_size = 3
+	s.shadow_offset = Vector2(0, 2)
+	s.set_content_margin_all(margin)
+	s.content_margin_top = mini(margin, 3)
+	s.content_margin_bottom = mini(margin, 3)
+	s.anti_aliasing = true
+	return s
 
 
 ## Metin yazı tipi (Nunito), weight: 200-1000 (400 normal, 700 kalın).
@@ -111,12 +174,14 @@ static func _button_style(color: Color, edge: Color) -> StyleBoxFlat:
 
 
 ## Ekranı kaplayan arka plan + kenar boşluklu içerik kutusu. İçeriği döndürür.
-static func screen_root(screen: Control, margin := 10) -> VBoxContainer:
-	screen.theme = theme()
-	var bg := ColorRect.new()
-	bg.color = COLOR_BG
-	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	screen.add_child(bg)
+## menu: renkli fantastik tema, arka plan eklenmez (ekran kendi MenuBackdrop'unu koyar).
+static func screen_root(screen: Control, margin := 10, menu := false) -> VBoxContainer:
+	screen.theme = theme_menu() if menu else theme()
+	if not menu:
+		var bg := ColorRect.new()
+		bg.color = COLOR_BG
+		bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+		screen.add_child(bg)
 	var margin_box := MarginContainer.new()
 	margin_box.set_anchors_preset(Control.PRESET_FULL_RECT)
 	for side in ["margin_left", "margin_right", "margin_top", "margin_bottom"]:
@@ -148,14 +213,41 @@ static func centered(text: String, size := FONT_SIZE, color := COLOR_TEXT) -> La
 	return l
 
 
+## Normal düğme (temadan stil alır). Klavyeyle odaklanabilir; fareyle tıklanınca odak bırakılır,
+## böylece odak çerçevesi sadece klavye/gamepad ile gezilirken görünür.
 static func button(text: String, on_pressed: Callable) -> Button:
 	var b := Button.new()
 	b.text = text
-	b.focus_mode = Control.FOCUS_NONE
+	b.focus_mode = Control.FOCUS_ALL
+	b.gui_input.connect(func(event: InputEvent) -> void:
+		if event is InputEventMouseButton and not event.pressed:
+			b.release_focus())
 	b.pressed.connect(click_sound)
 	b.pressed.connect(on_pressed)
 	b.mouse_entered.connect(hover_scale.bind(b, true))
 	b.mouse_exited.connect(hover_scale.bind(b, false))
+	return b
+
+
+## Birincil düğme: altın dolgu, kalın yazı (Başla, Devam et gibi ana eylem).
+static func button_primary(text: String, on_pressed: Callable) -> Button:
+	var b := button(text, on_pressed)
+	b.add_theme_stylebox_override("normal", _box(COLOR_GOLD, COLOR_GOLD.lightened(0.35), 2, 6, 8))
+	b.add_theme_stylebox_override("hover", _box(COLOR_GOLD.lightened(0.15), Color.WHITE, 2, 6, 8))
+	b.add_theme_stylebox_override("pressed", _box(COLOR_GOLD.darkened(0.15), COLOR_GOLD, 2, 6, 8))
+	b.add_theme_stylebox_override("disabled", _box(Color(COLOR_MUTED, 0.6), COLOR_MUTED, 2, 6, 8))
+	b.add_theme_font_override("font", ui_font(800))
+	for key in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
+		b.add_theme_color_override(key, COLOR_INK)
+	return b
+
+
+## Hayalet düğme: saydam zemin, ince altın kenar (ikincil eylem: Geç, Geri).
+static func button_ghost(text: String, on_pressed: Callable) -> Button:
+	var b := button(text, on_pressed)
+	b.add_theme_stylebox_override("normal", _box(Color(1, 1, 1, 0.06), Color(COLOR_GOLD, 0.5), 1, 6, 6))
+	b.add_theme_stylebox_override("hover", _box(Color(1, 1, 1, 0.14), COLOR_GOLD, 1, 6, 6))
+	b.add_theme_stylebox_override("pressed", _box(Color(0, 0, 0, 0.2), COLOR_GOLD, 1, 6, 6))
 	return b
 
 
@@ -193,10 +285,64 @@ static func unit_icon(unit: UnitData, scale := 2) -> TextureRect:
 	return icon
 
 
-static func panel(color := COLOR_PANEL) -> PanelContainer:
+## Koyu şık oyun paneli. color verilirse o zemin (eski çağrılar), yoksa saydam koyu.
+static func panel(color := COLOR_GAME_PANEL) -> PanelContainer:
 	var p := PanelContainer.new()
-	p.add_theme_stylebox_override("panel", panel_style(color))
+	p.add_theme_stylebox_override("panel", _box(color, Color(COLOR_GOLD, 0.45), 1, 4, 6))
 	return p
+
+
+static func game_panel(alpha := 0.82) -> PanelContainer:
+	return panel(Color(COLOR_GAME_PANEL, alpha))
+
+
+## Renkli fantastik menü paneli: parşömen, 2 px altın kenar, 8 px köşe.
+static func menu_panel() -> PanelContainer:
+	var p := PanelContainer.new()
+	p.add_theme_stylebox_override("panel", _box(COLOR_PARCHMENT, COLOR_GOLD, 2, 8, 10))
+	return p
+
+
+# --- Animasyon (Tween) ---
+
+## Animasyon süre çarpanı: oyuncu ekran sarsıntısını ve flaşı kapattıysa geçişler yarı sürede biter.
+## Settings autoload'una düğüm yolundan ulaşılır (araç scriptleri adı derleme anında tanımaz).
+static func anim_scale() -> float:
+	var settings := (Engine.get_main_loop() as SceneTree).root.get_node_or_null(^"Settings")
+	if settings and not settings.screen_shake and not settings.flash_effects:
+		return 0.5
+	return 1.0
+
+
+## Saydamdan görünüre solma. delay: başlamadan önce bekleme (sırayla gelen öğeler için).
+static func fade_in(node: CanvasItem, delay := 0.0, time := 0.25) -> Tween:
+	node.modulate.a = 0.0
+	var tw := node.create_tween()
+	if delay > 0.0:
+		tw.tween_interval(delay * anim_scale())
+	tw.tween_property(node, "modulate:a", 1.0, time * anim_scale())
+	return tw
+
+
+## Kayarak gelme (from: başlangıç farkı) + solma. Kapsayıcı (Box/Grid) içindeki düğümde konumu kapsayıcı
+## ezer: sadece serbest konumlu düğümlerde kullan, kapsayıcı içindekiler için fade_in.
+static func slide_in(control: Control, from: Vector2, delay := 0.0, time := 0.3) -> Tween:
+	var target := control.position
+	control.position = target + from
+	var tw := fade_in(control, delay, time)
+	tw.parallel().tween_property(control, "position", target, time * anim_scale()) \
+			.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	return tw
+
+
+## Küçükten yerine "zıplayarak" büyüme (sonuç paneli, seçilen kart).
+static func pop(control: Control, time := 0.2) -> Tween:
+	control.pivot_offset = control.size / 2.0
+	control.scale = Vector2.ONE * 0.85
+	var tw := control.create_tween()
+	tw.tween_property(control, "scale", Vector2.ONE, time * anim_scale()) \
+			.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	return tw
 
 
 ## Üst şerit / küçük etiket kutusu: ince panel (yatay 6, dikey 2 boşluk), hafif saydam zemin.
