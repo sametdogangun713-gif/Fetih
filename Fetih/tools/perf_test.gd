@@ -8,7 +8,7 @@ extends SceneTree
 ## Her senaryo önce ısınır (yükleme sıçraması sayılmasın), sonra her kare kaydedilir:
 ## - kare süresi (iki process_frame arası) -> min / ortalama / %1 düşük FPS
 ## - betik süresi: process_frame -> RenderingServer.frame_pre_draw (bütün _process'ler + _draw'lar)
-## - savaş _process: BattleController._process süresi (simülasyon + görüntü güncelleme + efektler)
+## - savaş _process: BattleRunner._process süresi (simülasyon + görüntü güncelleme + efektler)
 ## - render: frame_pre_draw -> frame_post_draw (CPU'nun çizim komutlarını hazırlaması)
 ## - Performance monitörleri: TIME_PROCESS / TIME_PHYSICS_PROCESS (Godot bunları saniyede bir,
 ##   o saniyenin EN UZUN karesi olarak günceller), draw call, nesne, düğüm, Object, bellek.
@@ -101,9 +101,9 @@ func _measure(scenario: String, secs: float) -> void:
 		return
 	root.add_child(scene)
 	if scenario in ["battle5", "boss"]:
-		_battle = scene
+		_battle = scene.runner  # simülasyon + görüntü + efekt BattleRunner._process'te
 		scene._set_speed(_speed)
-		scene.set_process(false)  # _process'i _on_frame çağırır (süresi ölçülsün)
+		scene.runner.set_process(false)  # _process'i _on_frame çağırır (süresi ölçülsün)
 	await create_timer(WARMUP).timeout
 	_reset_samples()
 	_sampling = true
