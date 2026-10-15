@@ -31,6 +31,7 @@ func _initialize() -> void:
 	await process_frame
 	await test_backdrop()
 	await test_main_menu()
+	await test_kingdom_select()
 	print("Hata: %d" % failures)
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(TEST_SAVE))
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(TEST_SETTINGS))
@@ -108,4 +109,62 @@ func test_main_menu() -> void:
 	await process_frame
 	check("tuşla açılış geçildi", not menu.intro_playing() and menu.buttons()[0].modulate.a > 0.99)
 	menu.queue_free()
+	await process_frame
+
+
+func _action(name: StringName) -> InputEventAction:
+	var ev := InputEventAction.new()
+	ev.action = name
+	ev.pressed = true
+	return ev
+
+
+func test_kingdom_select() -> void:
+	var run := root.get_node("RunState")
+	var profile := root.get_node("Profile")
+	run.end_run()
+	var screen: Control = load("res://scenes/ui/kingdom_select.tscn").instantiate()
+	root.add_child(screen)
+	await process_frame
+	check("krallık seçimi yeni API", screen.has_method("selected"))
+	if not screen.has_method("selected"):
+		screen.queue_free()
+		return
+	var all := KingdomCatalog.all()
+	check("ilk açık krallık seçili", profile.is_unlocked(screen.selected().id))
+	check("10 sancak", screen.banners().size() == all.size())
+	# Review Focus 4: kilitli krallık klavyeyle seçilince Başla kapalı, Enter koşu başlatmaz.
+	var locked: KingdomData = null
+	for k in all:
+		if not profile.is_unlocked(k.id):
+			locked = k
+			break
+	check("test profilinde kilitli krallık var", locked != null)
+	if locked:
+		screen.select(locked)
+		check("kilitli krallıkta Başla devre dışı", screen.start_button().disabled)
+		screen._unhandled_input(_action(&"ui_accept"))
+		check("kilitliyle Enter koşu başlatmaz", not run.active)
+	screen.select(all[0])
+	screen._unhandled_input(_action(&"ui_right"))
+	check("sağ ok sonraki krallık", screen.selected() == all[1])
+	screen._unhandled_input(_action(&"ui_left"))
+	check("sol ok önceki krallık", screen.selected() == all[0])
+	for banner: Control in screen.banners():
+		var label: Label = banner.name_label
+		check("%s sancak adı sığıyor" % banner.kingdom.id,
+				label.get_minimum_size().x <= banner.size.x + 0.5 or label.clip_text)
+	screen.queue_free()
+	await process_frame
+	# Review Focus 1: İngilizce metinlerle Başla düğmesi ekranın içinde.
+	TranslationServer.set_locale("en")
+	screen = load("res://scenes/ui/kingdom_select.tscn").instantiate()
+	root.add_child(screen)
+	await process_frame
+	await process_frame
+	var rect: Rect2 = screen.start_button().get_global_rect()
+	var view := root.get_visible_rect().size
+	check("EN: Başla düğmesi ekranda (%s)" % rect, rect.end.x <= view.x + 0.5 and rect.end.y <= view.y + 0.5)
+	TranslationServer.set_locale("tr")
+	screen.queue_free()
 	await process_frame

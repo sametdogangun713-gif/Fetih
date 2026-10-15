@@ -13,6 +13,7 @@ extends SceneTree
 ##   Yakın kamera: herhangi bir yerde "zoom" (sabit 2x, otomatik takip kapalı).
 ##   İpuçsuz: herhangi bir yerde "notips" (ekran görüntüleri için).
 ##   Flaş/sarsıntı kapalı: herhangi bir yerde "nofx" (bellekte; ayar dosyasına yazılmaz).
+##   Tüm krallıklar açık: herhangi bir yerde "unlockall" (gösterim profili, bellekte).
 ##   İngilizce: en baştaki argüman "en" olursa dil İngilizce olur (ayar dosyasına yazılmaz).
 ##   Profil: tüm modlarda her açılışta boş gösterim profili (user://showcase_save.json);
 ##     oyuncunun gerçek kaydı (user://save.json) ne okunur ne yazılır.
@@ -54,6 +55,11 @@ func _initialize() -> void:
 		var settings := root.get_node("Settings")
 		settings.flash_effects = false
 		settings.screen_shake = false
+	if args.has("unlockall"):  # tüm krallıklar açık (gösterim profili, bellekte)
+		args.erase("unlockall")
+		profile.unlocked.clear()
+		for k in KingdomCatalog.all():
+			profile.unlocked.append(k.id)
 	if not args.is_empty() and args[0] == "en":
 		TranslationServer.set_locale("en")
 		args.pop_front()
