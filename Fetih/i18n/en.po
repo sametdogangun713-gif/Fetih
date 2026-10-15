@@ -11,6 +11,14 @@ msgstr ""
 msgid "Koşun kayıtlı. Ana menüye dönersen bu savaş baştan oynanır (sonuç değişmez)."
 msgstr "Your run is saved. If you return to the main menu, this battle replays from the start (same result)."
 
+#: scripts/battle/battle_controller.gd
+msgid "Seed: %d   Süre: %.1f sn   (R: tekrar, N: yeni)"
+msgstr "Seed: %d   Time: %.1f s   (R: replay, N: new)"
+
+#: scripts/battle/battle_controller.gd
+msgid "%s  vs  %s"
+msgstr "%s  vs  %s"
+
 #: scripts/data/role_rules.gd
 msgid "Savaşçı"
 msgstr "Warrior"

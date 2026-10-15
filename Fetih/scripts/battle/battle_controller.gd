@@ -38,7 +38,7 @@ func _ready() -> void:
 	hud.continue_pressed.connect(_on_continue)
 	if not RunState.active:
 		hud.info_text = func(elapsed: float) -> String:
-			return "Seed: %d   Süre: %.1f sn   (R: tekrar, N: yeni)" % [_test_seed, elapsed]
+			return tr("Seed: %d   Süre: %.1f sn   (R: tekrar, N: yeni)") % [_test_seed, elapsed]
 	_start_battle()
 	Tips.show_once(self, Tips.BATTLE)
 
@@ -89,7 +89,7 @@ func _setup_test_battle() -> Array[SquadState]:
 	for slot in TEST_ENEMY_SLOTS:
 		states.append(SquadState.new(matchup[1], SquadState.Team.ENEMY,
 				UnitCatalog.count_for_budget(matchup[1], TEST_SQUAD_BUDGET), slot))
-	hud.show_matchup("%s  vs  %s" % [_describe(matchup[0]), _describe(matchup[1])])
+	hud.show_matchup(tr("%s  vs  %s") % [_describe(matchup[0]), _describe(matchup[1])])
 	return states
 
 

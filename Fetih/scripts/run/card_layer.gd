@@ -273,10 +273,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	var field: Battlefield = _meydan.battlefield
 	if event is InputEventMouseMotion:
-		var index: int = _meydan.player_index_at(field.mouse_field())
+		var index: int = _meydan.player_index_at(field.event_field(event))
 		_hover.text = SquadInfo.squad_details(RunState.army[index]).get_slice("\n", 0) if index >= 0 else ""
 	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-		var index: int = _meydan.player_index_at(field.mouse_field())
+		var index: int = _meydan.player_index_at(field.event_field(event))
 		if index >= 0:
 			get_viewport().set_input_as_handled()
 			var offer := replacing

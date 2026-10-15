@@ -13,6 +13,7 @@ var _meydan: Node
 var _info: Label
 var _band_label: Label
 var _drag_from := Vector2.ZERO
+var _mouse := Vector2.ZERO  ## Son fare olayının ekran konumu (bant etiketi için).
 
 
 func setup(meydan: Node) -> void:
@@ -61,6 +62,9 @@ func setup(meydan: Node) -> void:
 	_band_label = UiKit.label("", 10, UiKit.COLOR_GOLD)
 	_band_label.visible = false
 	_band_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# Çim ve birliklerin üstünde okunsun: koyu kenar çizgisi.
+	_band_label.add_theme_color_override("font_outline_color", UiKit.COLOR_BG)
+	_band_label.add_theme_constant_override("outline_size", 4)
 	root.add_child(_band_label)
 
 
@@ -74,10 +78,12 @@ func _input(event: InputEvent) -> void:
 	if not visible or dragging < 0:
 		return
 	var field: Battlefield = _meydan.battlefield
+	if event is InputEventMouse:
+		_mouse = event.position
 	if event is InputEventMouseMotion:
-		_move_view(dragging, Formation.clamp_deploy(Formation.field_to_deploy(field.mouse_field())))
+		_move_view(dragging, Formation.clamp_deploy(Formation.field_to_deploy(field.event_field(event))))
 	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and not event.pressed:
-		drop_at(field.mouse_field())
+		drop_at(field.event_field(event))
 		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed("ui_cancel"):
 		cancel_drag()
@@ -89,12 +95,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	var field: Battlefield = _meydan.battlefield
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-		var index: int = _meydan.player_index_at(field.mouse_field())
+		var index: int = _meydan.player_index_at(field.event_field(event))
 		if index >= 0:
 			begin_drag(index)
 			get_viewport().set_input_as_handled()
 	elif event is InputEventMouseMotion:
-		var index: int = _meydan.player_index_at(field.mouse_field())
+		var index: int = _meydan.player_index_at(field.event_field(event))
 		if index >= 0:
 			_info.text = SquadInfo.squad_details(RunState.army[index])
 			_info.add_theme_color_override("font_color", UiKit.COLOR_TEXT)
@@ -139,4 +145,4 @@ func _move_view(index: int, deploy_pos: Vector2) -> void:
 	_band_label.visible = dragging >= 0
 	if dragging >= 0:
 		_band_label.text = UiKit.band_name(ArmySquad.band_of(deploy_pos.y))
-		_band_label.position = _band_label.get_parent().get_local_mouse_position() + Vector2(10, -14)
+		_band_label.position = _mouse + Vector2(10, -14)

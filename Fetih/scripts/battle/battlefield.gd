@@ -51,6 +51,13 @@ func mouse_field() -> Vector2:
 	return world_to_field(get_local_mouse_position())
 
 
+## Fare olayının savaş alanı koordinatı. Olayın kendi konumundan hesaplanır (imleci yoklamak yerine):
+## sentetik olaylarda (Input.parse_input_event) da doğru çalışır. Godot: make_input_local, olayı
+## bu düğümün yerel (kamera dahil) koordinatına çevirir.
+func event_field(event: InputEventMouse) -> Vector2:
+	return world_to_field((make_input_local(event) as InputEventMouse).position)
+
+
 func zone_of_field(p: Vector2) -> Zone:
 	return zone_of(Vector2i(floori(p.x + 0.5), floori(p.y + 0.5)))
 
