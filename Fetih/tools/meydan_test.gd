@@ -31,6 +31,14 @@ func _find(node: Node, cls: String) -> Node:
 	return null
 
 
+## Altında part metnini içeren görünür bir Label var mı.
+func _has_text(node: Node, part: String) -> bool:
+	for child in node.find_children("*", "Label", true, false):
+		if (child as Label).text.contains(part) and (child as Label).is_visible_in_tree():
+			return true
+	return false
+
+
 func _initialize() -> void:
 	await process_frame
 	var run := root.get_node("RunState")
@@ -51,6 +59,13 @@ func _initialize() -> void:
 	check("savaş HUD'unda kalpler", _find(meydan.hud, "LivesHearts") != null)
 	var first_view: SquadView = meydan.player_views()[0]
 	check("bölükte sayı etiketi yok", not first_view.has_method("_draw_count_label"))
+	check("sabit ipucu metni yok", not _has_text(meydan.prep, "Bir bölüğün üstüne gel"))
+	check("rakip kartında uzun ordu satırı yok", not _has_text(meydan.prep, "Sv "))
+	meydan.prep.show_hover(0)
+	check("bölük kartı görünür", meydan.prep.hover_card.visible)
+	check("bölük kartında birlik adı", _has_text(meydan.prep.hover_card, tr(run.army[0].unit.display_name)))
+	meydan.prep.show_hover(-1)
+	check("bölük kartı gizlenir", not meydan.prep.hover_card.visible)
 	var lone: Control = load("res://scripts/ui/lives_hearts.gd").new(3, 3)
 	root.add_child(lone)
 	lone.set_lives(2, true)

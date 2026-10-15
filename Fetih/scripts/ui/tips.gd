@@ -54,8 +54,8 @@ static func _lines(id: String) -> PackedStringArray:
 		PREP:
 			return [
 				UiKit.t("Bölükleri alanda sürükleyip bırakarak yerleştir. Rakibe en yakın şerit ön cephe, en uzak şerit arka saftır."),
-				UiKit.t("Rakibin ordusu karşıda bekliyor; soldaki panelde rolleri incele, karşılığını öne koy."),
-				UiKit.t("Canların üstte yazar. Kaybedilen savaş bir can götürür ve tekrar oynanmaz."),
+				UiKit.t("Rakibin ordusu karşıda bekliyor; soldaki kartta simgelerin üstüne gelip rolleri incele. Kendi bölüğünün üstüne gelince ayrıntısı görünür."),
+				UiKit.t("Canların sol üstte kalplerle görünür. Kaybedilen savaş bir can götürür ve tekrar oynanmaz."),
 			]
 		BATTLE:
 			return [

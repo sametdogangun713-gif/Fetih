@@ -6,11 +6,12 @@ extends CanvasLayer
 
 signal start_pressed
 
-const SIDE_WIDTH := 150.0  ## Sol panelin genişliği (640 px'lik ekranda küçük kalsın).
+const SIDE_WIDTH := 132.0  ## Sol panelin genişliği (640 px'lik ekranda küçük kalsın).
 
 var dragging := -1  ## Sürüklenen bölüğün ordu sırası; -1 yok.
 var _meydan: Node
-var _info: Label
+var hover_card: PanelContainer  ## Fare altındaki bölüğün kartı (imlecin yanında).
+var _hover_index := -1
 var _hearts: LivesHearts
 var _progress: RunProgress
 var _band_label: Label
@@ -30,8 +31,8 @@ func setup(meydan: Node) -> void:
 	_hearts = top.get_meta("hearts")
 	_progress = top.get_meta("progress")
 	root.add_child(top)
-	# Sol bilgi paneli: yarı saydam, dar; rakip özeti, fermanlar ve fare altındaki bölüğün ayrıntısı.
-	var side := UiKit.panel(Color(UiKit.COLOR_PANEL, 0.78))
+	# Sol bilgi paneli: yarı saydam, dar; rakip kartı ve fermanlar.
+	var side := UiKit.game_panel(0.78)
 	side.set_anchors_preset(Control.PRESET_TOP_LEFT)
 	side.position = Vector2(6, 30)
 	side.custom_minimum_size = Vector2(SIDE_WIDTH, 0)
@@ -41,9 +42,6 @@ func setup(meydan: Node) -> void:
 	SquadInfo.fill_opponent(box, SIDE_WIDTH - 12.0)
 	box.add_child(HSeparator.new())
 	box.add_child(SquadInfo.passives_line(SIDE_WIDTH - 12.0))
-	_info = UiKit.wrapped(tr("Bir bölüğün üstüne gel: ayrıntıları burada görünür."), 9, UiKit.COLOR_MUTED)
-	_info.custom_minimum_size.x = SIDE_WIDTH - 12.0
-	box.add_child(_info)
 	var start := UiKit.button(tr("Savaşa başla"), func() -> void: start_pressed.emit())
 	start.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
 	start.grow_horizontal = Control.GROW_DIRECTION_BEGIN
@@ -58,11 +56,16 @@ func setup(meydan: Node) -> void:
 	_band_label.add_theme_color_override("font_outline_color", UiKit.COLOR_BG)
 	_band_label.add_theme_constant_override("outline_size", 4)
 	root.add_child(_band_label)
+	hover_card = PanelContainer.new()  # show_hover içeriğini doldurur
+	hover_card.visible = false
+	hover_card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(hover_card)
 
 
 func refresh() -> void:
 	dragging = -1
 	_band_label.visible = false
+	show_hover(-1)
 	_hearts.set_lives(RunState.lives, false)
 	_progress.refresh()
 
@@ -122,13 +125,35 @@ func _unhandled_input(event: InputEvent) -> void:
 			begin_drag(index)
 			get_viewport().set_input_as_handled()
 	elif event is InputEventMouseMotion:
-		var index: int = _meydan.player_index_at(field.event_field(event))
-		if index >= 0:
-			_info.text = SquadInfo.squad_details(RunState.army[index])
-			_info.add_theme_color_override("font_color", UiKit.COLOR_TEXT)
+		_mouse = event.position
+		show_hover(_meydan.player_index_at(field.event_field(event)))
+
+
+## Fare altındaki bölüğün kartı imlecin sağ altında (ekran dışına taşmaz); index < 0 gizler.
+func show_hover(index: int) -> void:
+	if index < 0 or index >= RunState.army.size():
+		hover_card.visible = false
+		_hover_index = -1
+		return
+	if index != _hover_index:
+		_hover_index = index
+		var parent := hover_card.get_parent()
+		var fresh := SquadInfo.squad_card(RunState.army[index])
+		parent.remove_child(hover_card)
+		hover_card.queue_free()
+		hover_card = fresh
+		parent.add_child(hover_card)
+	hover_card.visible = true
+	hover_card.reset_size()
+	var screen := hover_card.get_viewport_rect().size
+	var at := _mouse + Vector2(12, 12)
+	at.x = minf(at.x, screen.x - hover_card.size.x - 4)
+	at.y = minf(at.y, screen.y - hover_card.size.y - 4)
+	hover_card.position = at
 
 
 func begin_drag(index: int) -> void:
+	show_hover(-1)
 	dragging = index
 	_drag_from = RunState.army[index].pos
 
