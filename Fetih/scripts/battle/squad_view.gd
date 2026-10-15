@@ -21,6 +21,7 @@ const BASE_SPAN := 1.6  ## Formasyonun yarıçapı (karo) en çok bu kadar; çok
 ## (yumuşak geçişsiz) flaş piksel sanatta daha net okunur.
 const HIT_FLASH_TIME := 0.11
 const HIT_FLASH_FULL := 0.07
+const HIT_FLASH_PEAK := 0.6  ## En yüksek flaş gücü: 1.0 tüm bölüğü saf beyaz yapıp takım rengini siliyordu.
 const HIT_FLASH_SHADER := preload("res://assets/shaders/hit_flash.gdshader")
 ## Ayarlarda "Vuruş flaşı" kapalıysa flaş bu güçte ve yumuşak renkte kalır (göz yormasın).
 const SOFT_FLASH := 0.35
@@ -54,7 +55,8 @@ const COUNT_PULSE_TIME := 0.15  ## Asker kaybında sayı bu sürede büyüyüp k
 const COUNT_PULSE_COLOR := Color("f68181")
 ## Atlı ve kuşatma figürleri geniş: gölgeleri de geniş (7x2).
 const WIDE_ROLES: Array[StringName] = [&"cavalry", &"siege"]
-const AURA_ALPHA := 0.25  ## Ferman aurası elipsinin saydamlığı.
+const AURA_ALPHA := 0.12  ## Ferman aurası iç dolgusunun saydamlığı (ince leke).
+const AURA_EDGE_ALPHA := 0.7  ## Aura kenar halkasının saydamlığı (1 px, kesik).
 const AURA_PAD := Vector2(7, 4)  ## Aura, formasyonun dışına bu kadar taşar (yarıçap, piksel).
 const BOSS_AURA_RADIUS := Vector2(20, 9)
 
@@ -206,7 +208,7 @@ func _update_flash() -> void:
 		material = null
 		return
 	material = _material
-	var amount := 1.0 if HIT_FLASH_TIME - _flash < HIT_FLASH_FULL else 0.5
+	var amount := HIT_FLASH_PEAK if HIT_FLASH_TIME - _flash < HIT_FLASH_FULL else HIT_FLASH_PEAK * 0.5
 	if _settings == null and is_inside_tree():  # setup() ağaca eklenmeden de çağırır
 		_settings = get_node_or_null(^"/root/Settings")
 	if _settings and not _settings.flash_effects:
@@ -282,9 +284,10 @@ func _draw_under() -> void:
 		_draw_shadow(_offsets[slot])
 
 
-## Ferman aurası: formasyonu kaplayan yassı elips, satır satır dolu piksel (alt-piksel yok).
-## Merkez ve yarıçap yaşayan askerlerin konumlarından hesaplanır; asker sayısı değişince
-## _under_key değiştiği için aura da küçülür. Gölgenin altında kalır.
+## Ferman aurası: formasyonu saran ince elips. İçi çok saydam dolgu (alfa AURA_ALPHA), kenarı krallık
+## renginde 1 px kesik halka (her üç pikselden biri boş). Satır satır tam sayı piksel, alt-piksel yok.
+## Merkez ve yarıçap yaşayan askerlerin konumlarından hesaplanır; asker sayısı değişince _under_key
+## değiştiği için aura da küçülür. Gölgenin altında kalır.
 func _draw_aura() -> void:
 	var lo := Vector2.ZERO
 	var hi := Vector2.ZERO
@@ -299,17 +302,42 @@ func _draw_aura() -> void:
 			hi = hi.max(_offsets[slot])
 		radius = ((hi - lo) / 2.0 + AURA_PAD).round()
 	var center := ((lo + hi) / 2.0).round()
-	var color := Color(aura_color, AURA_ALPHA)
+	var fill := Color(aura_color, AURA_ALPHA)
+	var edge := Color(aura_color, AURA_EDGE_ALPHA)
 	var ry := int(radius.y)
+	var halves: Array[int] = []
 	for dy in range(-ry, ry + 1):
-		var half := roundi(radius.x * sqrt(maxf(1.0 - float(dy * dy) / (radius.y * radius.y), 0.0)))
-		_under.draw_rect(Rect2(center + Vector2(-half, dy), Vector2(half * 2 + 1, 1)), color)
+		halves.append(roundi(radius.x * sqrt(maxf(1.0 - float(dy * dy) / (radius.y * radius.y), 0.0))))
+	for i in halves.size():
+		var dy := i - ry
+		var half := halves[i]
+		# kenar: dışa komşu satırın bitişinden ötesi (üst/alt satırda tamamı), ortada sadece uçlar
+		var outer := -1  # üst/alt satırın dışında komşu yok: tamamı kenar
+		if dy == 0:
+			outer = half
+		elif dy < 0 and i > 0:
+			outer = halves[i - 1]
+		elif dy > 0 and i < halves.size() - 1:
+			outer = halves[i + 1]
+		var inner := mini(outer + 1, half)  # |x| >= inner kenar
+		if inner > 0:
+			_under.draw_rect(Rect2(center + Vector2(-(inner - 1), dy), Vector2(inner * 2 - 1, 1)), fill)
+		for x in range(inner, half + 1):
+			if posmod(x + dy, 3) == 0:
+				continue  # kesik halka
+			_under.draw_rect(Rect2(center + Vector2(x, dy), Vector2(1, 1)), edge)
+			if x > 0:
+				_under.draw_rect(Rect2(center + Vector2(-x, dy), Vector2(1, 1)), edge)
 
 
 ## Bölüğe uygulanan ilk fermanın krallık rengi (aura için); ferman yoksa alfa 0.
-## Oyuncu bölükleri için RunState.passives, boss savaşında rakip için RunState.enemy_passives().
+## Sadece rol ya da saf (ön/arka) şartlı fermanlar aura verir: "tüm bölükler" fermanı herkese
+## uygulandığı için aura ayırt edici olmaz, gösterilmez. Oyuncu bölükleri için RunState.passives,
+## boss savaşında rakip için RunState.enemy_passives().
 static func aura_color_for(army_squad: ArmySquad, passives: Array[PassiveData]) -> Color:
 	for passive in passives:
+		if passive.roles.is_empty() and passive.row == PassiveData.Row.ANY:
+			continue
 		if passive.applies_to(army_squad):
 			var kingdom := KingdomCatalog.get_kingdom(passive.kingdom)
 			if kingdom:

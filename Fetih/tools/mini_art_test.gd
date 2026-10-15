@@ -15,10 +15,14 @@ func _init() -> void:
 	var gold := UnitSprites.TEAM_PLAYER
 	var red := UnitSprites.TEAM_ENEMY
 	var seen_roles := {}
+	var by_role := {}  ## rol -> [birlik]
 	for unit: UnitData in UnitCatalog.all():
 		if unit.is_boss:
 			continue
 		seen_roles[unit.role] = true
+		if not by_role.has(unit.role):
+			by_role[unit.role] = []
+		by_role[unit.role].append(unit)
 		var img := MiniUnitArt.sheet(unit, gold)
 		check("%s boyut" % unit.id, img.get_height() == MiniUnitArt.CELL * 4)
 		var used := img.get_region(Rect2i(0, 0, 16, 16)).get_used_rect()
@@ -47,9 +51,35 @@ func _init() -> void:
 		check("%s kare sayıları" % unit.id, sheet_p.counts == MiniUnitArt.FRAMES)
 		check("%s takım önbelleği ayrı" % unit.id, sheet_p != sheet_e and sheet_p == UnitSprites.sheet_for(unit))
 		check("%s icon" % unit.id, UnitSprites.icon(unit).get_size().x > 0)
+	# aynı roldeki farklı krallık birliklerinin durma karesi, vurgu rengi eşitlenince de farklı (>= 3 piksel)
+	for role: StringName in by_role:
+		var units: Array = by_role[role]
+		for i in units.size():
+			for j in range(i + 1, units.size()):
+				var a: UnitData = units[i]
+				var b: UnitData = units[j]
+				if a.kingdom == b.kingdom:
+					continue
+				var diff := _idle_diff(a, b, gold)
+				check("%s / %s durma karesi farklı (%d piksel)" % [a.id, b.id, diff], diff >= 3)
 	check("7 rol kapsandı", seen_roles.size() == RoleRules.ROLE_ORDER.size())
 	# boss eski yolda kalır (büyük çizim)
 	var boss: UnitData = load("res://data/bosses/human_boss.tres")
 	check("boss büyük sayfa", UnitSprites.sheet_for(boss).frame_size.x > 16)
 	print("Hata: ", failures)
 	quit(1 if failures else 0)
+
+
+## İki birliğin durma karesinde (vurgu rengi eşit tutularak) farklı piksel sayısı.
+func _idle_diff(a: UnitData, b: UnitData, team: Color) -> int:
+	var ua := a.duplicate() as UnitData
+	var ub := b.duplicate() as UnitData
+	ub.placeholder_color = ua.placeholder_color
+	var ia := MiniUnitArt.sheet(ua, team).get_region(Rect2i(0, 0, 16, 16))
+	var ib := MiniUnitArt.sheet(ub, team).get_region(Rect2i(0, 0, 16, 16))
+	var n := 0
+	for y in 16:
+		for x in 16:
+			if ia.get_pixel(x, y) != ib.get_pixel(x, y):
+				n += 1
+	return n
