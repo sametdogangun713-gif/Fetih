@@ -2,7 +2,7 @@ extends SceneTree
 ## Kare hızı (FPS) ölçümü. EKRANLI çalışır (render da ölçülsün diye headless değil):
 ##   godot --path Fetih -s res://tools/perf_test.gd -- [secs=8] [only=menu,prep,cards,battle5,boss]
 ##         [vsync] [cap=60] [speed=1]
-## Senaryolar: ana menü, hazırlık (koşu haritası), kart seçimi, 5 bölük vs 5 bölük savaş, boss savaşı.
+## Senaryolar: ana menü, Meydan hazırlık aşaması, Meydan kart aşaması, 5 bölük vs 5 bölük savaş, boss savaşı.
 ## Varsayılan: VSync kapalı ve Engine.max_fps = 0 (sınırsız), böylece gerçek tavan görülür.
 ## "vsync" ve "cap=N" oyuncunun ayarlarını taklit eder; "speed=N" savaş hızı.
 ## Her senaryo önce ısınır (yükleme sıçraması sayılmasın), sonra her kare kaydedilir:
@@ -128,11 +128,13 @@ func _open(scenario: String) -> Node:
 		"prep":
 			run.start_run(KingdomCatalog.all()[0], 4242)
 			run.battle_index = 6
-			return load("res://scenes/run/prep.tscn").instantiate()
+			load("res://scripts/ui/screens.gd").next_phase = "prep"  # sınıf load() ile: autoload'sız derleme
+			return load("res://scenes/run/meydan.tscn").instantiate()
 		"cards":
 			run.start_run(KingdomCatalog.all()[0], 4242)
 			run.finish_battle(true)
-			return load("res://scenes/ui/card_select.tscn").instantiate()
+			load("res://scripts/ui/screens.gd").next_phase = "cards"
+			return load("res://scenes/run/meydan.tscn").instantiate()
 		"battle5", "boss":
 			run.start_run(KingdomCatalog.all()[0], 4242)
 			_crowded_army(run)

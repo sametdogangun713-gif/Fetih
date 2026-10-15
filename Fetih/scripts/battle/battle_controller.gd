@@ -120,5 +120,10 @@ func _on_battle_finished(won: bool, survivors: int) -> void:
 		Profile.store_run(RunState.to_dict("end" if over else "cards"))
 
 
+## Koşu modunda (araçlar/F6) devam: sonuç ekranı ya da Meydan'ın kart aşaması.
 func _on_continue() -> void:
-	Screens.after_battle()
+	if RunState.is_defeated() or RunState.is_last_battle():
+		Screens.goto(Screens.RUN_END)
+	else:
+		Screens.next_phase = "cards"
+		Screens.goto(Screens.MEYDAN)

@@ -22,7 +22,11 @@
 - UI metinleri baştan `tr()` ile yazılır (TR + EN); statik fonksiyonlarda `UiKit.t()`.
 - Koşu durumu `RunState` autoload'unda (`scripts/run/run_state.gd`); ekran geçişleri `Screens` ile.
 - Kalıcı profil `Profile` autoload'unda (`scripts/meta/profile.gd`, `user://save.json`). `RunState` Profile'a bağımlı değildir (bonuslar `start_run` parametresi). Testler `save_path`'i değiştirir; **oyuncunun gerçek kaydına asla yazma.** Kayıt testi: `res://tools/save_test.gd`.
-- Arayüz kodla kurulur (`UiKit` yardımcıları); ekran sahneleri sadece kök Control + script.
+- Arayüz kodla kurulur (`UiKit` yardımcıları); ekran sahneleri sadece kök Control/Node + script.
+- Ekran akışı: ana menü/krallık seçimi (`kingdom_select`) → **Meydan** (`scenes/run/meydan.tscn`, tek sahne; aşamalar PREP → BATTLE → CARDS → PREP) → koşu sonu (`run_end`). Aşama `Screens.next_phase` ile seçilir (yeni koşu "prep"; `resume_saved_run` kayıttaki aşamayı verir), Meydan açılışta okuyup sıfırlar; aşama değişince koşu kaydedilir. Eski hazırlık/kart ekranları (`prep`, `card_select`) kaldırıldı.
+- Meydan parçaları: `Meydan` (aşama makinesi, `scripts/run/meydan.gd`), `BattleRunner` (savaş yürütme: simülasyon adımı, görüntüler, kamera), `BattleHud` (savaş arayüzü; `battle.tscn` ile ortak), `PrepLayer` (alanda sürükle-bırak, rakip önizlemesi), `CardLayer` (alt kart paneli, alanda değiştirme), `RunField` (zemin/dekor/aura), `SquadInfo` (bölük bilgisi). `battle.tscn` sadece test/gösterim modu için kalır.
+- Bölük konumu: `ArmySquad.pos` (Vector2, yerleşim bölgesi koordinatı: x cephe boyunca, y derinlik, 0 = ön) ve `Formation` (serbest yerleşim, `nearest_free`/`clamp_deploy`, ızgara `cell_to_deploy`). Derinlik bantları ön/orta/arka (`ArmySquad.band()`, `PassiveData.applies_to`): ön cephe/arka saf fermanları derinliğe bakar. Rakip ordu aynı koordinatı ayna gibi kullanır.
+- Meydan testleri: `res://tools/meydan_test.gd` (aşama makinesi, kayıt, kart uygulama), `res://tools/field_test.gd` (Formation/bantlar), `res://tools/card_fit_test.gd` (kart sığması). Ekran: `battle_showcase.gd -- meydan prep|battle|cards`.
 - Ekransız test: `godot --headless --path Fetih -s <script>`; ekran görüntüsü: `--write-movie out.png --quit-after N`.
 - Denge testi: `powershell -ExecutionPolicy Bypass -File Fetih\tools\run_balance_test.ps1` — birlik değeri değişince çalıştır.
 - Koşu zorluğu: `godot --headless --path Fetih -s res://tools/run_test.gd` (botlarla fetih oranı). Yükseltme eşitliği: `res://tools/upgrade_test.gd`. Boss gücü: `res://tools/boss_test.gd`.

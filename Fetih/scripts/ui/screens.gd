@@ -3,13 +3,11 @@ class_name Screens
 
 const KINGDOM_SELECT := "res://scenes/ui/kingdom_select.tscn"
 const TREASURY := "res://scenes/ui/treasury.tscn"
-const PREP := "res://scenes/run/prep.tscn"
-const MEYDAN := "res://scenes/run/meydan.tscn"  ## Hazırlık + savaş + kart seçimi tek sahne (Task 10-12 sonrası PREP buna eşitlenecek).
+const MEYDAN := "res://scenes/run/meydan.tscn"  ## Hazırlık + savaş + kart seçimi tek sahne (aşama: next_phase).
 const BATTLE := "res://scenes/battle/battle.tscn"
-const CARD_SELECT := "res://scenes/ui/card_select.tscn"
 const RUN_END := "res://scenes/ui/run_end.tscn"
 
-const PHASE_SCENES := {"prep": PREP, "battle": BATTLE, "cards": CARD_SELECT, "end": RUN_END}
+const PHASE_SCENES := {"prep": MEYDAN, "battle": MEYDAN, "cards": MEYDAN, "end": RUN_END}
 const FADE_OUT := 0.15  ## Ekran kararma süresi (sn).
 const FADE_IN := 0.2  ## Yeni ekranın açılma süresi.
 
@@ -49,14 +47,6 @@ static func _fade_done(layer: CanvasLayer) -> void:
 	layer.queue_free()
 
 
-## Savaş bittikten sonra: koşu bittiyse sonuç ekranı, bitmediyse kart seçimi.
-static func after_battle() -> void:
-	if RunState.is_defeated() or RunState.is_last_battle():
-		goto(RUN_END)
-	else:
-		goto(CARD_SELECT)
-
-
 ## Kayıtlı yarım koşuyu yükler ve kaldığı ekrana döner. Kayıt bozuksa siler, ana ekranda kalır.
 static func resume_saved_run() -> void:
 	if not RunState.from_dict(Profile.saved_run):
@@ -64,5 +54,6 @@ static func resume_saved_run() -> void:
 		Profile.clear_run()
 		goto(KINGDOM_SELECT)
 		return
-	next_phase = String(Profile.saved_run.get("phase", "prep"))
-	goto(PHASE_SCENES.get(String(Profile.saved_run.get("phase", "prep")), PREP))
+	var phase := String(Profile.saved_run.get("phase", "prep"))
+	next_phase = phase  # Meydan açılışta okur; "end" ise sonuç ekranı kendi açılır
+	goto(PHASE_SCENES.get(phase, MEYDAN))

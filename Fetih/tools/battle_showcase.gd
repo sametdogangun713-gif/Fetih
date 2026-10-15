@@ -6,7 +6,8 @@ extends SceneTree
 ##   Boss savaşı: -- boss <krallık sırası 0-9> [hız]  (koşu modunda 5. savaş; kayıt ayrı dosyaya)
 ##   Geç oyun: -- run <krallık sırası> <savaş sayısı> [hız]  (koşu o kadar savaş botla oynanır,
 ##     sonra sıradaki savaş açılır; bot alınabilen ilk kartı alır)
-##   Başka ekran: -- scene res://scenes/run/prep.tscn [settings|pause]  (kayıt ayrı dosyaya)
+##   Başka ekran: -- scene res://scenes/ui/kingdom_select.tscn [settings|pause]  (kayıt ayrı dosyaya)
+##     Koşu ekranı için "meydan" modunu kullan: Meydan aşamasını (prep|battle|cards) o mod açar.
 ##   Meydan: -- meydan prep|battle|cards [krallık sırası] [oynanmış savaş sayısı]  (kayıt ayrı dosyaya)
 ##   Yakın kamera: herhangi bir yerde "zoom" (sabit 2x, otomatik takip kapalı).
 ##   İpuçsuz: herhangi bir yerde "notips" (ekran görüntüleri için).

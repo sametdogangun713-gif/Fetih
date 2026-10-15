@@ -236,15 +236,6 @@ func take_card(offer: CardOffer, replaced: ArmySquad = null) -> void:
 
 # --- Ordu yerleşimi ---
 
-## GEÇİCİ (eski hazırlık ekranı için, Task 12'de silinir): ızgara karesindeki bölük.
-func squad_at(cell: Vector2i) -> ArmySquad:
-	var pos := Formation.cell_to_deploy(cell, GRID_SIZE)
-	for squad in army:
-		if squad.pos.is_equal_approx(pos):
-			return squad
-	return null
-
-
 func find_squad(unit: UnitData) -> ArmySquad:
 	for squad in army:
 		if squad.unit == unit:
@@ -270,16 +261,6 @@ func free_pos_for(unit: UnitData) -> Vector2:
 func move_squad_to(squad: ArmySquad, pos: Vector2) -> Vector2:
 	squad.pos = Formation.nearest_free(pos, other_positions(squad))
 	return squad.pos
-
-
-## GEÇİCİ (eski hazırlık ekranı için, Task 12'de silinir): iki karenin içeriğini değiştirir.
-func move_squad(from: Vector2i, to: Vector2i) -> void:
-	var a := squad_at(from)
-	var b := squad_at(to)
-	if a:
-		a.pos = Formation.cell_to_deploy(to, GRID_SIZE)
-	if b:
-		b.pos = Formation.cell_to_deploy(from, GRID_SIZE)
 
 
 # --- Kaydet / yükle ---

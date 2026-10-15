@@ -195,26 +195,6 @@ msgstr "Hover over a squad to see its details here."
 msgid "Savaşa başla"
 msgstr "Start battle"
 
-#: scripts/run/prep_screen.gd
-msgid "Ordun"
-msgstr "Your army"
-
-#: scripts/run/prep_screen.gd
-msgid "Bölük %d/%d   Güç %d"
-msgstr "Squads %d/%d   Power %d"
-
-#: scripts/run/prep_screen.gd
-msgid "Ön cephe (rakibe yakın)"
-msgstr "Front line (closest to the enemy)"
-
-#: scripts/run/prep_screen.gd
-msgid "Arka saf"
-msgstr "Back row"
-
-#: scripts/run/prep_screen.gd
-msgid "Bölükleri sürükleyip bırakarak yerlerini değiştir."
-msgstr "Drag and drop squads to rearrange them."
-
 #: scripts/run/run_field.gd
 msgid "Savaş %d / %d  ·  Rakip: %s"
 msgstr "Battle %d / %d  ·  Opponent: %s"
@@ -286,30 +266,6 @@ msgstr "Position: %s"
 #: scripts/run/squad_info.gd
 msgid "Ferman: %s"
 msgstr "Edict: %s"
-
-#: scripts/ui/army_slot.gd
-msgid "boş"
-msgstr "empty"
-
-#: scripts/ui/card_select.gd
-msgid "Değerler için üstüne gel."
-msgstr "Hover for stats."
-
-#: scripts/ui/card_select.gd
-msgid "Yeni bölük olarak ızgaraya girer."
-msgstr "Joins the grid as a new squad."
-
-#: scripts/ui/card_select.gd
-msgid "YÜKSELTME"
-msgstr "UPGRADE"
-
-#: scripts/ui/card_select.gd
-msgid "FERMAN"
-msgstr "EDICT"
-
-#: scripts/ui/card_select.gd
-msgid "Yerine geçilen bölük ve seviyeleri kaybolur; yeni bölük onun karesine girer."
-msgstr "The replaced squad and its levels are lost; the new squad takes its cell."
 
 #: scripts/ui/kingdom_select.gd
 msgid "FETİH"
@@ -622,6 +578,10 @@ msgstr "HP %s   Damage %s   Attacks %s/s\nRange %s   Speed %s   Armor %s"
 #: scripts/ui/ui_kit.gd
 msgid "Ön cephe"
 msgstr "Front line"
+
+#: scripts/ui/ui_kit.gd
+msgid "Arka saf"
+msgstr "Back row"
 
 #: scripts/ui/ui_kit.gd
 msgid "Orta"

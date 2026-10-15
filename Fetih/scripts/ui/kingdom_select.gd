@@ -121,7 +121,8 @@ func _fill_detail(kingdom: KingdomData) -> void:
 
 func _on_pick(kingdom: KingdomData) -> void:
 	RunState.start_run(kingdom, 0, Profile.run_perks(), Profile.locked_kingdoms())
-	Screens.goto(Screens.PREP)
+	Screens.next_phase = "prep"
+	Screens.goto(Screens.MEYDAN)
 
 
 func _on_continue() -> void:
