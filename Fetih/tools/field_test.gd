@@ -16,6 +16,7 @@ func _initialize() -> void:
 	test_mirror()
 	test_ground()
 	test_banners()
+	test_props()
 	test_layout()
 	test_formation()
 	test_bands()
@@ -80,6 +81,31 @@ func _tree_count(field: Battlefield) -> int:
 		if child is Sprite2D and not child is AnimatedSprite2D:
 			n += 1
 	return n
+
+
+func test_props() -> void:
+	for id in GroundArt.BIOMES:
+		var kinds := GroundArt.props_of(id)
+		check("%s en az 2 süs türü" % id, kinds.size() >= 2)
+		for kind in kinds:
+			check("%s/%s tanımlı" % [id, kind], TerrainProps.KINDS.has(kind))
+			if not TerrainProps.KINDS.has(kind):
+				continue
+			var img := TerrainProps.image(kind, 0)
+			var used := img.get_used_rect()
+			check("%s/%s dolu" % [id, kind], used.size.x >= 4 and used.size.y >= 3)
+			check("%s/%s palette" % [id, kind], SpritePalette.off_palette_count(img, Color(-1, -1, -1)) == 0)
+			if TerrainProps.KINDS[kind].glow:
+				check("%s/%s parıltı resmi" % [id, kind], TerrainProps.glow_image(kind, 0).get_used_rect().has_area())
+	var d := Battlefield.FIELD_DEPTH
+	check("süs alan içinde yok", not GroundArt.prop_allowed(Vector2i(5, 8)))
+	check("süs oyuncu yerleşiminde yok", not GroundArt.prop_allowed(Vector2i(5, d - 2)))
+	check("süs sancak yerinde yok", not GroundArt.prop_allowed(Vector2i(4, d)))
+	check("süs uzak kenarda olabilir", GroundArt.prop_allowed(Vector2i(-6, 8)))
+	check("süs çizimi deterministik",
+			TerrainProps.image(&"tombstone", 1).get_data() == TerrainProps.image(&"tombstone", 1).get_data())
+	check("süs varyantları farklı",
+			TerrainProps.image(&"rock", 0).get_data() != TerrainProps.image(&"rock", 1).get_data())
 
 
 func test_layout() -> void:

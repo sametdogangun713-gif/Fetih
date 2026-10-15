@@ -23,6 +23,10 @@ const ZONE_COLOR := Color(1, 0.85, 0.3, 0.06)  ## Hazırlıkta oyuncu bölgesi (
 const MOTIF_CHANCE := 0.3  ## Karo başına motif olasılığı.
 const CLUSTER_CELL := 3  ## Ağaç öbeği hücresi (karo).
 const CLUSTER_CHANCE := 0.4  ## Hücrede öbek olasılığı (biyom yoğunluğuyla çarpılır).
+const PROP_CELL := 3  ## Süs öbeği hücresi (karo).
+const PROP_CHANCE := 0.8  ## Hücrede süs öbeği olasılığı.
+const GLOW_LOW := 0.5  ## Parlayan süslerin (lav, kristal, ateş böceği) en sönük anı.
+const GLOW_TIME := 1.4  ## Bir yön (sönük -> parlak), sn.
 enum Motif { TUFT, WAVE, PEBBLE }  ## Ot tutamı, kum dalgası, taşçık.
 ## Biyomun motif türü: çimen biyomları ot, çöl/kuru kum, karanlık taş.
 const MOTIF_OF := {
@@ -34,29 +38,41 @@ const MOTIF_OF := {
 ## Rakip krallığa göre arazi. tint: yalnızca build_ground.gd süsleri boyarken kullanır (çalışma anında
 ## çarpan yok, aksi hâlde palet bozulur). ramp: çimen karosunun koyu-orta-açık Resurrect 64 renkleri.
 ## trees: ağaç türleri (plants/ klasöründeki dosya adı başları), density: ağaç yoğunluğu çarpanı.
+## props: krallığa özgü manzara süsleri (TerrainProps türleri): her diyar tek bakışta tanınsın.
 const BIOMES := {
 	&"default": {tint = Color(1, 1, 1), ramp = ["165a4c", "239063", "1ebc73"],
-			trees = ["pine-none", "bush"], density = 1.0},
+			trees = ["pine-none", "bush"], density = 1.0,
+			props = [&"rock", &"dry_bush"]},
 	&"humans": {tint = Color(1, 1, 1), ramp = ["165a4c", "239063", "1ebc73"],
-			trees = ["pine-none", "bush", "shrub1"], density = 1.0},
+			trees = ["pine-none", "bush", "shrub1"], density = 1.0,
+			props = [&"wheat", &"fence", &"hay"]},
 	&"elves": {tint = Color(0.9, 1.05, 0.9), ramp = ["239063", "1ebc73", "91db69"],
-			trees = ["pine-none", "bush"], density = 1.5},
+			trees = ["pine-none", "bush"], density = 1.5,
+			props = [&"giant_tree", &"mushroom", &"firefly"]},
 	&"orcs": {tint = Color(1.08, 0.98, 0.78), ramp = ["4c3e24", "676633", "a2a947"],
-			trees = ["shrub1", "bush"], density = 0.7},
+			trees = ["shrub1", "bush"], density = 0.7,
+			props = [&"bones", &"spikes", &"dry_bush"]},
 	&"dwarves": {tint = Color(1.05, 1.08, 1.15), ramp = ["374e4a", "547e64", "92a984"],
-			trees = ["pine-full", "pine-half"], density = 1.1},
+			trees = ["pine-full", "pine-half"], density = 1.1,
+			props = [&"rock", &"minecart", &"crystal_vein"]},
 	&"undead": {tint = Color(0.78, 0.8, 0.78), ramp = ["313638", "374e4a", "625565"],
-			trees = ["pine-half", "shrub2"], density = 0.8},
+			trees = ["pine-half", "shrub2"], density = 0.8,
+			props = [&"tombstone", &"dead_tree", &"fog"]},
 	&"demons": {tint = Color(1.1, 0.8, 0.7), ramp = ["2e222f", "4c3e24", "6e2727"],
-			trees = ["shrub2", "shrub1"], density = 0.6},
+			trees = ["shrub2", "shrub1"], density = 0.6,
+			props = [&"lava_crack", &"obsidian", &"bones"]},
 	&"slimes": {tint = Color(0.9, 1.1, 0.85), ramp = ["165a4c", "239063", "0eaf9b"],
-			trees = ["bush", "pine-none"], density = 1.0},
+			trees = ["bush", "pine-none"], density = 1.0,
+			props = [&"pond", &"bubble", &"mushroom"]},
 	&"mud": {tint = Color(0.8, 0.85, 0.7), ramp = ["313638", "4c3e24", "676633"],
-			trees = ["shrub2", "bush"], density = 1.2},
+			trees = ["shrub2", "bush"], density = 1.2,
+			props = [&"puddle", &"reeds", &"dry_bush"]},
 	&"golems": {tint = Color(0.95, 0.95, 0.95), ramp = ["313638", "625565", "ab947a"],
-			trees = ["pine-half", "pine-none"], density = 0.8},
+			trees = ["pine-half", "pine-none"], density = 0.8,
+			props = [&"crystal", &"ruin_pillar", &"rock"]},
 	&"centaurs": {tint = Color(1.12, 1.05, 0.75), ramp = ["676633", "a2a947", "cddf6c"],
-			trees = ["shrub1", "bush"], density = 0.4},
+			trees = ["shrub1", "bush"], density = 0.4,
+			props = [&"savanna_grass", &"acacia", &"dry_bush"]},
 }
 
 static var _sheets := {}  ## biyom id -> Texture2D (ground_<biyom>.png)
@@ -67,6 +83,7 @@ var _biome_id: StringName = &"default"
 var _sheet: Texture2D  ## Süs sayfası (ot/bitki/kaya).
 var _show_zone := false
 var _trees: Array[Sprite2D] = []
+var _props: Array[Node2D] = []  ## Krallık süsleri (TerrainProps): düz olanlar bu düğümde, diğerleri Units'te.
 
 
 func _ready() -> void:
@@ -82,7 +99,11 @@ func setup(biome: StringName, tree_parent: Node2D) -> void:
 	for tree in _trees:
 		tree.queue_free()
 	_trees.clear()
+	for prop in _props:
+		prop.queue_free()
+	_props.clear()
 	_plant_trees(tree_parent)
+	_plant_props(tree_parent)
 	queue_redraw()
 
 
@@ -238,6 +259,84 @@ static func tree_allowed(cell: Vector2i) -> bool:
 		if (cell.y >= d and cell.y <= d + 1) or (cell.y <= -1 and cell.y >= -2):
 			return false
 	return true
+
+
+## Biyomun süs türleri (TerrainProps.KINDS anahtarları).
+static func props_of(biome_id: StringName) -> Array[StringName]:
+	var out: Array[StringName] = []
+	var biome: Dictionary = BIOMES.get(biome_id, BIOMES[&"default"])
+	for kind: StringName in biome.get("props", []):
+		out.append(kind)
+	return out
+
+
+## Bu karoda süs olabilir mi: ağaç kuralı (alandan uzak, sancak yeri dışı) ve alan + 1 karo kenar boş.
+static func prop_allowed(cell: Vector2i) -> bool:
+	var w := Battlefield.FIELD_WIDTH
+	var d := Battlefield.FIELD_DEPTH
+	if cell.x >= -1 and cell.x <= w and cell.y >= -1 and cell.y <= d:
+		return false
+	return tree_allowed(cell)
+
+
+## Krallık süsleri öbek öbek (2-4 süs) alanın dışında. Düz süsler (gölcük, lav, sis) bu düğüme eklenir:
+## Battlefield'da Units'ten önce geldiği için birliklerin altında kalır. Diğerleri Units'e (y-sort).
+## Parlayan süslerin ışıklı kısmı çocuk Sprite2D; Tween onu sonsuz döngüde söndürüp yakar.
+func _plant_props(parent: Node2D) -> void:
+	var kinds := props_of(_biome_id)
+	if kinds.is_empty():
+		return
+	var w := Battlefield.FIELD_WIDTH
+	var d := Battlefield.FIELD_DEPTH
+	var lo := floori(float(-MARGIN) / PROP_CELL) - 1
+	var hi_x := ceili(float(w + MARGIN) / PROP_CELL) + 1
+	var hi_y := ceili(float(d + MARGIN) / PROP_CELL) + 1
+	for gy in range(lo, hi_y):
+		for gx in range(lo, hi_x):
+			var rng := _cell_rng(Vector2i(gx, gy), 7)
+			if rng.randf() > PROP_CHANCE:
+				continue
+			var center := Vector2(gx + 0.5, gy + 0.5) * PROP_CELL
+			for i in rng.randi_range(2, 4):
+				var spot := center + Vector2(rng.randf_range(-1.3, 1.3), rng.randf_range(-1.3, 1.3))
+				if not prop_allowed(Vector2i(roundi(spot.x), roundi(spot.y))):
+					continue
+				var kind: StringName = kinds[rng.randi_range(0, kinds.size() - 1)]
+				var info: Dictionary = TerrainProps.KINDS[kind]
+				var variant := rng.randi_range(0, TerrainProps.VARIANTS - 1)
+				var sprite := Sprite2D.new()
+				sprite.texture = TerrainProps.texture(kind, variant)
+				sprite.centered = false
+				var size: Vector2i = info.size
+				sprite.offset = -Vector2(size.x / 2, size.y - 1)  # alt orta yere değer
+				sprite.flip_h = rng.randf() < 0.5
+				sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+				sprite.position = Battlefield.field_to_world(spot).round()
+				if info.glow:
+					_add_glow(sprite, kind, variant, rng)
+				if info.flat:
+					add_child(sprite)
+				else:
+					parent.add_child(sprite)
+				_props.append(sprite)
+
+
+func _add_glow(sprite: Sprite2D, kind: StringName, variant: int, rng: RandomNumberGenerator) -> void:
+	var lit := Sprite2D.new()
+	lit.texture = TerrainProps.texture(kind, variant, true)
+	lit.centered = false
+	lit.offset = sprite.offset
+	lit.flip_h = sprite.flip_h
+	lit.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	lit.modulate.a = rng.randf_range(GLOW_LOW, 1.0)  # her süs farklı evrede
+	sprite.add_child(lit)
+	var tween := lit.create_tween().set_loops()
+	tween.tween_property(lit, "modulate:a", GLOW_LOW, GLOW_TIME).set_trans(Tween.TRANS_SINE)
+	tween.tween_property(lit, "modulate:a", 1.0, GLOW_TIME).set_trans(Tween.TRANS_SINE)
+	if kind == &"firefly":  # ateş böcekleri yavaşça süzülür (tam piksel adımla)
+		var float_tween := sprite.create_tween().set_loops()
+		float_tween.tween_property(sprite, "offset:y", sprite.offset.y - 2, 1.6).set_trans(Tween.TRANS_SINE)
+		float_tween.tween_property(sprite, "offset:y", sprite.offset.y, 1.6).set_trans(Tween.TRANS_SINE)
 
 
 func _tree_textures() -> Array[Texture2D]:
