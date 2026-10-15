@@ -1,7 +1,8 @@
 class_name SettingsPanel
 extends Overlay
 ## Ayarlar penceresi: sekmeler (Ses / Görüntü / Oyun / Dil), her satır solda ad, sağda sabit genişlikte kontrol.
-## Ana menüden açılınca parşömen (menü) teması ve Dil sekmesi; duraklatma menüsünden koyu tema, dil yok.
+## Ana menüden açılınca parşömen (menü) teması ve Dil sekmesi, ağaç durmaz; duraklatma menüsünden koyu tema,
+## dil yok, oyun durur.
 ## Her değişiklik anında uygulanır ve Settings tarafından kaydedilir; "Kaydet" düğmesi yok.
 ## Dil sadece ana menüde değişir: ekranlar koddan kurulduğu için dil değişince ekran yeniden yüklenir.
 ## Godot: TabBar sadece sekme başlıklarını çizer; sayfalar ayrı Control'ler, seçilen görünür olur.
@@ -26,7 +27,7 @@ static func open(host: Node, allow_language := false) -> SettingsPanel:
 
 
 func _init(allow_language := false) -> void:
-	super(340.0, true, 20, allow_language)
+	super(340.0, not allow_language, 20, allow_language)  # menüde durduracak oyun yok
 	_allow_language = allow_language
 	_build()
 
@@ -69,6 +70,7 @@ func _build() -> void:
 	if _allow_language:
 		_add_page(holder, UiKit.t("Dil"), _language_page())
 	_tabs.tab_changed.connect(_show_page)
+	focus_target = _tabs
 	_show_page(0)
 	var close_button := UiKit.button(UiKit.t("Kapat"), close)
 	close_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER

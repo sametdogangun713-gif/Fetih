@@ -2,6 +2,7 @@ class_name Tips
 ## Başlangıç rehberi: her ekranın ilk açılışında bir kez çıkan kısa ipucu.
 ## Görülen ipuçları Profile'da tutulur; Ayarlar > "İpuçlarını yeniden göster" sıfırlar.
 ## İpucu açıkken oyun durur (savaşta oyuncu okurken savaş ilerlemesin).
+## Menü ekranlarının ipuçları (ana menü/krallık seçimi, Hazine) parşömen temada, yazılar mürekkep.
 
 const MENU := "menu"
 const PREP := "prep"
@@ -14,11 +15,12 @@ const TREASURY := "treasury"
 static func show_once(host: Node, id: String) -> Overlay:
 	if Profile.tips_seen.has(id):
 		return null
-	var overlay := Overlay.new(300.0, true, 12)
+	var menu := id in [MENU, TREASURY]
+	var overlay := Overlay.new(300.0, true, 12, menu)
 	var box := overlay.content
-	box.add_child(UiKit.label(_title(id), 13, UiKit.COLOR_GOLD))
+	box.add_child(UiKit.label(_title(id), 13, UiKit.COLOR_INK if menu else UiKit.COLOR_GOLD))
 	for line in _lines(id):
-		box.add_child(UiKit.wrapped("• " + line, 10))
+		box.add_child(UiKit.wrapped("• " + line, 10, UiKit.COLOR_INK if menu else UiKit.COLOR_TEXT))
 	var bottom := UiKit.hbox()
 	bottom.add_child(UiKit.spacer())
 	bottom.add_child(UiKit.button(UiKit.t("Anladım"), overlay.close))

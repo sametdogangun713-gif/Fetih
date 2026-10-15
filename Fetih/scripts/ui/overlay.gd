@@ -6,17 +6,20 @@ extends CanvasLayer
 ## CanvasLayer: içindeki arayüz kameradan ve alttaki sahneden bağımsız, her zaman üstte çizilir.
 ## process_mode ALWAYS: oyun duraklatılmışken (get_tree().paused) de çalışır.
 ## pause_tree açıksa pencere açıkken oyun durur, kapanınca (başkası durdurmadıysa) devam eder.
+## Açılınca klavye odağı pencereye geçer (Enter arkadaki düğmeye gitmesin), kapanınca geri döner.
 
 signal closed
 
 var content: VBoxContainer  ## Panelin içi; çağıran doldurur.
 var close_on_cancel := true  ## Esc pencereyi kapatsın mı.
 var menu_theme := false  ## Parşömen (menü) teması mı.
+var focus_target: Control  ## Açılınca odaklanacak kontrol; boşsa içerikteki ilk görünür düğme.
 
 var _pause_tree := false
 var _panel: PanelContainer
 var _dim: ColorRect
 var _paused_by_me := false  ## Oyunu bu pencere durdurdu (kapanınca o devam ettirir).
+var _prev_focus: Control  ## Pencere açılmadan önce odaktaki kontrol (kapanınca geri verilir).
 
 
 ## menu: renkli fantastik (parşömen) pencere; yoksa koyu şık oyun penceresi.
@@ -53,6 +56,7 @@ func _init(width := 300.0, pause_tree := false, layer_index := 10, menu := false
 
 ## Açılış: karartma solar, panel küçükten "zıplayarak" gelir (yerleşim bir kare sonra biter).
 func _ready() -> void:
+	_take_focus()
 	UiKit.fade_in(_dim, 0.0, 0.15)
 	_panel.modulate.a = 0.0
 	await get_tree().process_frame
@@ -68,6 +72,19 @@ func _enter_tree() -> void:
 		_paused_by_me = true
 
 
+## grab_focus(true): odak alınır ama çerçeve klavyeyle gezinene kadar görünmez.
+func _take_focus() -> void:
+	_prev_focus = get_viewport().gui_get_focus_owner()
+	var target := focus_target
+	if target == null:
+		for b: Button in content.find_children("*", "Button", true, false):
+			if b.is_visible_in_tree() and b.focus_mode != Control.FOCUS_NONE:
+				target = b
+				break
+	if target:
+		target.grab_focus(true)
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if close_on_cancel and event.is_action_pressed("ui_cancel"):
 		get_viewport().set_input_as_handled()
@@ -79,5 +96,7 @@ func close() -> void:
 		return
 	if _paused_by_me:
 		get_tree().paused = false
+	if is_instance_valid(_prev_focus) and _prev_focus.is_visible_in_tree():
+		_prev_focus.grab_focus(true)
 	closed.emit()
 	queue_free()

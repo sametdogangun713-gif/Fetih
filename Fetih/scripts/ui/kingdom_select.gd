@@ -12,6 +12,7 @@ var _diorama: KingdomDiorama
 var _card_box: VBoxContainer
 var _start: Button
 var _selected: KingdomData
+var _starting := false  ## Başla basıldı, sahne değişiyor.
 
 
 func _ready() -> void:
@@ -205,8 +206,9 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _on_start() -> void:
-	if _selected == null or not Profile.is_unlocked(_selected.id):
+	if _starting or _selected == null or not Profile.is_unlocked(_selected.id):
 		return
+	_starting = true  # çift tık / Enter koşuyu iki kez başlatmasın
 	RunState.start_run(_selected, 0, Profile.run_perks(), Profile.locked_kingdoms())
 	Screens.next_phase = "prep"
 	Screens.goto(Screens.MEYDAN)

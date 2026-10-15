@@ -249,12 +249,13 @@ func _on_new_game() -> void:
 	if not Profile.has_saved_run():
 		Screens.goto(Screens.KINGDOM_SELECT)
 		return
-	_confirm = Overlay.new(240.0)
+	_confirm = Overlay.new(240.0, false, 10, true)
 	var box := _confirm.content
-	var title := UiKit.label(tr("Yeni oyun"), 16, UiKit.COLOR_GOLD, true)
+	var title := UiKit.label(tr("Yeni oyun"), 16, UiKit.COLOR_INK, true)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(title)
-	box.add_child(UiKit.wrapped(tr("Yarım kalan koşun var. Yeni koşu başlatırsan o koşu silinir."), 10))
+	box.add_child(UiKit.wrapped(tr("Yarım kalan koşun var. Yeni koşu başlatırsan o koşu silinir."), 10,
+			UiKit.COLOR_INK))
 	box.add_child(UiKit.button_primary(tr("Krallık seçimine geç"), func() -> void:
 		_confirm.close()
 		Screens.goto(Screens.KINGDOM_SELECT)))

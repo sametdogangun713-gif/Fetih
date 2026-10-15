@@ -30,7 +30,7 @@ func _ready() -> void:
 	title.add_theme_color_override("font_outline_color", Color("2e222f"))
 	title.add_theme_constant_override("outline_size", 6)
 	root.add_child(title)
-	UiKit.pop(title, 0.35)
+	_pop_after_layout(title)
 	if not RunState.is_victory() and not RunState.is_defeated():
 		root.add_child(UiKit.centered(tr("Son savaşı kazanmadan fetih tamamlanmaz."), 11, UiKit.COLOR_MUTED))
 	root.add_child(UiKit.centered("%s  ·  %s  ·  %s" % [tr(RunState.kingdom.display_name),
@@ -54,6 +54,13 @@ func _ready() -> void:
 	bottom.add_child(UiKit.button_primary(tr("Ana menüye dön"), _back_to_menu))
 	bottom.add_child(UiKit.spacer())
 	root.add_child(bottom)
+
+
+## Başlık "zıplar": boyutu yerleşimden sonra belli olur, pivot ortada olsun diye bir kare beklenir.
+func _pop_after_layout(title: Label) -> void:
+	await get_tree().process_frame
+	if is_instance_valid(title):
+		UiKit.pop(title, 0.35)
 
 
 func _back_to_menu() -> void:

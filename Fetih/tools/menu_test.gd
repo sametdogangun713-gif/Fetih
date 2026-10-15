@@ -33,6 +33,9 @@ func _initialize() -> void:
 	await test_main_menu()
 	await test_kingdom_select()
 	await test_settings()
+	await test_menu_windows()
+	await test_run_end_title()
+	await test_start_once()
 	print("Hata: %d" % failures)
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(TEST_SAVE))
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(TEST_SETTINGS))
@@ -204,3 +207,140 @@ func test_settings() -> void:
 	await process_frame
 	host.queue_free()
 	await process_frame
+
+
+func _overlays(node: Node) -> Array[Node]:
+	return node.find_children("*", "Overlay", false, false)
+
+
+func _labels_ink(overlay: Node) -> bool:
+	for l: Label in overlay.find_children("*", "Label", true, false):
+		if l.get_theme_color("font_color") != UiKit.COLOR_INK:
+			return false
+	return true
+
+
+func _press_accept() -> void:
+	for pressed in [true, false]:
+		var ev := InputEventKey.new()
+		ev.keycode = KEY_ENTER
+		ev.physical_keycode = KEY_ENTER
+		ev.pressed = pressed
+		root.push_input(ev)
+
+
+## Menü pencereleri: parşömen tema + mürekkep yazı; açılınca odak pencerede (Enter arkaya gitmez);
+## menüden açılan ayarlar ağacı durdurmaz, oyun içinden açılan durdurur.
+func test_menu_windows() -> void:
+	paused = false  # krallık seçiminin ilk ipucu (duraklatan) kapanmadan silindi
+	var profile := root.get_node("Profile")
+	var run := root.get_node("RunState")
+	run.start_run(KingdomCatalog.all()[0], 78)
+	profile.store_run(run.to_dict("prep"))
+	run.end_run()
+	var menu: Control = load("res://scenes/ui/main_menu.tscn").instantiate()
+	root.add_child(menu)
+	await process_frame
+	menu.skip_intro()
+	var stats_button: Button = null
+	for b: Button in menu.buttons():
+		if b.text == tr("İstatistikler"):
+			stats_button = b
+	stats_button.grab_focus()
+	stats_button.pressed.emit()
+	await process_frame
+	var stats := _overlays(menu)
+	check("istatistik penceresi açıldı", stats.size() == 1)
+	if stats.size() == 1:
+		check("istatistik parşömen temada", stats[0].menu_theme)
+		check("istatistik yazıları mürekkep", _labels_ink(stats[0]))
+		var owner := root.gui_get_focus_owner()
+		check("istatistik açılınca odak pencerede", owner != null and stats[0].is_ancestor_of(owner))
+		_press_accept()
+		await process_frame
+		await process_frame
+		check("Enter arkadaki düğmeyi tetiklemez (pencere sayısı %d)" % _overlays(menu).size(),
+				_overlays(menu).size() == 0)
+		check("kapanınca odak menü düğmesine döner", root.gui_get_focus_owner() == stats_button)
+	menu._on_new_game()
+	await process_frame
+	var confirm := _overlays(menu)
+	check("onay penceresi parşömen temada", confirm.size() == 1 and confirm[0].menu_theme)
+	if confirm.size() == 1:
+		check("onay yazıları mürekkep", _labels_ink(confirm[0]))
+		var owner := root.gui_get_focus_owner()
+		check("onay açılınca odak pencerede", owner != null and confirm[0].is_ancestor_of(owner))
+	menu.cancel_confirm()
+	await process_frame
+	var settings: Overlay = load("res://scripts/ui/settings_panel.gd").open(menu, true)
+	await process_frame
+	check("menüden açılan ayarlar ağacı durdurmaz", not paused)
+	var owner := root.gui_get_focus_owner()
+	check("ayarlar açılınca odak pencerede", owner != null and settings.is_ancestor_of(owner))
+	settings.close()
+	await process_frame
+	var in_game: Overlay = load("res://scripts/ui/settings_panel.gd").open(menu, false)
+	await process_frame
+	check("oyun içinden açılan ayarlar ağacı durdurur", paused)
+	in_game.close()
+	await process_frame
+	check("ayarlar kapanınca oyun devam eder", not paused)
+	profile.tips_seen.clear()
+	var tip: Overlay = load("res://scripts/ui/tips.gd").show_once(menu, "menu")
+	await process_frame
+	check("menü ipucu parşömen temada", tip != null and tip.menu_theme)
+	if tip:
+		check("menü ipucu yazıları mürekkep", _labels_ink(tip))
+		tip.close()
+	var game_tip: Overlay = load("res://scripts/ui/tips.gd").show_once(menu, "prep")
+	await process_frame
+	check("oyun ipucu koyu temada", game_tip != null and not game_tip.menu_theme)
+	if game_tip:
+		game_tip.close()
+	await process_frame
+	paused = false
+	menu.queue_free()
+	await process_frame
+	profile.clear_run()
+
+
+## Koşu sonu başlığı yerleşimden sonra "zıplar": pivot başlığın ortasında.
+func test_run_end_title() -> void:
+	var run := root.get_node("RunState")
+	run.end_run()
+	var screen: Control = load("res://scenes/ui/run_end.tscn").instantiate()
+	root.add_child(screen)
+	await process_frame
+	await process_frame
+	await process_frame
+	var title: Label = null
+	for l: Label in screen.find_children("*", "Label", true, false):
+		if l.get_theme_constant("outline_size") == 6:
+			title = l
+	check("koşu sonu başlığı bulundu", title != null)
+	if title:
+		check("başlık pivotu ortada (%s / %s)" % [title.pivot_offset, title.size],
+				title.size.x > 0 and title.pivot_offset.is_equal_approx(title.size / 2.0))
+	screen.queue_free()
+	await process_frame
+
+
+## Başla iki kez basılsa da koşu bir kez başlar (ikinci çağrı tohumu değiştirmez).
+func test_start_once() -> void:
+	var run := root.get_node("RunState")
+	run.end_run()
+	var screen: Control = load("res://scenes/ui/kingdom_select.tscn").instantiate()
+	root.add_child(screen)
+	await process_frame
+	screen.select(KingdomCatalog.all()[0])
+	screen._on_start()
+	var first_seed: int = run.seed_value
+	screen._on_start()
+	check("Başla ikinci kez koşuyu yeniden başlatmaz", run.seed_value == first_seed)
+	screen.queue_free()
+	await process_frame
+	await process_frame
+	if current_scene:
+		current_scene.queue_free()
+	await process_frame
+	run.end_run()
