@@ -16,7 +16,7 @@ Yine de oyunun jeneriğinde teşekkür etmek iyi olur.
 | `dungeontileset_ii/` | 16x16 DungeonTileset II v1.7 | 0x72 (Robert) | https://0x72.itch.io/dungeontileset-ii | 2026-10-14 |
 | `rubberduck_grassland/` | Grassland tileset (128x64 sayfalar) | rubberduck | https://opengameart.org/node/97618 | 2026-10-14 |
 | `rubberduck_plants/` | Free isometric plants-pack (model/doku: yughues, CC0) | rubberduck | https://opengameart.org/content/free-isometric-plants-pack | 2026-10-14 |
-| `fontlar/pixel_operator/` | Pixel Operator (PixelOperator, PixelOperator8) yazı tipi; Ğ ğ İ Ş ş (ve 8 px'te Ç ç) `turkce_harf_ekle.py` ile eklendi, çıktı `Fetih/assets/fonts/` | Jayvee Enaguas (HarvettFox96) | https://www.dafont.com/pixel-operator.font | 2026-10-15 |
+| `fontlar/pixel_operator/` | Pixel Operator (PixelOperator, PixelOperator8) yazı tipi; Ğ ğ İ Ş ş (ve 8 px'te Ç ç) `turkce_harf_ekle.py` ile eklendi (0.13.0 ile oyundan çıktı, kaynak burada kalır) | Jayvee Enaguas (HarvettFox96) | https://www.dafont.com/pixel-operator.font | 2026-10-15 |
 
 ## Sayfa düzenleri (araç bunlara göre keser)
 

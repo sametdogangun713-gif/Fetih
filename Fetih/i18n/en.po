@@ -80,12 +80,20 @@ msgid "Koşu başına kart tekliflerini yeniden çekme hakkı (seviye başına 1
 msgstr "Rerolls for card offers each run (1 per level)."
 
 #: scripts/run/battle_hud.gd
-msgid "ZAFER! (%d asker hayatta)"
-msgstr "VICTORY! (%d soldiers alive)"
+msgid "ZAFER!"
+msgstr "VICTORY!"
 
 #: scripts/run/battle_hud.gd
-msgid "YENİLGİ (rakipte %d asker kaldı)"
-msgstr "DEFEAT (enemy has %d soldiers left)"
+msgid "%d asker hayatta"
+msgstr "%d soldiers alive"
+
+#: scripts/run/battle_hud.gd
+msgid "YENİLGİ"
+msgstr "DEFEAT"
+
+#: scripts/run/battle_hud.gd
+msgid "Rakipte %d asker kaldı"
+msgstr "Enemy has %d soldiers left"
 
 #: scripts/run/battle_hud.gd
 msgid "Süre: %.1f sn"
@@ -112,12 +120,12 @@ msgid "Zafer!"
 msgstr "Victory!"
 
 #: scripts/run/card_layer.gd
-msgid "Yenilgi... Bir can kaybettin (kalan: %d)."
-msgstr "Defeat... You lost a life (left: %d)."
+msgid "Yenilgi"
+msgstr "Defeat"
 
 #: scripts/run/card_layer.gd
-msgid "%s ganimeti: bir kart seç  ·  Ordun %d/%d bölük"
-msgstr "%s spoils: pick a card  ·  Army %d/%d squads"
+msgid "Ganimet seç  ·  Ordun %d/%d bölük"
+msgstr "Choose your spoils  ·  Army %d/%d squads"
 
 #: scripts/run/card_layer.gd
 msgid "Yeniden çek (%d hak)"
@@ -196,10 +204,6 @@ msgid "Koşun kayıtlı: ana menüden \"Devam et\" ile buraya dönersin."
 msgstr "Your run is saved: use \"Continue\" in the main menu to come back here."
 
 #: scripts/run/prep_layer.gd
-msgid "Bir bölüğün üstüne gel: ayrıntıları burada görünür."
-msgstr "Hover over a squad to see its details here."
-
-#: scripts/run/prep_layer.gd
 msgid "Savaşa başla"
 msgstr "Start battle"
 
@@ -216,52 +220,40 @@ msgid "  ·  BOSS: %s"
 msgstr "  ·  BOSS: %s"
 
 #: scripts/run/squad_info.gd
-msgid "Savaş %d / %d"
-msgstr "Battle %d / %d"
+msgid "Fermanların"
+msgstr "Your edicts"
 
 #: scripts/run/squad_info.gd
-msgid "Can: %d / %d"
-msgstr "Lives: %d / %d"
+msgid "BÜYÜK FETİH"
+msgstr "GRAND CONQUEST"
 
 #: scripts/run/squad_info.gd
-msgid "Fermanlar:"
-msgstr "Edicts:"
-
-#: scripts/run/squad_info.gd
-msgid "yok"
-msgstr "none"
-
-#: scripts/run/squad_info.gd
-msgid "BÜYÜK FETİH - kazanmak zorundasın"
-msgstr "GRAND CONQUEST - you must win"
-
-#: scripts/run/squad_info.gd
-msgid "BOSS SAVAŞI - yenersen +1 can ve ferman"
-msgstr "BOSS BATTLE - win for +1 life and an edict"
-
-#: scripts/run/squad_info.gd
-msgid "Sıradaki rakip"
-msgstr "Next enemy"
+msgid "BOSS SAVAŞI"
+msgstr "BOSS BATTLE"
 
 #: scripts/run/squad_info.gd
 msgid "Güç %d"
 msgstr "Power %d"
 
 #: scripts/run/squad_info.gd
+msgid "Yenersen mühür"
+msgstr "Win for a seal"
+
+#: scripts/run/squad_info.gd
 msgid "Kilitli krallık: boss'u yen, mühür al; fetihle %s açılır."
 msgstr "Locked kingdom: beat the boss to earn a seal; finish the conquest to unlock %s."
 
 #: scripts/run/squad_info.gd
-msgid "Fermanları: %s"
-msgstr "Their edicts: %s"
+msgid "Fermanları"
+msgstr "Their edicts"
 
 #: scripts/run/squad_info.gd
-msgid "Ganimet: %s kartları"
-msgstr "Spoils: %s cards"
+msgid "BOSS"
+msgstr "BOSS"
 
 #: scripts/run/squad_info.gd
-msgid "BOSS:"
-msgstr "BOSS:"
+msgid "%d asker  ·  Can %s  ·  Hasar %s"
+msgstr "%d soldiers  ·  HP %s  ·  Damage %s"
 
 #: scripts/run/squad_info.gd
 msgid "Saldırı %d · Savunma %d · Takviye %d"
@@ -275,61 +267,37 @@ msgstr "Position: %s"
 msgid "Ferman: %s"
 msgstr "Edict: %s"
 
-#: scripts/ui/kingdom_select.gd
-msgid "FETİH"
-msgstr "FETIH"
+#: scripts/ui/kingdom_banner.gd
+msgid "kilitli"
+msgstr "locked"
 
 #: scripts/ui/kingdom_select.gd
-msgid "Açık krallık: %d/%d"
-msgstr "Kingdoms unlocked: %d/%d"
+msgid "Geri"
+msgstr "Back"
+
+#: scripts/ui/kingdom_select.gd
+msgid "KRALLIĞINI SEÇ"
+msgstr "CHOOSE YOUR KINGDOM"
 
 #: scripts/ui/kingdom_select.gd
 msgid "Şan: %d"
 msgstr "Glory: %d"
 
 #: scripts/ui/kingdom_select.gd
-msgid "Hazine"
-msgstr "Treasury"
+msgid "%s ile başla"
+msgstr "Start with %s"
 
 #: scripts/ui/kingdom_select.gd
-msgid "Ayarlar"
-msgstr "Settings"
-
-#: scripts/ui/kingdom_select.gd
-msgid "Çık"
-msgstr "Quit"
-
-#: scripts/ui/kingdom_select.gd
-msgid "%s (kilitli)"
-msgstr "%s (locked)"
-
-#: scripts/ui/kingdom_select.gd
-msgid "Koşu: %d savaş, her %d. savaş boss.   Oynanan koşu: %d   Fetih: %d   En uzun: %d. savaş"
-msgstr "Run: %d battles, a boss every %d battles.   Runs: %d   Conquests: %d   Furthest: battle %d"
-
-#: scripts/ui/kingdom_select.gd
-msgid "Yeni koşu başlatırsan yarım kalan koşu silinir.   "
-msgstr "Starting a new run deletes the unfinished one.   "
-
-#: scripts/ui/kingdom_select.gd
-msgid "Devam et: %s, savaş %d"
-msgstr "Continue: %s, battle %d"
+msgid "Kilitli"
+msgstr "Locked"
 
 #: scripts/ui/kingdom_select.gd
 msgid "Uzmanlık: %s"
 msgstr "Specialty: %s"
 
 #: scripts/ui/kingdom_select.gd
-msgid "Özellik: %s - %s"
-msgstr "Trait: %s - %s"
-
-#: scripts/ui/kingdom_select.gd
-msgid "Başlangıç ordusu: %s"
-msgstr "Starting army: %s"
-
-#: scripts/ui/kingdom_select.gd
-msgid "Birlikleri: %s"
-msgstr "Units: %s"
+msgid "Birlikleri"
+msgstr "Units"
 
 #: scripts/ui/kingdom_select.gd
 msgid "Boss: %s (%s)"
@@ -340,12 +308,48 @@ msgid "Bu krallıkla fetih: %d"
 msgstr "Conquests with this kingdom: %d"
 
 #: scripts/ui/kingdom_select.gd
-msgid "%s ile başla"
-msgstr "Start with %s"
+msgid "Açmak için: bir koşuda %s boss'unu yen ve fethi tamamla."
+msgstr "To unlock: defeat the %s boss in a run and complete the conquest."
 
-#: scripts/ui/kingdom_select.gd
-msgid "KİLİTLİ. Açmak için: bir koşuda %s boss'unu yen (mühür) ve fethi tamamla."
-msgstr "LOCKED. To unlock %s: beat its boss during a run (seal) and finish the conquest."
+#: scripts/ui/main_menu.gd
+msgid "Krallıkları fethet"
+msgstr "Conquer the kingdoms"
+
+#: scripts/ui/main_menu.gd
+msgid "Devam et"
+msgstr "Continue"
+
+#: scripts/ui/main_menu.gd
+msgid "Yeni oyun"
+msgstr "New game"
+
+#: scripts/ui/main_menu.gd
+msgid "Hazine"
+msgstr "Treasury"
+
+#: scripts/ui/main_menu.gd
+msgid "İstatistikler"
+msgstr "Statistics"
+
+#: scripts/ui/main_menu.gd
+msgid "Ayarlar"
+msgstr "Settings"
+
+#: scripts/ui/main_menu.gd
+msgid "Çık"
+msgstr "Quit"
+
+#: scripts/ui/main_menu.gd
+msgid "%s · savaş %d"
+msgstr "%s · battle %d"
+
+#: scripts/ui/main_menu.gd
+msgid "Yarım kalan koşun var. Yeni koşu başlatırsan o koşu silinir."
+msgstr "You have an unfinished run. Starting a new run will erase it."
+
+#: scripts/ui/main_menu.gd
+msgid "Krallık seçimine geç"
+msgstr "Go to kingdom select"
 
 #: scripts/ui/pause_menu.gd
 msgid "DURAKLATILDI"
@@ -395,33 +399,53 @@ msgstr "Seals lost: you must finish the conquest to unlock kingdoms."
 msgid "Son ordun:"
 msgstr "Your final army:"
 
-#: scripts/ui/run_map.gd
+#: scripts/ui/run_progress.gd
 msgid "Savaş %d: %s"
 msgstr "Battle %d: %s"
 
-#: scripts/ui/run_map.gd
+#: scripts/ui/run_progress.gd
 msgid " - BÜYÜK FETİH (boss)"
 msgstr " - GRAND CONQUEST (boss)"
 
-#: scripts/ui/run_map.gd
+#: scripts/ui/run_progress.gd
 msgid " - BOSS"
 msgstr " - BOSS"
 
-#: scripts/ui/run_map.gd
+#: scripts/ui/run_progress.gd
 msgid " - kilitli krallık: yenersen mühür"
 msgstr " - locked kingdom: win for a seal"
 
-#: scripts/ui/run_map.gd
+#: scripts/ui/run_progress.gd
 msgid " - kazanıldı"
 msgstr " - won"
 
-#: scripts/ui/run_map.gd
+#: scripts/ui/run_progress.gd
 msgid " - kaybedildi"
 msgstr " - lost"
 
 #: scripts/ui/settings_panel.gd
 msgid "AYARLAR"
 msgstr "SETTINGS"
+
+#: scripts/ui/settings_panel.gd
+msgid "Ses"
+msgstr "Sound"
+
+#: scripts/ui/settings_panel.gd
+msgid "Görüntü"
+msgstr "Display"
+
+#: scripts/ui/settings_panel.gd
+msgid "Oyun"
+msgstr "Game"
+
+#: scripts/ui/settings_panel.gd
+msgid "Dil"
+msgstr "Language"
+
+#: scripts/ui/settings_panel.gd
+msgid "Kapat"
+msgstr "Close"
 
 #: scripts/ui/settings_panel.gd
 msgid "Ana ses"
@@ -464,10 +488,6 @@ msgid "Vuruş duraklaması"
 msgstr "Hit stop"
 
 #: scripts/ui/settings_panel.gd
-msgid "Dil / Language"
-msgstr "Language / Dil"
-
-#: scripts/ui/settings_panel.gd
 msgid "İpuçlarını yeniden göster"
 msgstr "Show tips again"
 
@@ -476,12 +496,36 @@ msgid "İpuçları yeniden gösterilecek"
 msgstr "Tips will be shown again"
 
 #: scripts/ui/settings_panel.gd
-msgid "Kapat"
-msgstr "Close"
+msgid "Dil / Language"
+msgstr "Language / Dil"
 
 #: scripts/ui/settings_panel.gd
 msgid "%%%d"
 msgstr "%d%%"
+
+#: scripts/ui/stats_panel.gd
+msgid "Oynanan koşu"
+msgstr "Runs played"
+
+#: scripts/ui/stats_panel.gd
+msgid "Fetih"
+msgstr "Conquests"
+
+#: scripts/ui/stats_panel.gd
+msgid "Kazanılan savaş"
+msgstr "Battles won"
+
+#: scripts/ui/stats_panel.gd
+msgid "En uzun koşu"
+msgstr "Longest run"
+
+#: scripts/ui/stats_panel.gd
+msgid "%d. savaş"
+msgstr "battle %d"
+
+#: scripts/ui/stats_panel.gd
+msgid "Krallıklarla fetih"
+msgstr "Conquests by kingdom"
 
 #: scripts/ui/tips.gd
 msgid "Anladım"
@@ -520,12 +564,12 @@ msgid "Bölükleri alanda sürükleyip bırakarak yerleştir. Rakibe en yakın �
 msgstr "Drag and drop squads on the field to place them. The band nearest the enemy is the front line, the farthest is the back row."
 
 #: scripts/ui/tips.gd
-msgid "Rakibin ordusu karşıda bekliyor; soldaki panelde rolleri incele, karşılığını öne koy."
-msgstr "The enemy army waits across the field. Check their roles in the left panel and put your counters up front."
+msgid "Rakibin ordusu karşıda bekliyor; soldaki kartta simgelerin üstüne gelip rolleri incele. Kendi bölüğünün üstüne gelince ayrıntısı görünür."
+msgstr "The enemy army waits across the field; hover the icons on the left card to check their roles. Hover your own squad to see its details."
 
 #: scripts/ui/tips.gd
-msgid "Canların üstte yazar. Kaybedilen savaş bir can götürür ve tekrar oynanmaz."
-msgstr "Your lives are shown at the top. A lost battle costs a life and is not replayed."
+msgid "Canların sol üstte kalplerle görünür. Kaybedilen savaş bir can götürür ve tekrar oynanmaz."
+msgstr "Your lives are the hearts in the top left. A lost battle costs a life and is not replayed."
 
 #: scripts/ui/tips.gd
 msgid "Savaş kendi kendine oynar. Sağ üstten hızlandırabilirsin."
@@ -566,10 +610,6 @@ msgstr "TREASURY"
 #: scripts/ui/treasury.gd
 msgid "Şan kazanma: kazanılan savaş +%d, yenilen boss +%d, tamamlanan fetih +%d."
 msgstr "Earning Glory: battle won +%d, boss defeated +%d, conquest completed +%d."
-
-#: scripts/ui/treasury.gd
-msgid "Geri"
-msgstr "Back"
 
 #: scripts/ui/treasury.gd
 msgid "Tamamlandı"
