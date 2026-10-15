@@ -30,6 +30,7 @@ func _on_node_added(node: Node) -> void:
 func _initialize() -> void:
 	await process_frame
 	await test_backdrop()
+	await test_main_menu()
 	print("Hata: %d" % failures)
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(TEST_SAVE))
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(TEST_SETTINGS))
@@ -54,4 +55,57 @@ func test_backdrop() -> void:
 	bd.dim = 0.4
 	check("karartma ayarlanır", is_equal_approx(bd.dim, 0.4))
 	bd.queue_free()
+	await process_frame
+
+
+func test_main_menu() -> void:
+	var exists := ResourceLoader.exists("res://scenes/ui/main_menu.tscn")
+	check("ana menü sahnesi var", exists)
+	if not exists:
+		return
+	check("oyun ana menüyle açılır", ProjectSettings.get_setting("application/run/main_scene") == "res://scenes/ui/main_menu.tscn")
+	var profile := root.get_node("Profile")
+	var run := root.get_node("RunState")
+	profile.clear_run()
+	var menu: Control = load("res://scenes/ui/main_menu.tscn").instantiate()
+	root.add_child(menu)
+	await process_frame
+	menu.skip_intro()
+	var names: Array = menu.buttons().map(func(b: Button) -> String: return b.text)
+	check("kayıt yokken Devam yok", not names.any(func(n: String) -> bool: return n.begins_with(tr("Devam et"))))
+	check("kayıt yokken 5 düğme %s" % [names], names.size() == 5)
+	check("ilk düğme Yeni oyun (birincil)", names.size() > 0 and names[0] == tr("Yeni oyun"))
+	menu.queue_free()
+	await process_frame
+	# Review Focus 3: yarım koşu varken "Yeni oyun" onay sorar; iptal kaydı silmez.
+	run.start_run(KingdomCatalog.all()[0], 77)
+	profile.store_run(run.to_dict("prep"))
+	run.end_run()
+	menu = load("res://scenes/ui/main_menu.tscn").instantiate()
+	root.add_child(menu)
+	await process_frame
+	menu.skip_intro()
+	check("kayıt varken ilk düğme Devam", menu.buttons()[0].text.begins_with(tr("Devam et")))
+	menu._on_new_game()
+	await process_frame
+	check("Yeni oyun onay soruyor, kayıt duruyor", menu.is_confirming() and profile.has_saved_run())
+	menu.cancel_confirm()
+	await process_frame
+	check("iptal sonrası kayıt duruyor", profile.has_saved_run() and not menu.is_confirming())
+	menu.queue_free()
+	await process_frame
+	profile.clear_run()
+	# Review Focus 5: açılış tık/tuşla her an geçer.
+	menu = load("res://scenes/ui/main_menu.tscn").instantiate()
+	menu.set("force_intro", true)
+	root.add_child(menu)
+	await process_frame
+	check("açılış oynuyor", menu.intro_playing())
+	var key := InputEventKey.new()
+	key.keycode = KEY_SPACE
+	key.pressed = true
+	menu._input(key)
+	await process_frame
+	check("tuşla açılış geçildi", not menu.intro_playing() and menu.buttons()[0].modulate.a > 0.99)
+	menu.queue_free()
 	await process_frame

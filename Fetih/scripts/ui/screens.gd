@@ -1,6 +1,7 @@
 class_name Screens
 ## Ekranlar arası geçiş. Sahne yolları tek yerde durur.
 
+const MAIN_MENU := "res://scenes/ui/main_menu.tscn"  ## Oyunun açılış ekranı.
 const KINGDOM_SELECT := "res://scenes/ui/kingdom_select.tscn"
 const TREASURY := "res://scenes/ui/treasury.tscn"
 const MEYDAN := "res://scenes/run/meydan.tscn"  ## Hazırlık + savaş + kart seçimi tek sahne (aşama: next_phase).
@@ -47,12 +48,12 @@ static func _fade_done(layer: CanvasLayer) -> void:
 	layer.queue_free()
 
 
-## Kayıtlı yarım koşuyu yükler ve kaldığı ekrana döner. Kayıt bozuksa siler, ana ekranda kalır.
+## Kayıtlı yarım koşuyu yükler ve kaldığı ekrana döner. Kayıt bozuksa siler, ana menüye döner.
 static func resume_saved_run() -> void:
 	if not RunState.from_dict(Profile.saved_run):
 		push_warning("Kayıtlı koşu yüklenemedi; siliniyor.")
 		Profile.clear_run()
-		goto(KINGDOM_SELECT)
+		goto(MAIN_MENU)
 		return
 	var phase := String(Profile.saved_run.get("phase", "prep"))
 	next_phase = phase  # Meydan açılışta okur; "end" ise sonuç ekranı kendi açılır

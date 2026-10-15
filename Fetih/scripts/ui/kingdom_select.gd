@@ -14,6 +14,7 @@ func _ready() -> void:
 	var root := UiKit.screen_root(self, 10)
 
 	var header := UiKit.hbox(10)
+	header.add_child(UiKit.button(tr("Geri"), func() -> void: Screens.goto(Screens.MAIN_MENU)))
 	header.add_child(UiKit.label(tr("FETİH"), 22, UiKit.COLOR_GOLD))
 	header.add_child(UiKit.label(tr("Açık krallık: %d/%d") % [Profile.unlocked.size(), KingdomCatalog.all().size()],
 			10, UiKit.COLOR_MUTED))

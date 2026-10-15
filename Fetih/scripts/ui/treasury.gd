@@ -30,7 +30,7 @@ func _build() -> void:
 	_root.add_child(UiKit.spacer(true))
 	var bottom := UiKit.hbox()
 	bottom.add_child(UiKit.spacer())
-	bottom.add_child(UiKit.button(tr("Geri"), func() -> void: Screens.goto(Screens.KINGDOM_SELECT)))
+	bottom.add_child(UiKit.button(tr("Geri"), func() -> void: Screens.goto(Screens.MAIN_MENU)))
 	_root.add_child(bottom)
 
 

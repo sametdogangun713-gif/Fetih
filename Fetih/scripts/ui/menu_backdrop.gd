@@ -88,10 +88,10 @@ func _rebuild() -> void:
 	_trees.clear()
 	var plants := _tree_textures()
 	if not plants.is_empty():
-		for i in 9:
+		for i in 14:
 			var x := rng.randf_range(0.0, s.x)
-			if x > s.x * 0.62 and x < s.x * 0.92:
-				continue  # kale tepesinin önünü boş bırak
+			if x < s.x * 0.4 or (x > s.x * 0.62 and x < s.x * 0.92):
+				continue  # menü düğmelerinin ve kale tepesinin önü boş kalsın
 			_trees.append([plants[rng.randi_range(0, plants.size() - 1)], Vector2(x, _ridge_y(_hills, x) + 2)])
 	_banners.clear()
 	var all := KingdomCatalog.all()

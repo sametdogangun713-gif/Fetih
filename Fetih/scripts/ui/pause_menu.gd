@@ -50,4 +50,4 @@ func _close() -> void:
 
 func _to_main_menu() -> void:
 	get_tree().paused = false
-	Screens.goto(Screens.KINGDOM_SELECT)
+	Screens.goto(Screens.MAIN_MENU)

@@ -45,4 +45,4 @@ func _ready() -> void:
 
 
 func _back_to_menu() -> void:
-	Screens.goto(Screens.KINGDOM_SELECT)
+	Screens.goto(Screens.MAIN_MENU)
