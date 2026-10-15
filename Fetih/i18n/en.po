@@ -99,21 +99,17 @@ msgstr "Scouting"
 msgid "Koşu başına kart tekliflerini yeniden çekme hakkı (seviye başına 1)."
 msgstr "Rerolls for card offers each run (1 per level)."
 
-#: scripts/run/prep_screen.gd
-msgid "Savaşa başla"
-msgstr "Start battle"
-
-#: scripts/run/prep_screen.gd
+#: scripts/run/meydan.gd
 msgid "Koşun kayıtlı: ana menüden \"Devam et\" ile buraya dönersin."
 msgstr "Your run is saved: use \"Continue\" in the main menu to come back here."
 
-#: scripts/run/prep_screen.gd
-msgid "Savaş %d / %d"
-msgstr "Battle %d / %d"
+#: scripts/run/prep_layer.gd
+msgid "Bir bölüğün üstüne gel: ayrıntıları burada görünür."
+msgstr "Hover over a squad to see its details here."
 
-#: scripts/run/prep_screen.gd
-msgid "Can: %d / %d"
-msgstr "Lives: %d / %d"
+#: scripts/run/prep_layer.gd
+msgid "Savaşa başla"
+msgstr "Start battle"
 
 #: scripts/run/prep_screen.gd
 msgid "Ordun"
@@ -135,55 +131,63 @@ msgstr "Back row"
 msgid "Bölükleri sürükleyip bırakarak yerlerini değiştir."
 msgstr "Drag and drop squads to rearrange them."
 
-#: scripts/run/prep_screen.gd
+#: scripts/run/squad_info.gd
+msgid "Savaş %d / %d"
+msgstr "Battle %d / %d"
+
+#: scripts/run/squad_info.gd
+msgid "Can: %d / %d"
+msgstr "Lives: %d / %d"
+
+#: scripts/run/squad_info.gd
 msgid "Fermanlar:"
 msgstr "Edicts:"
 
-#: scripts/run/prep_screen.gd
+#: scripts/run/squad_info.gd
 msgid "yok"
 msgstr "none"
 
-#: scripts/run/prep_screen.gd
+#: scripts/run/squad_info.gd
 msgid "BÜYÜK FETİH - kazanmak zorundasın"
 msgstr "GRAND CONQUEST - you must win"
 
-#: scripts/run/prep_screen.gd
+#: scripts/run/squad_info.gd
 msgid "BOSS SAVAŞI - yenersen +1 can ve ferman"
 msgstr "BOSS BATTLE - win for +1 life and an edict"
 
-#: scripts/run/prep_screen.gd
+#: scripts/run/squad_info.gd
 msgid "Sıradaki rakip"
 msgstr "Next enemy"
 
-#: scripts/run/prep_screen.gd
+#: scripts/run/squad_info.gd
 msgid "Güç %d"
 msgstr "Power %d"
 
-#: scripts/run/prep_screen.gd
+#: scripts/run/squad_info.gd
 msgid "Kilitli krallık: boss'u yen, mühür al; fetihle %s açılır."
 msgstr "Locked kingdom: beat the boss to earn a seal; finish the conquest to unlock %s."
 
-#: scripts/run/prep_screen.gd
+#: scripts/run/squad_info.gd
 msgid "Fermanları: %s"
 msgstr "Their edicts: %s"
 
-#: scripts/run/prep_screen.gd
+#: scripts/run/squad_info.gd
 msgid "Ganimet: %s kartları"
 msgstr "Spoils: %s cards"
 
-#: scripts/run/prep_screen.gd
-msgid "Bir bölüğün üstüne gel: ayrıntıları burada görünür."
-msgstr "Hover over a squad to see its details here."
-
-#: scripts/run/prep_screen.gd
+#: scripts/run/squad_info.gd
 msgid "BOSS:"
 msgstr "BOSS:"
 
-#: scripts/run/prep_screen.gd
+#: scripts/run/squad_info.gd
 msgid "Saldırı %d · Savunma %d · Takviye %d"
 msgstr "Attack %d · Defense %d · Reinforcement %d"
 
-#: scripts/run/prep_screen.gd
+#: scripts/run/squad_info.gd
+msgid "Konum: %s"
+msgstr "Position: %s"
+
+#: scripts/run/squad_info.gd
 msgid "Ferman: %s"
 msgstr "Edict: %s"
 
@@ -598,6 +602,14 @@ msgstr "Buy (%d Glory)"
 #: scripts/ui/ui_kit.gd
 msgid "Can %s   Hasar %s   Saldırı %s/sn\nMenzil %s   Hız %s   Zırh %s"
 msgstr "HP %s   Damage %s   Attacks %s/s\nRange %s   Speed %s   Armor %s"
+
+#: scripts/ui/ui_kit.gd
+msgid "Ön cephe"
+msgstr "Front line"
+
+#: scripts/ui/ui_kit.gd
+msgid "Orta"
+msgstr "Middle"
 
 #: scripts/ui/ui_kit.gd
 msgid "Saldırı eğitimi"

@@ -4,6 +4,7 @@ class_name Screens
 const KINGDOM_SELECT := "res://scenes/ui/kingdom_select.tscn"
 const TREASURY := "res://scenes/ui/treasury.tscn"
 const PREP := "res://scenes/run/prep.tscn"
+const MEYDAN := "res://scenes/run/meydan.tscn"  ## Hazırlık + savaş + kart seçimi tek sahne (Task 10-12 sonrası PREP buna eşitlenecek).
 const BATTLE := "res://scenes/battle/battle.tscn"
 const CARD_SELECT := "res://scenes/ui/card_select.tscn"
 const RUN_END := "res://scenes/ui/run_end.tscn"
@@ -13,6 +14,7 @@ const FADE_OUT := 0.15  ## Ekran kararma süresi (sn).
 const FADE_IN := 0.2  ## Yeni ekranın açılma süresi.
 
 static var _fading := false
+static var next_phase := "prep"  ## Meydan açılınca girilecek aşama ("prep", "battle", "cards").
 
 
 ## Ekran değiştirir: önce kararır, sahne değişir, sonra yeni ekran açılır.
@@ -62,4 +64,5 @@ static func resume_saved_run() -> void:
 		Profile.clear_run()
 		goto(KINGDOM_SELECT)
 		return
+	next_phase = String(Profile.saved_run.get("phase", "prep"))
 	goto(PHASE_SCENES.get(String(Profile.saved_run.get("phase", "prep")), PREP))

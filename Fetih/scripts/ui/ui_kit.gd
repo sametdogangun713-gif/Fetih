@@ -230,6 +230,16 @@ static func unit_stats(unit: UnitData) -> String:
 			num(unit.attack_range), num(unit.move_speed), num(unit.armor)]
 
 
+## Derinlik bandı adı (hazırlıkta sürüklerken ve bölük ayrıntısında).
+static func band_name(band: ArmySquad.Band) -> String:
+	match band:
+		ArmySquad.Band.FRONT:
+			return t("Ön cephe")
+		ArmySquad.Band.BACK:
+			return t("Arka saf")
+	return t("Orta")
+
+
 static func role_name(role: StringName) -> String:
 	return t(RoleRules.ROLE_NAMES.get(role, String(role)))
 

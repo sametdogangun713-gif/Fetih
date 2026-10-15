@@ -1,0 +1,9 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/run/meydan.gd" id="1_meydan"]
+[ext_resource type="PackedScene" path="res://scenes/battle/battlefield.tscn" id="2_field"]
+
+[node name="Meydan" type="Node2D"]
+script = ExtResource("1_meydan")
+
+[node name="Battlefield" parent="." instance=ExtResource("2_field")]

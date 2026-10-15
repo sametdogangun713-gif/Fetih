@@ -11,7 +11,7 @@ func _ready() -> void:
 		RunState.start_run(KingdomCatalog.all()[0], 1)
 	Profile.store_run(RunState.to_dict("prep"))  # oyun kapanırsa buradan devam edilir
 	var root := UiKit.screen_root(self)
-	root.add_child(_top_bar())
+	root.add_child(SquadInfo.top_bar())
 	var map_row := UiKit.hbox()
 	map_row.add_child(UiKit.spacer())
 	map_row.add_child(RunMap.new())
@@ -33,24 +33,6 @@ func _ready() -> void:
 	Tips.show_once(self, Tips.PREP)
 
 
-func _top_bar() -> Control:
-	# Savaş HUD'uyla aynı dil: koyu ince panel; solda savaş ve can, sağda krallık (renk karesiyle).
-	var panel := UiKit.strip_panel(1.0)
-	var bar := UiKit.hbox(16)
-	panel.add_child(bar)
-	bar.add_child(UiKit.label(tr("Savaş %d / %d") % [RunState.battle_index + 1, Balance.RUN_LENGTH], 12))
-	var lives_color := UiKit.COLOR_TEXT if RunState.lives == RunState.max_lives else UiKit.COLOR_BAD
-	bar.add_child(UiKit.label(tr("Can: %d / %d") % [RunState.lives, RunState.max_lives], 12, lives_color))
-	bar.add_child(UiKit.spacer())
-	var swatch := ColorRect.new()
-	swatch.color = RunState.kingdom.color
-	swatch.custom_minimum_size = Vector2(8, 8)
-	swatch.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	bar.add_child(swatch)
-	bar.add_child(UiKit.label(tr(RunState.kingdom.display_name), 12, RunState.kingdom.color))
-	return panel
-
-
 func _army_column() -> Control:
 	var column := UiKit.vbox(3)
 	var header := UiKit.hbox(8)
@@ -65,85 +47,21 @@ func _army_column() -> Control:
 	_grid.add_theme_constant_override("v_separation", 3)
 	column.add_child(_grid)
 	column.add_child(UiKit.label(tr("Arka saf"), 9, UiKit.COLOR_MUTED))
-	column.add_child(_passives_line())
+	column.add_child(SquadInfo.passives_line())
 	column.add_child(UiKit.label(tr("Bölükleri sürükleyip bırakarak yerlerini değiştir."), 9, UiKit.COLOR_MUTED))
 	return column
 
 
-## Alınan fermanlar; üstüne gelince açıklaması görünür.
-func _passives_line() -> Control:
-	var line := HFlowContainer.new()
-	line.custom_minimum_size.x = 306
-	line.add_theme_constant_override("h_separation", 6)
-	line.add_child(UiKit.label(tr("Fermanlar:"), 9, UiKit.COLOR_MUTED))
-	if RunState.passives.is_empty():
-		line.add_child(UiKit.label(tr("yok"), 9, UiKit.COLOR_MUTED))
-	for passive in RunState.passives:
-		var tag := UiKit.label(tr(passive.display_name), 9, UiKit.COLOR_GOLD)
-		tag.tooltip_text = tr(passive.description)
-		tag.mouse_filter = Control.MOUSE_FILTER_PASS  # etiketler normalde fareyi yok sayar
-		line.add_child(tag)
-	return line
-
-
 func _opponent_column() -> Control:
-	var opponent := RunState.current_opponent()
-	var enemy_army := RunState.current_enemy_army()
 	var card := UiKit.panel()
 	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var box := UiKit.vbox(3)
 	card.add_child(box)
-	if RunState.is_final_battle():
-		box.add_child(UiKit.label(tr("BÜYÜK FETİH - kazanmak zorundasın"), 10, UiKit.COLOR_BAD))
-	elif RunState.is_boss_battle():
-		box.add_child(UiKit.label(tr("BOSS SAVAŞI - yenersen +1 can ve ferman"), 10, UiKit.COLOR_GOLD))
-	else:
-		box.add_child(UiKit.label(tr("Sıradaki rakip"), 9, UiKit.COLOR_MUTED))
-	var title := UiKit.hbox(8)
-	title.add_child(UiKit.label(tr(opponent.display_name), 16, opponent.color))
-	title.add_child(UiKit.label(tr("Güç %d") % roundi(RunState.army_power(enemy_army)), 10, UiKit.COLOR_MUTED))
-	title.add_child(UiKit.label(UiKit.kingdom_specialty(opponent), 10, UiKit.COLOR_GOLD))
-	box.add_child(title)
-	if RunState.is_boss_battle() and RunState.locked.has(opponent.id):
-		box.add_child(UiKit.wrapped(tr("Kilitli krallık: boss'u yen, mühür al; fetihle %s açılır.") % tr(opponent.display_name),
-				9, UiKit.COLOR_GOLD))
-	for line in _enemy_lines(enemy_army):
-		box.add_child(line)
-	var fermans := RunState.enemy_passives()
-	if not fermans.is_empty():
-		var names: PackedStringArray = []
-		for passive in fermans:
-			names.append(tr(passive.display_name))
-		box.add_child(UiKit.wrapped(tr("Fermanları: %s") % ", ".join(names), 9, UiKit.COLOR_GOLD))
-	box.add_child(UiKit.label(tr("Ganimet: %s kartları") % tr(opponent.display_name), 9, UiKit.COLOR_MUTED))
+	SquadInfo.fill_opponent(box)
 	box.add_child(HSeparator.new())
 	_info = UiKit.wrapped(tr("Bir bölüğün üstüne gel: ayrıntıları burada görünür."), 9, UiKit.COLOR_MUTED)
 	box.add_child(_info)
 	return card
-
-
-## Rakip ordusunun satırları. Aynı birlik + aynı asker sayısı + aynı seviyedeki bölükler tek satırda.
-func _enemy_lines(enemy_army: Array[ArmySquad]) -> Array[Label]:
-	var lines: Array[Label] = []
-	var groups := {}  ## anahtar -> [bölük, adet]
-	var order: Array[String] = []
-	for squad in enemy_army:
-		var key := "%s|%d|%d" % [squad.unit.id, squad.count, squad.level()]
-		if not groups.has(key):
-			groups[key] = [squad, 0]
-			order.append(key)
-		groups[key][1] += 1
-	for key in order:
-		var squad: ArmySquad = groups[key][0]
-		var copies: int = groups[key][1]
-		if squad.unit.is_boss:
-			lines.append(UiKit.label("• %s %s (%s)" % [tr("BOSS:"), tr(squad.unit.display_name),
-					UiKit.role_name(squad.unit.role)], 10, UiKit.COLOR_GOLD))
-			continue
-		var prefix := "%dx " % copies if copies > 1 else ""
-		lines.append(UiKit.label("• %s%d %s (%s)  %s" % [prefix, squad.count, tr(squad.unit.display_name),
-				UiKit.role_name(squad.unit.role), UiKit.level_text(squad)], 10))
-	return lines
 
 
 func _refresh_grid() -> void:
@@ -171,18 +89,7 @@ func _show_info(cell: Vector2i) -> void:
 	var squad := RunState.squad_at(cell)
 	if squad == null:
 		return
-	var unit := squad.unit
-	var lines: PackedStringArray = []
-	lines.append("%d %s (%s)  %s  %s" % [squad.count, tr(unit.display_name), UiKit.role_name(unit.role),
-			UiKit.level_text(squad), tr("Güç %d") % roundi(squad.power())])
-	lines.append(tr("Saldırı %d · Savunma %d · Takviye %d") % [squad.attack_level, squad.defense_level,
-			squad.reinforce_level])
-	lines.append(UiKit.unit_stats(unit))
-	lines.append(", ".join(UiKit.unit_traits(unit)))
-	for passive in RunState.passives:
-		if passive.applies_to(squad):
-			lines.append(tr("Ferman: %s") % tr(passive.display_name))
-	_info.text = "\n".join(lines)
+	_info.text = SquadInfo.squad_details(squad)
 	_info.add_theme_color_override("font_color", UiKit.COLOR_TEXT)
 
 

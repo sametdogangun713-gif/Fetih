@@ -25,6 +25,8 @@ var running := false
 var frame_pad_bottom := 0.0
 ## Aynısı kutunun üstü için (üst şerit / paneller sahneyi örtmesin).
 var frame_pad_top := 0.0
+## Aynısı kutunun solu için (sol bilgi paneli).
+var frame_pad_left := 0.0
 var _views := {}  ## SquadState -> SquadView (ekleme sırası = verilen sıra)
 var _accumulator := 0.0
 var _speed := 1
@@ -99,6 +101,8 @@ func frame_all() -> void:
 	var far := BattleCamera.ZOOM_LEVELS[0]
 	first_frame.position.y -= frame_pad_top / far
 	first_frame.size.y += (frame_pad_bottom + frame_pad_top) / far
+	first_frame.position.x -= frame_pad_left / far
+	first_frame.size.x += frame_pad_left / far
 	battlefield.camera.follow(first_frame, 0.0, true)
 
 
