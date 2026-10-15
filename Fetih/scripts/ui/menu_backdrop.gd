@@ -33,6 +33,8 @@ var _stars: Array[Vector3] = []  ## x, y, evre
 var _clouds: Array[Array] = []  ## katman -> [[x, y, ölçek], ...]
 var _trees: Array[Array] = []  ## [doku, gövde dibi (zemindeki nokta), dokudaki gövde dibi]
 var _castle_ground := Vector2.ZERO  ## Kalenin oturduğu nokta: yakın dağların tepesi.
+var _road_mountain := PackedVector2Array()  ## Kale kapısından dağ yamacında zikzakla inen yol (dağ paralaksı).
+var _road_hill := PackedVector2Array()  ## Ön tepeden ekranın altına inen yol (tepe paralaksı).
 var _cloud_tex: Array[Texture2D] = []
 var _banners: Array[KingdomData] = []
 var _army: Array[UnitSprites.Sheet] = []  ## Ön tepede soldan sağa yürüyen bölük (sancaktar başta).
@@ -75,6 +77,11 @@ func near_ridge_y(x: float) -> float:
 
 func hill_ridge_y(x: float) -> float:
 	return _ridge_y(_hills, x)
+
+
+## Test kancası: yolun iki parçası [dağ yolu (kapıdan başlar), tepe yolu (ekranın altında biter)].
+func road_points() -> Array[PackedVector2Array]:
+	return [_road_mountain, _road_hill]
 
 
 ## Test kancası: ağaç gövdelerinin yere değdiği noktalar.
@@ -122,6 +129,7 @@ func _rebuild() -> void:
 			row.append([rng.randf() * s.x, s.y * (0.12 + 0.1 * layer) + rng.randf_range(-12, 12), 1.0])
 		_clouds.append(row)
 	_castle_ground = _peak(_near_mountains, s.x * 0.66, s.x * 0.9) + Vector2(0, 3)
+	_build_road(s)
 	_trees.clear()
 	var plants := _tree_textures()
 	if not plants.is_empty():
@@ -170,6 +178,64 @@ func _ridge(s: Vector2, base: float, height: float, freq: float, rng: RandomNumb
 	return pts
 
 
+## Kaleye giden yol: kapıdan yamaçta iki dönemeçle iner, ön tepenin arkasında kaybolur; tepede yeniden
+## görünür ve ekranın altına doğru genişleyerek gelir. Noktalar ilgili sırtın altına kıstırılır (yol havada olmaz).
+func _build_road(s: Vector2) -> void:
+	var g := _castle_ground
+	var join_x := s.x * 0.63  # yolun ön tepeyi aştığı yer
+	var way := [g, g + Vector2(-34, 16), g + Vector2(14, 34), Vector2(join_x + 8, g.y + 52),
+			Vector2(join_x, _ridge_y(_hills, join_x) + 6)]
+	_road_mountain = _smooth(way, 10)
+	for i in _road_mountain.size():
+		var p := _road_mountain[i]
+		_road_mountain[i] = Vector2(p.x, maxf(p.y, _ridge_y(_near_mountains, p.x) + 1.0))
+	_road_mountain[0] = g
+	var hill := [Vector2(join_x, _ridge_y(_hills, join_x) + 1), Vector2(join_x - 10, s.y * 0.9),
+			Vector2(join_x - 34, s.y * 0.97), Vector2(join_x - 40, s.y + 4)]
+	_road_hill = _smooth(hill, 10)
+	for i in _road_hill.size():
+		var p := _road_hill[i]
+		_road_hill[i] = Vector2(p.x, maxf(p.y, _ridge_y(_hills, p.x) + 1.0))
+
+
+## Catmull-Rom ile yumuşak eğri (her ara parçaya steps nokta).
+static func _smooth(pts: Array, steps: int) -> PackedVector2Array:
+	var out := PackedVector2Array()
+	for i in pts.size() - 1:
+		var p0: Vector2 = pts[maxi(i - 1, 0)]
+		var p1: Vector2 = pts[i]
+		var p2: Vector2 = pts[i + 1]
+		var p3: Vector2 = pts[mini(i + 2, pts.size() - 1)]
+		for k in steps:
+			var t := float(k) / steps
+			var t2 := t * t
+			var t3 := t2 * t
+			out.append(0.5 * ((2.0 * p1) + (-p0 + p2) * t + (2.0 * p0 - 5.0 * p1 + 4.0 * p2 - p3) * t2
+					+ (-p0 + 3.0 * p1 - 3.0 * p2 + p3) * t3))
+	out.append(pts[pts.size() - 1])
+	return out
+
+
+## Toprak yol: koyu kenar + açık dolgu + ortada tekerlek izi; genişlik w0'dan w1'e (uzak dar, yakın geniş).
+func _draw_road(pts: PackedVector2Array, shift: Vector2, w0: float, w1: float) -> void:
+	var n := pts.size()
+	for pass_i in 3:
+		for i in n - 1:
+			var w := lerpf(w0, w1, float(i) / maxf(n - 2, 1))
+			var a := pts[i] + shift
+			var b := pts[i + 1] + shift
+			match pass_i:
+				0:
+					draw_line(a, b, Color("694f62"), w + 2.0)
+					draw_circle(b, (w + 2.0) / 2.0, Color("694f62"))
+				1:
+					draw_line(a, b, Color("ab947a"), w)
+					draw_circle(b, w / 2.0, Color("ab947a"))
+				2:
+					if w > 4.0 and i % 3 != 2:  # kesik tekerlek izi
+						draw_line(a, b, Color("966c6c"), 1.0)
+
+
 ## Sırtın [x0, x1] aralığındaki en yüksek noktası (ekranda en küçük y).
 func _peak(ridge: PackedVector2Array, x0: float, x1: float) -> Vector2:
 	var best := Vector2(x0, INF)
@@ -213,6 +279,7 @@ func _draw() -> void:
 	_draw_castle(s)
 	_draw_birds(s)
 	_draw_layer(_hills, Color("165a4c"), Color("239063"), PARALLAX[4])
+	_draw_road(_road_hill, _shift(PARALLAX[4]), 5.0, 16.0)
 	for tree: Array in _trees:
 		var tex: Texture2D = tree[0]
 		var at: Vector2 = tree[1] + _shift(PARALLAX[4])
@@ -286,6 +353,7 @@ func _draw_castle(s: Vector2) -> void:
 			origin + Vector2(78, 34), origin + Vector2(-78, 34)]), Color("45293f"))
 	for r: Vector3 in [Vector3(-46, -2, 5), Vector3(44, -1, 4), Vector3(-30, 1, 3), Vector3(30, 2, 3)]:
 		draw_circle(origin + Vector2(r.x, r.y), r.z, Color("3e3546"))
+	_draw_road(_road_mountain, shift.round(), 2.5, 4.5)
 	var body := Rect2(origin + Vector2(-34, -30), Vector2(68, 30))
 	draw_rect(body, wall)
 	_crenels(Vector2(body.position.x, body.position.y), body.size.x, wall)

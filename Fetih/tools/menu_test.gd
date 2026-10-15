@@ -76,6 +76,23 @@ func test_backdrop() -> void:
 			var d: float = f.y - bd.hill_ridge_y(f.x)
 			grounded = grounded and d >= 0.0 and d <= 4.0
 		check("ağaçların gövdesi tepede", grounded)
+	# Kaleye giden yol: kale kapısından başlar, dağ yamacında dağın içinde kalır, ekranın altında biter.
+	check("yol kancası", bd.has_method("road_points"))
+	if bd.has_method("road_points"):
+		var road: Array[PackedVector2Array] = bd.road_points()
+		var mountain_part := road[0]
+		var hill_part := road[1]
+		var gate: Vector2 = bd.castle_ground()
+		check("yol kale kapısında başlar", mountain_part.size() > 2 and mountain_part[0].distance_to(gate) <= 4.0)
+		var inside := true
+		for pt in mountain_part:
+			inside = inside and pt.y >= bd.near_ridge_y(pt.x) - 1.0
+		check("dağ yolu dağın yüzeyinde (havada değil)", inside)
+		check("yol ekranın altında biter", hill_part.size() > 2 and hill_part[hill_part.size() - 1].y >= bd.size.y - 1.0)
+		var on_hill := true
+		for pt in hill_part:
+			on_hill = on_hill and pt.y >= bd.hill_ridge_y(pt.x) - 1.0
+		check("tepe yolu tepenin üstünde değil", on_hill)
 	check("manzarada yürüyen ordu var", bd.has_method("army_positions") and bd.army_positions().size() >= 6)
 	if bd.has_method("army_positions"):
 		var before: Vector2 = bd.army_positions()[0]
