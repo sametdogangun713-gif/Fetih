@@ -326,7 +326,7 @@ static var _card_icons := {}  ## Koddan çizilen kart ikonları (tür + renk ana
 ## unit: sadece birlik kartında resim için; upgrade: sadece yükseltme kartında (ArmySquad.Upgrade).
 ## Godot: StyleBoxFlat'in border_width ile çerçeve çizilir; set_meta ile kabuğa gövde kutusu iliştirilir.
 static func card_frame(kind: CardOffer.Kind, kingdom: KingdomData, unit: UnitData = null,
-		upgrade := ArmySquad.Upgrade.REINFORCE, art_scale := 3) -> PanelContainer:
+		upgrade := ArmySquad.Upgrade.REINFORCE, art_scale := 3, art_height := CARD_ART_HEIGHT) -> PanelContainer:
 	var edge := COLOR_GOLD
 	match kind:
 		CardOffer.Kind.UNIT:
@@ -343,19 +343,20 @@ static func card_frame(kind: CardOffer.Kind, kingdom: KingdomData, unit: UnitDat
 	# Resim alanı: koyu zemin, ortalanmış resim, altında tür renginde 1 px çizgi.
 	var art_bg := ColorRect.new()
 	art_bg.color = COLOR_SLOT_EMPTY
-	art_bg.custom_minimum_size = Vector2(0, CARD_ART_HEIGHT)
+	art_bg.custom_minimum_size = Vector2(0, art_height)
 	art_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	column.add_child(art_bg)
 	var art: Control
+	var icon_scale := maxi(1, floori((art_height - 4) / 16.0))  # 16 px ikon: 64 px alanda 3x, 36 px alanda 2x
 	match kind:
 		CardOffer.Kind.UNIT:
 			art = unit_icon(unit, art_scale)
 		CardOffer.Kind.UPGRADE:
-			art = _card_icon_rect(card_icon_texture(&"upgrade", upgrade, COLOR_GOLD, COLOR_GOLD), 3)
+			art = _card_icon_rect(card_icon_texture(&"upgrade", upgrade, COLOR_GOLD, COLOR_GOLD), icon_scale)
 		CardOffer.Kind.PASSIVE:
 			var main := kingdom.color if kingdom else COLOR_PASSIVE
 			var accent := kingdom.accent_color if kingdom else COLOR_GOLD
-			art = _card_icon_rect(card_icon_texture(&"passive", 0, main, accent), 3)
+			art = _card_icon_rect(card_icon_texture(&"passive", 0, main, accent), icon_scale)
 	var center := CenterContainer.new()
 	center.set_anchors_preset(Control.PRESET_FULL_RECT)
 	center.mouse_filter = Control.MOUSE_FILTER_IGNORE

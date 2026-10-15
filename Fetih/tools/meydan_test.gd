@@ -57,6 +57,43 @@ func _initialize() -> void:
 	meydan.hud.continue_pressed.emit()
 	await process_frame
 	check("CARDS aşaması", meydan.phase == meydan.Phase.CARDS)
+	# CARDS: kart alanda uygulanır, sonra sıradaki savaşın hazırlığı.
+	var cards = meydan.cards  # tür yazılmaz: araç derlenirken CardLayer -> RunState (autoload) çözülemez
+	check("CARDS: panel görünür", cards.visible and not meydan.hud.visible)
+	var offers: Array[CardOffer] = run.card_offers()
+	var takeable: CardOffer = null
+	for o in offers:
+		if run.can_take(o) and not run.needs_replace(o):
+			takeable = o
+			break
+	var index_before: int = run.battle_index
+	meydan.apply_card(takeable)
+	await create_timer(1.5).timeout  # kart etkisi animasyonu
+	check("sıradaki savaş", run.battle_index == index_before + 1)
+	check("tekrar PREP", meydan.phase == meydan.Phase.PREP)
+	# Review Focus 4: ordu doluyken birlik kartı + vazgeç.
+	while run.army.size() < Balance.MAX_SQUADS:
+		var unit: UnitData = UnitCatalog.all()[run.army.size()]
+		run.army.append(ArmySquad.new(unit, 100.0, run.free_pos_for(unit)))
+	var army_before: int = run.army.size()
+	var unit_offer := CardOffer.unit_card(UnitCatalog.all()[UnitCatalog.all().size() - 1])
+	meydan.enter(meydan.Phase.CARDS)
+	cards.replace_requested.emit(unit_offer)
+	check("değiştirme bekleniyor", cards.replacing == unit_offer)
+	await process_frame
+	var panel: Control = cards._panel
+	var viewport_h: float = root.get_visible_rect().size.y
+	check("değiştirme paneli altta ve kısa", panel.size.y < 150.0 and absf(panel.get_global_rect().end.y - viewport_h) < 1.5)
+	cards.cancel_replace()
+	check("vazgeç: ordu aynı", run.army.size() == army_before and cards.replacing == null)
+	# Değiştirme: bir bölüğe tıklanınca yeni birlik onun yerine girer.
+	var victim: ArmySquad = run.army[0]
+	cards.replace_requested.emit(unit_offer)
+	var click_at := Formation.deploy_to_field(victim.pos, SquadState.Team.PLAYER)
+	check("alan tıklaması bölüğü bulur", meydan.player_index_at(click_at) == 0)
+	meydan.apply_card(unit_offer, victim)
+	await create_timer(1.5).timeout
+	check("değiştirme: ordu sayısı aynı, eski bölük gitti", run.army.size() == army_before and not run.army.has(victim))
 	meydan.queue_free()
 	await process_frame
 	# Kayıttan dönüş: Screens.next_phase aşamayı belirler ve okunduktan sonra sıfırlanır.

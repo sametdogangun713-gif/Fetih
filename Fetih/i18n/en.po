@@ -91,6 +91,98 @@ msgstr "Pause (Esc)"
 msgid "Devam"
 msgstr "Continue"
 
+#: scripts/run/card_layer.gd
+msgid "%s yenildi!"
+msgstr "%s defeated!"
+
+#: scripts/run/card_layer.gd
+msgid "  +1 can (%d/%d)"
+msgstr "  +1 life (%d/%d)"
+
+#: scripts/run/card_layer.gd
+msgid "Zafer!"
+msgstr "Victory!"
+
+#: scripts/run/card_layer.gd
+msgid "Yenilgi... Bir can kaybettin (kalan: %d)."
+msgstr "Defeat... You lost a life (left: %d)."
+
+#: scripts/run/card_layer.gd
+msgid "%s ganimeti: bir kart seç  ·  Ordun %d/%d bölük"
+msgstr "%s spoils: pick a card  ·  Army %d/%d squads"
+
+#: scripts/run/card_layer.gd
+msgid "Yeniden çek (%d hak)"
+msgstr "Reroll (%d left)"
+
+#: scripts/run/card_layer.gd
+msgid "Kart alma, devam et"
+msgstr "Skip card, continue"
+
+#: scripts/run/card_layer.gd
+msgid "Yerine geç"
+msgstr "Replace"
+
+#: scripts/run/card_layer.gd
+msgid "Al"
+msgstr "Take"
+
+#: scripts/run/card_layer.gd
+msgid "TAKVİYE"
+msgstr "REINFORCEMENT"
+
+#: scripts/run/card_layer.gd
+msgid "YENİ BİRLİK"
+msgstr "NEW UNIT"
+
+#: scripts/run/card_layer.gd
+msgid "%d asker"
+msgstr "%d soldiers"
+
+#: scripts/run/card_layer.gd
+msgid "Bölük en üst seviyede."
+msgstr "Squad is at max level."
+
+#: scripts/run/card_layer.gd
+msgid "Ordundaki bölük: %s -> Sv %d"
+msgstr "Squad in your army: %s -> Lv %d"
+
+#: scripts/run/card_layer.gd
+msgid "Ordu dolu: bir bölüğün yerine geçer."
+msgstr "Army full: it replaces a squad."
+
+#: scripts/run/card_layer.gd
+msgid "Yeni bölük olarak meydana girer."
+msgstr "Enters the field as a new squad."
+
+#: scripts/run/card_layer.gd
+msgid "%s bölüğü"
+msgstr "%s squad"
+
+#: scripts/run/card_layer.gd
+msgid "Seviye: %s -> Sv %d   Güç %d -> %d"
+msgstr "Level: %s -> Lv %d   Power %d -> %d"
+
+#: scripts/run/card_layer.gd
+msgid "Koşu boyunca kalıcı. Bir krallığın fermanı bir kez alınır."
+msgstr "Lasts the whole run. Each edict can be taken once."
+
+#: scripts/run/card_layer.gd
+msgid "Ordun dolu (%d/%d). %s hangi bölüğün yerine geçsin?"
+msgstr "Your army is full (%d/%d). Which squad should %s replace?"
+
+#: scripts/run/card_layer.gd
+msgid "Değiştirilecek bölüğe alanda tıkla."
+msgstr "Click the squad to replace on the field."
+
+#: scripts/run/card_layer.gd
+msgid "Yerine geçilen bölük ve seviyeleri kaybolur; yeni bölük onun yerine girer."
+msgstr "The replaced squad and its levels are lost; the new squad takes its place."
+
+#: scripts/run/card_layer.gd
+msgid "Vazgeç"
+msgstr "Cancel"
+
 #: scripts/run/meydan.gd
 msgid "Koşun kayıtlı: ana menüden \"Devam et\" ile buraya dönersin."
 msgstr "Your run is saved: use \"Continue\" in the main menu to come back here."
@@ -200,64 +292,8 @@ msgid "boş"
 msgstr "empty"
 
 #: scripts/ui/card_select.gd
-msgid "%s yenildi!"
-msgstr "%s defeated!"
-
-#: scripts/ui/card_select.gd
-msgid "  +1 can (%d/%d)"
-msgstr "  +1 life (%d/%d)"
-
-#: scripts/ui/card_select.gd
-msgid "Zafer!"
-msgstr "Victory!"
-
-#: scripts/ui/card_select.gd
-msgid "Yenilgi... Bir can kaybettin (kalan: %d)."
-msgstr "Defeat... You lost a life (left: %d)."
-
-#: scripts/ui/card_select.gd
-msgid "%s ganimeti: bir kart seç  ·  Ordun %d/%d bölük"
-msgstr "%s spoils: pick a card  ·  Army %d/%d squads"
-
-#: scripts/ui/card_select.gd
-msgid "Yeniden çek (%d hak)"
-msgstr "Reroll (%d left)"
-
-#: scripts/ui/card_select.gd
-msgid "Kart alma, devam et"
-msgstr "Skip card, continue"
-
-#: scripts/ui/card_select.gd
-msgid "Al"
-msgstr "Take"
-
-#: scripts/ui/card_select.gd
-msgid "TAKVİYE"
-msgstr "REINFORCEMENT"
-
-#: scripts/ui/card_select.gd
-msgid "YENİ BİRLİK"
-msgstr "NEW UNIT"
-
-#: scripts/ui/card_select.gd
-msgid "%d asker"
-msgstr "%d soldiers"
-
-#: scripts/ui/card_select.gd
 msgid "Değerler için üstüne gel."
 msgstr "Hover for stats."
-
-#: scripts/ui/card_select.gd
-msgid "Bölük en üst seviyede."
-msgstr "Squad is at max level."
-
-#: scripts/ui/card_select.gd
-msgid "Ordundaki bölük: %s -> Sv %d"
-msgstr "Squad in your army: %s -> Lv %d"
-
-#: scripts/ui/card_select.gd
-msgid "Ordu dolu: bir bölüğün yerine geçer."
-msgstr "Army full: it replaces a squad."
 
 #: scripts/ui/card_select.gd
 msgid "Yeni bölük olarak ızgaraya girer."
@@ -268,32 +304,12 @@ msgid "YÜKSELTME"
 msgstr "UPGRADE"
 
 #: scripts/ui/card_select.gd
-msgid "%s bölüğü"
-msgstr "%s squad"
-
-#: scripts/ui/card_select.gd
-msgid "Seviye: %s -> Sv %d   Güç %d -> %d"
-msgstr "Level: %s -> Lv %d   Power %d -> %d"
-
-#: scripts/ui/card_select.gd
 msgid "FERMAN"
 msgstr "EDICT"
 
 #: scripts/ui/card_select.gd
-msgid "Koşu boyunca kalıcı. Bir krallığın fermanı bir kez alınır."
-msgstr "Lasts the whole run. Each edict can be taken once."
-
-#: scripts/ui/card_select.gd
-msgid "Ordun dolu (%d/%d). %s hangi bölüğün yerine geçsin?"
-msgstr "Your army is full (%d/%d). Which squad should %s replace?"
-
-#: scripts/ui/card_select.gd
 msgid "Yerine geçilen bölük ve seviyeleri kaybolur; yeni bölük onun karesine girer."
 msgstr "The replaced squad and its levels are lost; the new squad takes its cell."
-
-#: scripts/ui/card_select.gd
-msgid "Vazgeç"
-msgstr "Cancel"
 
 #: scripts/ui/kingdom_select.gd
 msgid "FETİH"

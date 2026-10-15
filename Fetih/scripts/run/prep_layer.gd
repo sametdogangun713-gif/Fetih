@@ -7,7 +7,6 @@ extends CanvasLayer
 signal start_pressed
 
 const SIDE_WIDTH := 150.0  ## Sol panelin genişliği (640 px'lik ekranda küçük kalsın).
-const PICK_RADIUS := 0.6  ## Bölük seçme yarıçapı (karo).
 
 var dragging := -1  ## Sürüklenen bölüğün ordu sırası; -1 yok.
 var _meydan: Node
@@ -90,12 +89,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	var field: Battlefield = _meydan.battlefield
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-		var index := _squad_under(field.mouse_field())
+		var index: int = _meydan.player_index_at(field.mouse_field())
 		if index >= 0:
 			begin_drag(index)
 			get_viewport().set_input_as_handled()
 	elif event is InputEventMouseMotion:
-		var index := _squad_under(field.mouse_field())
+		var index: int = _meydan.player_index_at(field.mouse_field())
 		if index >= 0:
 			_info.text = SquadInfo.squad_details(RunState.army[index])
 			_info.add_theme_color_override("font_color", UiKit.COLOR_TEXT)
@@ -128,18 +127,6 @@ func cancel_drag() -> void:
 	dragging = -1
 	_band_label.visible = false
 	_move_view(index, _drag_from)
-
-
-## Fare altındaki oyuncu bölüğü (ordu sırası), yoksa -1. Bölük ~1 karo yarıçaplı daire sayılır.
-func _squad_under(field_pos: Vector2) -> int:
-	var best := -1
-	var best_d := PICK_RADIUS
-	for i in RunState.army.size():
-		var d := Formation.deploy_to_field(RunState.army[i].pos, SquadState.Team.PLAYER).distance_to(field_pos)
-		if d < best_d:
-			best = i
-			best_d = d
-	return best
 
 
 ## Görüntüyü yerleşim koordinatına taşır (sadece görüntü; kayıtlı konum drop_at'ta değişir).
