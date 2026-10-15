@@ -114,6 +114,38 @@ func _initialize() -> void:
 	await create_timer(1.5).timeout  # kart etkisi animasyonu
 	check("sıradaki savaş", run.battle_index == index_before + 1)
 	check("tekrar PREP", meydan.phase == meydan.Phase.PREP)
+	# Son inceleme bulgusu: kart seçilip animasyon sürerken "Kart alma" basılırsa savaş iki kez ilerlememeli.
+	meydan.enter(meydan.Phase.BATTLE)
+	var sim2: BattleSimulation = meydan.runner.simulation
+	while not sim2.finished:
+		sim2.step()
+	await process_frame
+	meydan.hud.continue_pressed.emit()
+	await process_frame
+	var index_double: int = run.battle_index
+	var quick: CardOffer = null
+	for o in run.card_offers():
+		if run.can_take(o) and not run.needs_replace(o):
+			quick = o
+			break
+	var any_card: Control = cards._content.find_children("*", "PanelContainer", true, false)[0]
+	var taken := [0]
+	cards.card_taken.connect(func(_o, _r) -> void: taken[0] += 1)
+	cards._on_take(quick, any_card)  # animasyon başlar (0.18 sn), kart henüz uygulanmadı
+	cards.skipped.emit()  # oyuncu hemen "Kart alma, devam et"
+	await create_timer(1.5).timeout
+	check("kart + atla: savaş bir kez ilerler (%d -> %d)" % [index_double, run.battle_index],
+			run.battle_index == index_double + 1)
+	# Yarım kalan kart animasyonu sonraki kart aşamasında eski kartı uygulamamalı.
+	meydan.enter(meydan.Phase.BATTLE)
+	var sim3: BattleSimulation = meydan.runner.simulation
+	while not sim3.finished:
+		sim3.step()
+	await process_frame
+	meydan.hud.continue_pressed.emit()
+	await create_timer(1.5).timeout
+	check("atlanan kart sonradan uygulanmadı (taken=%d)" % taken[0], taken[0] == 0)
+	check("sonraki kart aşaması bekliyor", meydan.phase == meydan.Phase.CARDS and run.battle_index == index_double + 1)
 	# Review Focus 4: ordu doluyken birlik kartı + vazgeç.
 	while run.army.size() < Balance.MAX_SQUADS:
 		var unit: UnitData = UnitCatalog.all()[run.army.size()]
