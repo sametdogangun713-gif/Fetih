@@ -48,7 +48,36 @@ func _initialize() -> void:
 	c.queue_free()
 	p.free()
 	g.free()
+	await _test_real_click(kit)
 	_finish()
+
+
+## Gerçek fare tıklaması (bas + bırak) düğmenin pressed sinyalini vermeli (odak bırakma basmayı iptal etmemeli).
+func _test_real_click(kit: GDScript) -> void:
+	var clicked := [0]
+	var b: Button = kit.button("Tık", func() -> void: clicked[0] += 1)
+	b.position = Vector2(40, 40)
+	b.size = Vector2(120, 24)
+	root.add_child(b)
+	await process_frame
+	var at := root.get_final_transform() * b.get_global_rect().get_center()
+	var motion := InputEventMouseMotion.new()
+	motion.position = at
+	motion.global_position = at
+	root.push_input(motion)
+	await process_frame
+	for down in [true, false]:
+		var ev := InputEventMouseButton.new()
+		ev.button_index = MOUSE_BUTTON_LEFT
+		ev.pressed = down
+		ev.position = at
+		ev.global_position = at
+		root.push_input(ev)
+		await process_frame
+	await process_frame
+	check("gerçek fare tıklaması düğmeye basar", clicked[0] == 1)
+	check("tıklamadan sonra odak bırakıldı", not b.has_focus())
+	b.queue_free()
 
 
 func _finish() -> void:

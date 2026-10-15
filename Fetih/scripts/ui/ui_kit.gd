@@ -227,9 +227,10 @@ static func button(text: String, on_pressed: Callable) -> Button:
 	var b := Button.new()
 	b.text = text
 	b.focus_mode = Control.FOCUS_ALL
+	# Odak bir sonraki karede bırakılır: hemen bırakılırsa Godot basmayı iptal eder (pressed hiç gelmez).
 	b.gui_input.connect(func(event: InputEvent) -> void:
 		if event is InputEventMouseButton and not event.pressed:
-			b.release_focus())
+			b.release_focus.call_deferred())
 	b.pressed.connect(click_sound)
 	b.pressed.connect(on_pressed)
 	b.mouse_entered.connect(hover_scale.bind(b, true))
