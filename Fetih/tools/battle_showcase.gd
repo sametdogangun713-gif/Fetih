@@ -7,6 +7,7 @@ extends SceneTree
 ##   Geç oyun: -- run <krallık sırası> <savaş sayısı> [hız]  (koşu o kadar savaş botla oynanır,
 ##     sonra sıradaki savaş açılır; bot alınabilen ilk kartı alır)
 ##   Başka ekran: -- scene res://scenes/run/prep.tscn [settings|pause]  (kayıt ayrı dosyaya)
+##   Meydan: -- meydan prep|battle|cards [krallık sırası] [oynanmış savaş sayısı]  (kayıt ayrı dosyaya)
 ##   Yakın kamera: herhangi bir yerde "zoom" (sabit 2x, otomatik takip kapalı).
 ##   İpuçsuz: herhangi bir yerde "notips" (ekran görüntüleri için).
 ##   Flaş/sarsıntı kapalı: herhangi bir yerde "nofx" (bellekte; ayar dosyasına yazılmaz).
@@ -66,6 +67,27 @@ func _initialize() -> void:
 				if child.get_script() == load("res://scripts/ui/pause_menu.gd"):
 					child.open()
 		return
+	if args.size() > 1 and args[0] == "meydan":
+		# -- meydan prep|battle|cards [krallık sırası] [oynanmış savaş sayısı]: Meydan sahnesi o aşamada açılır.
+		var kingdoms := KingdomCatalog.all()
+		var run := root.get_node("RunState")
+		run.start_run(kingdoms[(int(args[2]) if args.size() > 2 else 0) % kingdoms.size()], 11)
+		for i in (int(args[3]) if args.size() > 3 else 0):  # bot geçmiş savaşları oynar, alınabilen ilk kartı alır
+			run.finish_battle(_simulate(run))
+			for offer in run.card_offers():
+				if run.can_take(offer) and not run.needs_replace(offer):
+					run.take_card(offer)
+					break
+			run.advance()
+		if args[1] == "cards":
+			run.finish_battle(_simulate(run))
+		load("res://scripts/ui/screens.gd").next_phase = args[1]  # sınıf load() ile: autoload'sız derleme
+		var meydan: Node = load("res://scenes/run/meydan.tscn").instantiate()
+		root.add_child(meydan)
+		if zoom:
+			meydan.battlefield.camera.auto_follow = false
+			meydan.battlefield.camera._set_zoom_index(BattleCamera.ZOOM_LEVELS.size() - 1)
+		return
 	var battle: Node = load("res://scenes/battle/battle.tscn").instantiate()
 	if args.size() > 0 and args[0] == "list":
 		for s in range(1, 41):
@@ -103,7 +125,7 @@ func _initialize() -> void:
 		battle.battlefield.camera.auto_follow = false
 		battle.battlefield.camera._set_zoom_index(BattleCamera.ZOOM_LEVELS.size() - 1)
 	if args.size() > speed_arg:
-		battle._set_speed(int(args[speed_arg]))
+		battle.hud.set_speed(int(args[speed_arg]))
 
 
 ## Savaşı ekransız sonuna kadar oynatır (koşu modu sırasıyla aynı bölükler ve seed).

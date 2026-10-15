@@ -102,7 +102,7 @@ func _measure(scenario: String, secs: float) -> void:
 	root.add_child(scene)
 	if scenario in ["battle5", "boss"]:
 		_battle = scene.runner  # simülasyon + görüntü + efekt BattleRunner._process'te
-		scene._set_speed(_speed)
+		scene.hud.set_speed(_speed)
 		scene.runner.set_process(false)  # _process'i _on_frame çağırır (süresi ölçülsün)
 	await create_timer(WARMUP).timeout
 	_reset_samples()

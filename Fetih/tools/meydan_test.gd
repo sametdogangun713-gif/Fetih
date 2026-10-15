@@ -45,6 +45,18 @@ func _initialize() -> void:
 	prep.cancel_drag()
 	check("iptal eski yerde", run.army[0].pos == before)
 	check("iptal sonrası sürükleme yok", prep.dragging == -1)
+	# BATTLE: savaş başlar, bitince sonuç kaydedilir, "Devam" kart aşamasına geçirir.
+	meydan.enter(meydan.Phase.BATTLE)
+	check("savaş başladı", meydan.runner.running)
+	check("BATTLE: HUD görünür, hazırlık gizli", meydan.hud.visible and not meydan.prep.visible)
+	var sim: BattleSimulation = meydan.runner.simulation
+	while not sim.finished:
+		sim.step()
+	await process_frame
+	check("sonuç kaydedildi", run.results.size() == 1)
+	meydan.hud.continue_pressed.emit()
+	await process_frame
+	check("CARDS aşaması", meydan.phase == meydan.Phase.CARDS)
 	meydan.queue_free()
 	await process_frame
 	# Kayıttan dönüş: Screens.next_phase aşamayı belirler ve okunduktan sonra sıfırlanır.

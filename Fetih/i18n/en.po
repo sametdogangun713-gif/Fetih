@@ -11,34 +11,6 @@ msgstr ""
 msgid "Koşun kayıtlı. Ana menüye dönersen bu savaş baştan oynanır (sonuç değişmez)."
 msgstr "Your run is saved. If you return to the main menu, this battle replays from the start (same result)."
 
-#: scripts/battle/battle_controller.gd
-msgid "Duraklat (Esc)"
-msgstr "Pause (Esc)"
-
-#: scripts/battle/battle_controller.gd
-msgid "Süre: %.1f sn"
-msgstr "Time: %.1f s"
-
-#: scripts/battle/battle_controller.gd
-msgid "Savaş %d / %d  ·  Rakip: %s"
-msgstr "Battle %d / %d  ·  Opponent: %s"
-
-#: scripts/battle/battle_controller.gd
-msgid "  ·  BÜYÜK FETİH"
-msgstr "  ·  GRAND CONQUEST"
-
-#: scripts/battle/battle_controller.gd
-msgid "  ·  BOSS: %s"
-msgstr "  ·  BOSS: %s"
-
-#: scripts/battle/battle_controller.gd
-msgid "ZAFER! (%d asker hayatta)"
-msgstr "VICTORY! (%d soldiers alive)"
-
-#: scripts/battle/battle_controller.gd
-msgid "YENİLGİ (rakipte %d asker kaldı)"
-msgstr "DEFEAT (enemy has %d soldiers left)"
-
 #: scripts/data/role_rules.gd
 msgid "Savaşçı"
 msgstr "Warrior"
@@ -99,6 +71,26 @@ msgstr "Scouting"
 msgid "Koşu başına kart tekliflerini yeniden çekme hakkı (seviye başına 1)."
 msgstr "Rerolls for card offers each run (1 per level)."
 
+#: scripts/run/battle_hud.gd
+msgid "ZAFER! (%d asker hayatta)"
+msgstr "VICTORY! (%d soldiers alive)"
+
+#: scripts/run/battle_hud.gd
+msgid "YENİLGİ (rakipte %d asker kaldı)"
+msgstr "DEFEAT (enemy has %d soldiers left)"
+
+#: scripts/run/battle_hud.gd
+msgid "Süre: %.1f sn"
+msgstr "Time: %.1f s"
+
+#: scripts/run/battle_hud.gd
+msgid "Duraklat (Esc)"
+msgstr "Pause (Esc)"
+
+#: scripts/run/battle_hud.gd
+msgid "Devam"
+msgstr "Continue"
+
 #: scripts/run/meydan.gd
 msgid "Koşun kayıtlı: ana menüden \"Devam et\" ile buraya dönersin."
 msgstr "Your run is saved: use \"Continue\" in the main menu to come back here."
@@ -130,6 +122,18 @@ msgstr "Back row"
 #: scripts/run/prep_screen.gd
 msgid "Bölükleri sürükleyip bırakarak yerlerini değiştir."
 msgstr "Drag and drop squads to rearrange them."
+
+#: scripts/run/run_field.gd
+msgid "Savaş %d / %d  ·  Rakip: %s"
+msgstr "Battle %d / %d  ·  Opponent: %s"
+
+#: scripts/run/run_field.gd
+msgid "  ·  BÜYÜK FETİH"
+msgstr "  ·  GRAND CONQUEST"
+
+#: scripts/run/run_field.gd
+msgid "  ·  BOSS: %s"
+msgstr "  ·  BOSS: %s"
 
 #: scripts/run/squad_info.gd
 msgid "Savaş %d / %d"
@@ -366,10 +370,6 @@ msgstr "LOCKED. To unlock %s: beat its boss during a run (seal) and finish the c
 #: scripts/ui/pause_menu.gd
 msgid "DURAKLATILDI"
 msgstr "PAUSED"
-
-#: scripts/ui/pause_menu.gd
-msgid "Devam"
-msgstr "Continue"
 
 #: scripts/ui/pause_menu.gd
 msgid "Ana menüye dön"
