@@ -30,3 +30,13 @@ Yine de oyunun jeneriğinde teşekkür etmek iyi olur.
 - **Grassland 128x64:** 1024x896, hücre 128x128. Satır 0: 8 çimen karosu (hücrenin alt yarısında 128x64).
   Satır 1-2 ot öbeği, 3 yapraklı bitki, 4 kuru ot, 5-6 kaya (satır 6'da 4 adet).
 - **Plants:** her bitki ayrı PNG (128x64, 128x128, 256x128, 256x256); gövde dibi dolu alanın alt ortası.
+
+## Arayüz yazı tipleri (SIL Open Font License 1.1)
+
+Doğrudan `Fetih/assets/fonts/` içinde (oyunla dağıtılır); lisans metni yanında (`*_OFL.txt`). OFL: ticari kullanım ve
+oyunla birlikte dağıtım serbest; font tek başına satılamaz, değiştirilirse adı değişmeli.
+
+| Dosya | Yazı tipi | Yazar | Kaynak | İndirme |
+|---|---|---|---|---|
+| `Cinzel.ttf` | Cinzel (değişken, wght 400-900), başlıklar | Natanael Gama | https://github.com/google/fonts/tree/main/ofl/cinzel | 2026-10-15 |
+| `Nunito.ttf` | Nunito (değişken, wght 200-1000), metin | Vernon Adams, Cyreal, Jacques Le Bailly | https://github.com/google/fonts/tree/main/ofl/nunito | 2026-10-15 |

@@ -14,14 +14,15 @@ const COLOR_GOLD := Color("e8c25a")
 
 ## Panel ve düğme kenarı (Resurrect 64 gri-mor): 9 Kings tarzı koyu kutu, ince açık kenar.
 const COLOR_EDGE := Color("625565")
-## Piksel yazı tipi: Pixel Operator (CC0), Türkçe harfler eklenmiş (kaynak_assetler/fontlar/pixel_operator).
-## FONT_PATH 16 px, FONT_SMALL_PATH 8 px tasarımlı. Pikseller net kalsın diye yazı boyutu tasarım boyutunun
-## katına oturtulur (bkz. font_spec). Dosya yoksa Godot'un varsayılan yazı tipi kullanılır.
-const FONT_PATH := "res://assets/fonts/PixelOperator.ttf"
-const FONT_SMALL_PATH := "res://assets/fonts/PixelOperator8.ttf"
+## Arayüz yazı tipleri (OFL, Google Fonts): Cinzel başlık (fantastik büyük harf), Nunito metin.
+## İkisi değişken font (wght ekseni): aynı dosyadan FontVariation ile kalınlık türetilir.
+## Godot: stretch canvas_items metni pencere çözünürlüğünde çizer; kenar yumuşatma açık, hafif hinting.
+## Dosya yoksa Godot'un varsayılan yazı tipi kullanılır.
+const FONT_BODY_PATH := "res://assets/fonts/Nunito.ttf"
+const FONT_HEADING_PATH := "res://assets/fonts/Cinzel.ttf"
 
 static var _theme: Theme
-static var _fonts := {}  ## yol -> Font
+static var _fonts := {}  ## "yol|ağırlık" -> Font
 
 
 ## Ekranların kök düğümüne verilir; tüm alt düğümler bu yazı boyutunu, kutuları ve düğmeleri kullanır.
@@ -30,9 +31,8 @@ static var _fonts := {}  ## yol -> Font
 static func theme() -> Theme:
 	if _theme == null:
 		_theme = Theme.new()
-		var spec := font_spec(FONT_SIZE)
-		_theme.default_font = spec[0]
-		_theme.default_font_size = spec[1]
+		_theme.default_font = ui_font()
+		_theme.default_font_size = FONT_SIZE
 		var box := panel_style(COLOR_PANEL)
 		_theme.set_stylebox("panel", "PanelContainer", box)
 		_theme.set_stylebox("panel", "Panel", box)
@@ -49,42 +49,41 @@ static func theme() -> Theme:
 	return _theme
 
 
-## Piksel yazı tipi (small: 8 px tasarımlı). Kenar yumuşatma ve alt-piksel konum kapalı: pikseller keskin.
-## Godot: FontFile bir Resource'tur; ayarları bir kez verilir, onu kullanan her yazı aynı ayarla çizilir.
-static func pixel_font(small := false) -> Font:
-	var path := FONT_SMALL_PATH if small else FONT_PATH
-	if not _fonts.has(path):
+## Metin yazı tipi (Nunito), weight: 200-1000 (400 normal, 700 kalın).
+static func ui_font(weight := 500) -> Font:
+	return _font(FONT_BODY_PATH, weight)
+
+
+## Başlık yazı tipi (Cinzel), weight: 400-900.
+static func heading_font(weight := 700) -> Font:
+	return _font(FONT_HEADING_PATH, weight)
+
+
+## Godot: FontVariation bir FontFile'ı sarar ve OpenType eksen değeri (burada wght) verir; her ağırlık
+## bir kez kurulur, önbellekten paylaşılır.
+static func _font(path: String, weight: int) -> Font:
+	var key := "%s|%d" % [path, weight]
+	if not _fonts.has(key):
 		if not ResourceLoader.exists(path):
-			_fonts[path] = ThemeDB.fallback_font
+			_fonts[key] = ThemeDB.fallback_font
 		else:
-			var font: FontFile = load(path)
-			font.antialiasing = TextServer.FONT_ANTIALIASING_NONE
-			font.hinting = TextServer.HINTING_NONE
-			font.subpixel_positioning = TextServer.SUBPIXEL_POSITIONING_DISABLED
-			_fonts[path] = font
-	return _fonts[path]
+			var file: FontFile = load(path)
+			file.antialiasing = TextServer.FONT_ANTIALIASING_GRAY
+			file.hinting = TextServer.HINTING_LIGHT
+			var variation := FontVariation.new()
+			variation.base_font = file
+			variation.variation_opentype = {TextServerManager.get_primary_interface().name_to_tag("wght"): weight}
+			if path == FONT_BODY_PATH:  # Nunito'nun satır aralığı geniş: küçük arayüz yazısında 2 px sıkılaştır
+				variation.spacing_top = -1
+				variation.spacing_bottom = -1
+			_fonts[key] = variation
+	return _fonts[key]
 
 
-## İstenen yazı boyutu -> [yazı tipi, piksel net boyut]. Ekran 3x çizildiği için sadece tasarım
-## boyutunun katları net olur: küçük (<=9) 8 px font @8, gövde (10-14) 16 px font @16,
-## başlık (15-22) 8 px font @16 (iri pikseller), büyük (23+) 16 px font @32.
-static func font_spec(size: int) -> Array:
-	if not ResourceLoader.exists(FONT_PATH):
-		return [ThemeDB.fallback_font, size]
-	if size <= 9:
-		return [pixel_font(true), 8]
-	if size <= 14:
-		return [pixel_font(false), 16]
-	if size <= 22:
-		return [pixel_font(true), 16]
-	return [pixel_font(false), 32]
-
-
-## Bir Control'ün yazısını piksel net boyuta ayarlar (Label, Button...).
-static func set_font_size(control: Control, size: int) -> void:
-	var spec := font_spec(size)
-	control.add_theme_font_override("font", spec[0])
-	control.add_theme_font_size_override("font_size", spec[1])
+## Bir Control'ün yazı tipini ve boyutunu ayarlar (Label, Button...). heading: başlık fontu.
+static func set_font_size(control: Control, size: int, heading := false) -> void:
+	control.add_theme_font_override("font", heading_font() if heading else ui_font())
+	control.add_theme_font_size_override("font_size", size)
 
 
 ## Koyu kutu: 1 px kenar, keskin köşe, altta 2 px gölge (9 Kings panelleri gibi).
@@ -128,10 +127,10 @@ static func screen_root(screen: Control, margin := 10) -> VBoxContainer:
 	return content
 
 
-static func label(text: String, size := FONT_SIZE, color := COLOR_TEXT) -> Label:
+static func label(text: String, size := FONT_SIZE, color := COLOR_TEXT, heading := false) -> Label:
 	var l := Label.new()
 	l.text = text
-	set_font_size(l, size)
+	set_font_size(l, size, heading)
 	l.add_theme_color_override("font_color", color)
 	return l
 
