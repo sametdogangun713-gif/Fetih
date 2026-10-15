@@ -7,7 +7,7 @@ Evet → içerik eklemeye devam. Hayır → önce kart ve savaş sistemi düzelt
 - Kişi sayısı: 5. Her kişi ayrı oynar. Oyunu yöneten **yardım etmez, açıklama yapmaz**. Sadece izler ve not alır.
 - Süre: 30-45 dk, ya da oyuncu kendi isteğiyle bırakana kadar. **Bıraktığı anı ve nedenini yaz.** En önemli veri budur.
 - Kurulum: `Fetih.zip` dosyasını aç, `Fetih.exe` dosyasını çalıştır. Windows "bilinmeyen yayıncı" uyarısı verebilir (exe imzasız): "Ek bilgi" → "Yine de çalıştır".
-- Her oyuncu temiz kayıtla başlamalı. Önceki oyuncudan sonra `%APPDATA%\Godot\app_userdata\Fetih\` klasörünü sil. Sürüm: `0.12.0` (9 Kings görsel dili + Meydan: hazırlık, savaş ve kart seçimi tek sahnede, bölükler alanda serbestçe sürüklenir). Build: `Fetih/build/Fetih-0.12.0-windows.zip` (git dışı; içinde tek `Fetih.exe`).
+- Her oyuncu temiz kayıtla başlamalı. Önceki oyuncudan sonra `%APPDATA%\Godot\app_userdata\Fetih\` klasörünü sil. Sürüm: `0.12.1` (9 Kings görsel dili + Meydan: hazırlık, savaş ve kart seçimi tek sahnede, bölükler alanda serbestçe sürüklenir). Build: `Fetih/build/Fetih-0.12.1-windows.zip` (git dışı; içinde tek `Fetih.exe`).
 - Oyuncudan düşündüğünü sesli söylemesini iste ("şimdi neden bunu seçtin?").
 
 ## A. İzlerken not al (oyuncuya sorma)
